@@ -38,7 +38,10 @@
 using namespace obstacle_detector;
 
 ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
-  updateParams();
+  nh_local_.param<std::string>("pcl_frame", p_pcl_frame_, "base");
+  nh_local_.param<int>("max_unreceived_scans", p_max_unreceived_scans_, 1);
+  nh_local_.param<bool>("omit_overlapping_scans", p_omit_overlapping_scans_, true);
+  nh_local_.param<double>("scanners_separation", p_scanners_separation_, 0.45);
 
   front_scan_sub_ = nh_.subscribe("front_scan", 10, &ScansMerger::frontScanCallback, this);
   rear_scan_sub_ = nh_.subscribe("rear_scan", 10, &ScansMerger::rearScanCallback, this);
@@ -51,13 +54,6 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
 
   ROS_INFO("Scans Merger [OK]");
   ros::spin();
-}
-
-void ScansMerger::updateParams() {
-  nh_local_.param<std::string>("pcl_frame", p_pcl_frame_, "base");
-  nh_local_.param<int>("max_unreceived_scans", p_max_unreceived_scans_, 1);
-  nh_local_.param<bool>("omit_overlapping_scans", p_omit_overlapping_scans_, true);
-  nh_local_.param<double>("scanners_separation", p_scanners_separation_, 0.45);
 }
 
 void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {

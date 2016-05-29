@@ -5,16 +5,16 @@ using namespace arma;
 using namespace std;
 
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
-  obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
-  tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
-  untracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("untracked_obstacles", 10);
-
   nh_local_.param("fade_counter_size", p_fade_counter_size_, 50);
   nh_local_.param("min_correspondence_cost", p_min_correspondence_cost_, 0.1);
   nh_local_.param("pose_measure_variance", p_pose_measure_variance_, 1.0);
   nh_local_.param("pose_process_variance", p_pose_process_variance_, 1.0);
   nh_local_.param("radius_measure_variance", p_radius_measure_variance_, 1.0);
   nh_local_.param("radius_process_variance", p_radius_process_variance_, 1.0);
+
+  obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
+  tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
+  untracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("untracked_obstacles", 10);
 
   ROS_INFO("Obstacle Tracker [OK]");
   ros::Rate rate(100);

@@ -51,7 +51,6 @@ private:
   void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
   void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
   void publishPCL();
-  void updateParams();
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;

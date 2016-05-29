@@ -38,12 +38,12 @@
 using namespace obstacle_detector;
 
 ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
-  obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
-  markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
-
   nh_local_.param("circles_color", p_circles_color_, 1);
   nh_local_.param("segments_color", p_segments_color_, 1);
   nh_local_.param("alpha", p_alpha_, 1.0);
+
+  obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
+  markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
 
   setColor(circles_color_, p_circles_color_, p_alpha_);
   setColor(segments_color_, p_segments_color_, p_alpha_);
