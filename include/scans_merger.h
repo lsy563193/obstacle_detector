@@ -53,7 +53,6 @@ private:
   void publishPCL();
   void updateParams();
 
-  // ROS handles
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
@@ -69,7 +68,7 @@ private:
   int unreceived_rear_scans_;
 
   // Parameters
-  std::string p_pcl_frame_;          // TF frame name for the pcl message
+  std::string p_pcl_frame_;         // TF frame name for the pcl message
   bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
   double p_scanners_separation_;    // Distance between scanner centers
   int p_max_unreceived_scans_;      // Maximum allowable unreceived scans to start publishing one scan

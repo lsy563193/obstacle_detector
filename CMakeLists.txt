@@ -27,7 +27,7 @@ target_link_libraries(scans_merger ${catkin_LIBRARIES})
 add_dependencies(scans_merger ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 add_executable(obstacle_detector src/obstacle_detector.cpp include/obstacle_detector.h
-               include/point.h include/segment.h include/circle.h include/figure_fitting.h)
+               include/figures/point.h include/figures/segment.h include/figures/circle.h include/figures/figure_fitting.h)
 target_link_libraries(obstacle_detector ${catkin_LIBRARIES} ${ARMADILLO_LIBRARIES})
 add_dependencies(obstacle_detector ${${PROJECT_NAME}_EXPORTED_TARGETS})
 

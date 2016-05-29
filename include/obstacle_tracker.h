@@ -132,7 +132,6 @@ public:
 private:
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
-  // ROS handlers
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
@@ -140,7 +139,6 @@ private:
   ros::Publisher tracked_obstacles_pub_;
   ros::Publisher untracked_obstacles_pub_;
 
-  // Obstacle Tracker specific fields
   Obstacles tracked_obstacles_msg_;
   Obstacles untracked_obstacles_msg_;
 

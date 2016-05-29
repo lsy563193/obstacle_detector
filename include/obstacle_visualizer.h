@@ -51,7 +51,6 @@ private:
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles);
   void setColor(std_msgs::ColorRGBA& color, int color_code, float alpha);
 
-  // ROS handlers
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 

@@ -39,20 +39,6 @@ using namespace std;
 using namespace obstacle_detector;
 
 ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
-  updateParams();
-
-  if (p_use_scan_)
-    scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
-  else if (p_use_pcl_)
-    pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
-
-  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 5);
-
-  ROS_INFO("Obstacle Detector [OK]");
-  ros::spin();
-}
-
-void ObstacleDetector::updateParams() {
   nh_local_.param<std::string>("world_frame", p_world_frame_, "world");
   nh_local_.param<std::string>("scanner_frame", p_scanner_frame_, "scanner");
 
@@ -76,6 +62,16 @@ void ObstacleDetector::updateParams() {
   nh_local_.param<double>("min_x_range", p_min_x_range_, -2.0);
   nh_local_.param<double>("max_y_range", p_max_y_range_, 2.0);
   nh_local_.param<double>("min_y_range", p_min_y_range_, -2.0);
+
+  if (p_use_scan_)
+    scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
+  else if (p_use_pcl_)
+    pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
+
+  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 5);
+
+  ROS_INFO("Obstacle Detector [OK]");
+  ros::spin();
 }
 
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {

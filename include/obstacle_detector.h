@@ -41,10 +41,10 @@
 #include <sensor_msgs/PointCloud.h>
 #include <obstacle_detector/Obstacles.h>
 
-#include "../include/point.h"
-#include "../include/segment.h"
-#include "../include/circle.h"
-#include "../include/figure_fitting.h"
+#include "../include/figures/point.h"
+#include "../include/figures/segment.h"
+#include "../include/figures/circle.h"
+#include "../include/figures/figure_fitting.h"
 
 namespace obstacle_detector
 {
@@ -57,7 +57,6 @@ public:
 private:
   void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
   void pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl);
-  void updateParams();
 
   void processPoints();
   void groupPointsAndDetectSegments();
@@ -72,7 +71,6 @@ private:
   void publishObstacles();
   void transformToWorld();
 
-  // ROS handles
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
@@ -82,7 +80,6 @@ private:
 
   tf::TransformListener tf_listener_;
 
-  // Detector variables
   std::vector<Point> initial_points_;
   std::list<Segment> segments_;
   std::list<Circle>  circles_;
