@@ -46,11 +46,11 @@
 namespace obstacle_detector
 {
 
-double costFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
+double obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
   return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0) + pow(c1.radius - c2.radius, 2.0));
 }
 
-CircleObstacle mergeCircObstacles(const CircleObstacle& c1, const CircleObstacle& c2) {
+CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
   CircleObstacle c;
   c.center.x = (c1.center.x + c2.center.x) / 2.0;
   c.center.y = (c1.center.y + c2.center.y) / 2.0;
@@ -67,6 +67,7 @@ public:
 
     double TP = 0.01; // Sampling time in sec.
 
+    // Initialize Kalman Filter structures
     kf_.A(0, 1) = TP;
     kf_.A(2, 3) = TP;
     kf_.A(4, 5) = TP;
@@ -82,6 +83,10 @@ public:
     kf_.q_est(0) = obstacle.center.x;
     kf_.q_est(2) = obstacle.center.y;
     kf_.q_est(4) = obstacle.radius;
+
+    kf_.y(0) = obstacle.center.x;
+    kf_.y(1) = obstacle.center.y;
+    kf_.y(2) = obstacle.radius;
   }
 
   void setCovariances(double pose_m_var, double pose_p_var, double radius_m_var, double radius_p_var) {

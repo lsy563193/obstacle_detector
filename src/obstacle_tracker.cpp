@@ -36,7 +36,8 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
       }
     }
 
-    tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
+    if (!tracked_obstacles_msg_.circles.empty())
+      tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
 
     rate.sleep();
   }
@@ -70,10 +71,10 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
   for (int n = 0; n < N; ++n) {
     for (int t = 0; t < T; ++t)
-      cost_matrix(n, t) = costFunction(new_obstacles->circles[n], tracked_obstacles_[t].obstacle);
+      cost_matrix(n, t) = obstacleCostFunction(new_obstacles->circles[n], tracked_obstacles_[t].obstacle);
 
     for (int u = 0; u < U; ++u)
-      cost_matrix(n, u + T) = costFunction(new_obstacles->circles[n], untracked_obstacles_[u]);
+      cost_matrix(n, u + T) = obstacleCostFunction(new_obstacles->circles[n], untracked_obstacles_[u]);
   }
 
   cout << "Cost matrix:" << endl;
@@ -149,16 +150,15 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
    * If new obstacle corresponds with one and only one tracked obstacle - update it.
    * If new obstacle corresponds with one and only one untracked obstacle - save it as tracked and update it.
    *
-   * If two old obstacles connect into one, we call it a fusion.
-   * If one old obstacle splits into two, we call it a fission.
+   * If two old obstacles connect into one new obstacle, we call it a fusion.
+   * If one old obstacle splits into two new obstacles, we call it a fission.
    * A fusion occurs if two old (tracked or not) obstacles have the same corresponding new obstacle - check columnwise.
    * A fission occurs if two new obstacles have the same corresponding old (tracked or not) obstacle - check rowswise.
    * If a fusion occured - create a tracked obstacle from the two old obstacles, update it with the new one, and remove the two old ones.
    * If a fission occured - create two tracked obstacles from the single old obstacle and update them with the new ones.
    */
 
-  // Vector of indcises of tracked obstacles that will be removed
-  vector<int> erase_indices;
+  vector<int> erase_indices;  // Indcises of tracked obstacles that will be removed
 
   // Check for fusion
   for (int i = 0; i < T + U; ++i) {
@@ -169,20 +169,20 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         CircleObstacle c;
 
         if (i < T && j < T) {
-          c = mergeCircObstacles(tracked_obstacles_[i].obstacle, tracked_obstacles_[j].obstacle);
+          c = meanCircObstacle(tracked_obstacles_[i].obstacle, tracked_obstacles_[j].obstacle);
           erase_indices.push_back(i);
           erase_indices.push_back(j);
         }
         else if (i < T && j >= T) {
-          c = mergeCircObstacles(tracked_obstacles_[i].obstacle, untracked_obstacles_[j - T]);
+          c = meanCircObstacle(tracked_obstacles_[i].obstacle, untracked_obstacles_[j - T]);
           erase_indices.push_back(i);
         }
         else if (i >= T && j < T) {
-          c = mergeCircObstacles(untracked_obstacles_[i - T], tracked_obstacles_[j].obstacle);
+          c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].obstacle);
           erase_indices.push_back(j);
         }
         else if (i >= T && j >= T) {
-          c = mergeCircObstacles(untracked_obstacles_[i - T], untracked_obstacles_[j - T]);
+          c = meanCircObstacle(untracked_obstacles_[i - T], untracked_obstacles_[j - T]);
         }
 
         TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
@@ -209,14 +209,14 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         CircleObstacle c2;
 
         if (row_min_indices[i] < T) {
-          c1 = mergeCircObstacles(new_obstacles->circles[i], tracked_obstacles_[row_min_indices[i]].obstacle);
-          c2 = mergeCircObstacles(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].obstacle);
+          c1 = meanCircObstacle(new_obstacles->circles[i], tracked_obstacles_[row_min_indices[i]].obstacle);
+          c2 = meanCircObstacle(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].obstacle);
 
           erase_indices.push_back(row_min_indices[i]);
         }
         else if (row_min_indices[i] >= T) {
-          c1 = mergeCircObstacles(new_obstacles->circles[i], untracked_obstacles_[row_min_indices[i] - T]);
-          c2 = mergeCircObstacles(new_obstacles->circles[j], untracked_obstacles_[row_min_indices[j] - T]);
+          c1 = meanCircObstacle(new_obstacles->circles[i], untracked_obstacles_[row_min_indices[i] - T]);
+          c2 = meanCircObstacle(new_obstacles->circles[j], untracked_obstacles_[row_min_indices[j] - T]);
         }
 
         TrackedObstacle to1 = TrackedObstacle(c1, p_fade_counter_size_);
@@ -245,11 +245,11 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     if (row_min_indices[n] == -1) {
       new_untracked_obstacles.push_back(new_obstacles->circles[n]);
     }
-    else if (row_min_indices[n] < T && row_min_indices[n] >= 0) {
+    else if (row_min_indices[n] >= 0 && row_min_indices[n] < T) {
       tracked_obstacles_[row_min_indices[n]].updateMeasurement(new_obstacles->circles[n]);
     }
     else if (row_min_indices[n] >= T) {
-      CircleObstacle c = mergeCircObstacles(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
+      CircleObstacle c = meanCircObstacle(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
       TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
       to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
       to.updateMeasurement(new_obstacles->circles[n]);
