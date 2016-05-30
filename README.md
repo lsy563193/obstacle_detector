@@ -84,9 +84,10 @@ The package provides three custom messages types:
 
 Provided launch files are good examples of how to use obstacle_detector package. They give a full list of parameters used by each of provided nodes.
 
-* `single_scanner.launch` - Starts a single `hokuyo_node` to obtain laser scans from Hokuyo device, a `laser_scan_matcher_node` to provide appropriate transformation from global to local coordinate frame, `obstacle_detector` and `obstacle_visualizator` nodes, as well as `rviz` with provided configuration file.
-* `two_scanners.launch` - Starts two `hokuyo_node`s, assuming that the udev configuration provides links to both devices (if not, change the devices names to /dev/ttyACM0 and /dev/ttyACM1 appropriately), provides appropriate transformations with `static_transform_publisher`s, uses `scans_merger` to convert both scans into pcl, and runs `obstacle_detector`, `obstacle_visualizator` as well as `rviz`.
-* `virtual_scanner` - Used for debug and tests purposes. Starts a `static_scan_publisher`, provides global to local transformation and runs `obstacle_detector`, `obstacle_visualizator` and `rviz`.
+* `single_scanner.launch` - Starts a single `hokuyo_node` to obtain laser scans from Hokuyo device, a `laser_scan_matcher_node` to provide appropriate transformation from global to local coordinate frame, `obstacle_detector`, `obstacle_tracker` and `obstacle_visualizator` nodes, as well as `rviz` with provided configuration file.
+* `two_scanners.launch` - Starts two `hokuyo_node`s, assuming that the udev configuration provides links to both devices (if not, familiarize with the description in the doc/ folder or change the devices names to /dev/ttyACM0 and /dev/ttyACM1 appropriately), provides appropriate transformations with `static_transform_publisher`s, uses `scans_merger` to convert both scans into pcl, and runs `obstacle_detector`, `obstacle_tracker` and `obstacle_visualizator` nodes as well as `rviz`.
+* `virtual_scanner` - Used for debug and tests purposes. Starts a `static_scan_publisher`, provides global to local transformation and runs `obstacle_detector`, `obstacle_tracker`, `obstacle_visualizator` nodes and `rviz`.
+* `virtual_obstacles` - Used for debug and tests purposes. Starts a `virtual_obstacles_publisher`, provides global to local transformation and runs `obstacle_tracker`, `obstacle_visualizator` nodes and `rviz`.
 
 _Mateusz Przybyla_
 
