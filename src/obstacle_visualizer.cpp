@@ -37,9 +37,16 @@
 
 using namespace obstacle_detector;
 
-ObstacleVisualizer::ObstacleVisualizer() : nh_("") {
+ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
+  nh_local_.param("circles_color", p_circles_color_, 1);
+  nh_local_.param("segments_color", p_segments_color_, 1);
+  nh_local_.param("alpha", p_alpha_, 1.0);
+
   obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
   markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
+
+  setColor(circles_color_, p_circles_color_, p_alpha_);
+  setColor(segments_color_, p_segments_color_, p_alpha_);
 
   ROS_INFO("Obstacle Visualizer [OK]");
   ros::spin();
@@ -50,23 +57,18 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
 
   // Create markers for all the circular obstacles
   visualization_msgs::Marker circle_marker;
-  circle_marker.header.frame_id = obstacles->header.frame_id;
-  circle_marker.header.stamp = ros::Time::now();
-  circle_marker.ns = "circles";
-  circle_marker.id = 0;
-  circle_marker.type = visualization_msgs::Marker::CYLINDER;
-  circle_marker.action = visualization_msgs::Marker::ADD;
-  circle_marker.pose.position.z = -0.1;
-  circle_marker.pose.orientation.x = 0.0;
-  circle_marker.pose.orientation.y = 0.0;
-  circle_marker.pose.orientation.z = 0.0;
+
+  circle_marker.header.frame_id    = obstacles->header.frame_id;
+  circle_marker.header.stamp       = ros::Time::now();
+  circle_marker.lifetime           = ros::Duration();
+  circle_marker.id                 = 0;
+  circle_marker.ns                 = "circles";
+  circle_marker.type               = visualization_msgs::Marker::CYLINDER;
+  circle_marker.action             = visualization_msgs::Marker::ADD;
+  circle_marker.pose.position.z    = -0.2;
   circle_marker.pose.orientation.w = 1.0;
-  circle_marker.scale.z = 0.1;
-  circle_marker.color.r = 0.2;
-  circle_marker.color.g = 0.8;
-  circle_marker.color.b = 0.2;
-  circle_marker.color.a = 1.0;
-  circle_marker.lifetime = ros::Duration(0.1);
+  circle_marker.scale.z            = 0.1;
+  circle_marker.color              = circles_color_;
 
   for (auto circle : obstacles->circles) {
     circle_marker.pose.position.x = circle.center.x;
@@ -78,29 +80,33 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
     markers_array.markers.push_back(circle_marker);
   }
 
+  // Add some empty markers with DELETE action to get rid of the old ones
+  circle_marker.action = visualization_msgs::Marker::DELETE;
+  circle_marker.scale.x = 0.0;
+  circle_marker.scale.y = 0.0;
+  circle_marker.scale.z = 0.0;
+
+  for (int i = 0; i < 20; ++i) {
+    markers_array.markers.push_back(circle_marker);
+    circle_marker.id++;
+  }
+
   // Create markers for all the segment obstacles
   visualization_msgs::Marker segments_marker;
-  segments_marker.header.frame_id = obstacles->header.frame_id;
-  segments_marker.header.stamp = ros::Time::now();
-  segments_marker.ns = "segments";
-  segments_marker.id = 0;
-  segments_marker.type = visualization_msgs::Marker::LINE_LIST;
-  segments_marker.action = visualization_msgs::Marker::ADD;
-  segments_marker.pose.position.x = 0.0;
-  segments_marker.pose.position.y = 0.0;
-  segments_marker.pose.position.z = -0.1;
-  segments_marker.pose.orientation.x = 0.0;
-  segments_marker.pose.orientation.y = 0.0;
-  segments_marker.pose.orientation.z = 0.0;
+
+  segments_marker.header.frame_id    = obstacles->header.frame_id;
+  segments_marker.header.stamp       = ros::Time::now();
+  segments_marker.lifetime           = ros::Duration();
+  segments_marker.id                 = 0;
+  segments_marker.ns                 = "segments";
+  segments_marker.type               = visualization_msgs::Marker::LINE_LIST;
+  segments_marker.action             = visualization_msgs::Marker::ADD;
+  segments_marker.pose.position.z    = -0.1;
   segments_marker.pose.orientation.w = 1.0;
-  segments_marker.scale.x = 0.04;
-  segments_marker.scale.y = 0.04;
-  segments_marker.scale.z = 0.04;
-  segments_marker.color.r = 1.0;
-  segments_marker.color.g = 0.0;
-  segments_marker.color.b = 0.0;
-  segments_marker.color.a = 1.0;
-  segments_marker.lifetime = ros::Duration(0.1);
+  segments_marker.scale.x            = 0.04;
+  segments_marker.scale.y            = 0.04;
+  segments_marker.scale.z            = 0.1;
+  segments_marker.color              = segments_color_;
 
   for (auto segment : obstacles->segments) {
     segments_marker.points.push_back(segment.first_point);
@@ -110,6 +116,53 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   markers_array.markers.push_back(segments_marker);
 
   markers_pub_.publish(markers_array);
+}
+
+void ObstacleVisualizer::setColor(std_msgs::ColorRGBA &color, int color_code, float alpha) {
+  switch (color_code) {
+  case 0:
+    color.r = 0.0;
+    color.g = 0.0;
+    color.b = 0.0;
+    break;
+  case 1:
+    color.r = 1.0;
+    color.g = 1.0;
+    color.b = 1.0;
+    break;
+  case 2:
+    color.r = 1.0;
+    color.g = 0.0;
+    color.b = 0.0;
+    break;
+  case 3:
+    color.r = 0.0;
+    color.g = 1.0;
+    color.b = 0.0;
+    break;
+  case 4:
+    color.r = 0.0;
+    color.g = 0.0;
+    color.b = 1.0;
+    break;
+  case 5:
+    color.r = 1.0;
+    color.g = 1.0;
+    color.b = 0.0;
+    break;
+  case 6:
+    color.r = 1.0;
+    color.g = 0.0;
+    color.b = 1.0;
+    break;
+  case 7:
+    color.r = 0.0;
+    color.g = 1.0;
+    color.b = 1.0;
+    break;
+  }
+
+  color.a = alpha;
 }
 
 int main(int argc, char** argv) {

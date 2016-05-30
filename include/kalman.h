@@ -35,42 +35,72 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud.h>
+#define ARMA_DONT_USE_CXX11
+#include <armadillo>
 
-namespace obstacle_detector
-{
-
-class ScansMerger
+class KalmanFilter
 {
 public:
-  ScansMerger();
+  KalmanFilter(uint dim_in, uint dim_out, uint dim_state) : l(dim_in), m(dim_out), n(dim_state) {
+    using arma::mat;
+    using arma::vec;
+
+    A = mat(n,n).eye();
+    B = mat(n,l).zeros();
+    C = mat(m,n).zeros();
+
+    Q = mat(n,n).eye();
+    R = mat(m,m).eye();
+    P = mat(n,n).eye();
+
+    K = mat(n,m).eye();
+
+    u = vec(l).zeros();
+    q_pred = vec(n).zeros();
+    q_est = vec(n).zeros();
+    y = vec(m).zeros();
+  }
+
+  void updateState() {
+    using arma::mat;
+
+    // Identity matrix
+    mat I = arma::eye<mat>(n,n);
+
+    // Predict State
+    q_pred = A * q_est + B * u;
+
+    P = A * P * trans(A) + Q;
+
+    // Correct state
+    K = P * trans(C) * inv(C * P * trans(C) + R);
+    q_est = q_pred + K * (y - C * q_pred);
+    P = (I - K * C) * P;
+  }
+
+public:
+  // System matrices:
+  arma::mat A;       // State
+  arma::mat B;       // Input
+  arma::mat C;       // Output
+
+  // Covariance matrices:
+  arma::mat Q;       // Process
+  arma::mat R;       // Measurement
+  arma::mat P;       // Estimate error
+
+  // Kalman gain matrix:
+  arma::mat K;
+
+  // Signals:
+  arma::vec u;       // Input
+  arma::vec q_pred;  // Predicted state
+  arma::vec q_est;   // Estimated state
+  arma::vec y;       // Measurement
 
 private:
-  void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
-  void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
-  void publishPCL();
-
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
-
-  ros::Subscriber front_scan_sub_;
-  ros::Subscriber rear_scan_sub_;
-  ros::Publisher  pcl_pub_;
-
-  sensor_msgs::PointCloud pcl_msg_;
-
-  bool first_scan_received_;
-  bool second_scan_received_;
-  int unreceived_front_scans_;
-  int unreceived_rear_scans_;
-
-  // Parameters
-  std::string p_pcl_frame_;         // TF frame name for the pcl message
-  bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
-  double p_scanners_separation_;    // Distance between scanner centers
-  int p_max_unreceived_scans_;      // Maximum allowable unreceived scans to start publishing one scan
+  // Dimensions:
+  uint l;             // Input
+  uint m;             // Output
+  uint n;             // State
 };
-
-} // namespace obstacle_detector

@@ -39,20 +39,6 @@ using namespace std;
 using namespace obstacle_detector;
 
 ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
-  updateParams();
-
-  if (p_use_scan_)
-    scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
-  else if (p_use_pcl_)
-    pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
-
-  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 5);
-
-  ROS_INFO("Obstacle Detector [OK]");
-  ros::spin();
-}
-
-void ObstacleDetector::updateParams() {
   nh_local_.param<std::string>("world_frame", p_world_frame_, "world");
   nh_local_.param<std::string>("scanner_frame", p_scanner_frame_, "scanner");
 
@@ -60,22 +46,41 @@ void ObstacleDetector::updateParams() {
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
   nh_local_.param<bool>("transform_to_world", p_transform_to_world, true);
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
+  nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
 
-  nh_local_.param<int>("min_group_points", p_min_group_points_, 3);
+  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
   nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
   nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);
   nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.100);
   nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.200);
   nh_local_.param<double>("max_merge_spread", p_max_merge_spread_, 0.070);
-  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.300);
-  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.050);
+  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.200);
+  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.020);
 
-  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 5.0);
+  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 6.0);
   nh_local_.param<double>("max_x_range", p_max_x_range_, 2.0);
   nh_local_.param<double>("min_x_range", p_min_x_range_, -2.0);
   nh_local_.param<double>("max_y_range", p_max_y_range_, 2.0);
   nh_local_.param<double>("min_y_range", p_min_y_range_, -2.0);
+
+  if (p_use_scan_)
+    scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
+  else if (p_use_pcl_)
+    pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
+
+  if (p_transform_to_world) {
+    try {
+        tf_listener_.waitForTransform(p_world_frame_, p_scanner_frame_, ros::Time::now(), ros::Duration(5.0));
+    } catch (tf::TransformException ex) {
+        ROS_ERROR("%s",ex.what());
+    }
+  }
+
+  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 5);
+
+  ROS_INFO("Obstacle Detector [OK]");
+  ros::spin();
 }
 
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
@@ -209,7 +214,7 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
   if (s1.first_point().cross(s2.first_point()) < 0.0)
     return compareAndMergeSegments(s2, s1);
 
-  if ((s1.last_point() - s2.first_point()).length() < p_max_merge_separation_) {
+  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
     list<Point> merged_points;
     merged_points.insert(merged_points.begin(), s1.point_set().begin(), s1.point_set().end());
     merged_points.insert(merged_points.end(), s2.point_set().begin(), s2.point_set().end());
@@ -230,12 +235,18 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
 }
 
 void ObstacleDetector::detectCircles() {
-  for (const Segment& s : segments_) {
-    Circle c(s);
+  for (auto itr = segments_.begin(); itr != segments_.end(); ++itr) {
+    Circle c(*itr);
     c.setRadius(c.radius() + p_radius_enlargement_);
 
-    if (c.radius() < p_max_circle_radius_)
+    if (c.radius() < p_max_circle_radius_) {
       circles_.push_back(c);
+
+      if (p_discard_converted_segments_) {
+        itr = segments_.erase(itr);
+        --itr;
+      }
+    }
   }
 }
 
@@ -285,48 +296,34 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
 }
 
 void ObstacleDetector::transformToWorld() {
-  geometry_msgs::PointStamped point_l;  // Point in local (scanner) coordinate frame
-  geometry_msgs::PointStamped point_w;  // Point in global (world) coordinate frame
-
-  point_l.header.stamp = ros::Time::now();
-  point_l.header.frame_id = p_scanner_frame_;
-
-  point_w.header.stamp = ros::Time::now();
-  point_w.header.frame_id = p_world_frame_;
-
   try {
-    tf_listener_.waitForTransform(p_world_frame_, p_scanner_frame_, ros::Time::now(), ros::Duration(3.0));
+    tf::StampedTransform transform;
+    tf_listener_.lookupTransform(p_world_frame_, p_scanner_frame_, ros::Time(0), transform);
+
+    tf::Vector3 origin = transform.getOrigin();
+    double yaw = tf::getYaw(transform.getRotation());
 
     for (auto it = circles_.begin(); it != circles_.end(); ++it) {
-      if (it->center().x < p_max_x_range_ && it->center().x > p_min_x_range_ &&
-          it->center().y < p_max_y_range_ && it->center().y > p_min_y_range_)
-      {
-        point_l.point.x = it->center().x;
-        point_l.point.y = it->center().y;
-        tf_listener_.transformPoint(p_world_frame_, point_l, point_w);
-        it->setCenter(point_w.point.x, point_w.point.y);
-      }
-      else {
-        it = circles_.erase(it);
-        --it;
-      }
+      Point p;
+      p.x = it->center().x * cos(yaw) - it->center().y * sin(yaw) + origin.x();
+      p.y = it->center().x * sin(yaw) + it->center().y * cos(yaw) + origin.y();
+
+      it->setCenter(p.x, p.y);
     }
 
     for (Segment& s : segments_) {
-      point_l.point.x = s.first_point().x;
-      point_l.point.y = s.first_point().y;
-      tf_listener_.transformPoint(p_world_frame_, point_l, point_w);
-      s.setFirstPoint(point_w.point.x, point_w.point.y);
+      Point p;
+      p.x = s.first_point().x * cos(yaw) - s.first_point().y * sin(yaw) + origin.x();
+      p.y = s.first_point().x * sin(yaw) + s.first_point().y * cos(yaw) + origin.y();
+      s.setFirstPoint(p.x, p.y);
 
-      point_l.point.x = s.last_point().x;
-      point_l.point.y = s.last_point().y;
-      tf_listener_.transformPoint(p_world_frame_, point_l, point_w);
-      s.setLastPoint(point_w.point.x, point_w.point.y);
+      p.x = s.last_point().x * cos(yaw) - s.last_point().y * sin(yaw) + origin.x();
+      p.y = s.last_point().x * sin(yaw) + s.last_point().y * cos(yaw) + origin.y();
+      s.setLastPoint(p.x, p.y);
     }
   }
   catch (tf::TransformException ex) {
     ROS_ERROR("%s",ex.what());
-    ros::Duration(1.0).sleep();
   }
 }
 
