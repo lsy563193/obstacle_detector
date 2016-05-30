@@ -57,20 +57,18 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
 
   // Create markers for all the circular obstacles
   visualization_msgs::Marker circle_marker;
-  circle_marker.header.frame_id = obstacles->header.frame_id;
-  circle_marker.header.stamp = ros::Time::now();
-  circle_marker.ns = "circles";
-  circle_marker.id = 0;
-  circle_marker.type = visualization_msgs::Marker::CYLINDER;
-  circle_marker.action = visualization_msgs::Marker::ADD;
-  circle_marker.pose.position.z = -0.2;
-  circle_marker.pose.orientation.x = 0.0;
-  circle_marker.pose.orientation.y = 0.0;
-  circle_marker.pose.orientation.z = 0.0;
+
+  circle_marker.header.frame_id    = obstacles->header.frame_id;
+  circle_marker.header.stamp       = ros::Time::now();
+  circle_marker.lifetime           = ros::Duration();
+  circle_marker.id                 = 0;
+  circle_marker.ns                 = "circles";
+  circle_marker.type               = visualization_msgs::Marker::CYLINDER;
+  circle_marker.action             = visualization_msgs::Marker::ADD;
+  circle_marker.pose.position.z    = -0.2;
   circle_marker.pose.orientation.w = 1.0;
-  circle_marker.scale.z = 0.1;
-  circle_marker.color = circles_color_;
-  circle_marker.lifetime = ros::Duration(0.0999);
+  circle_marker.scale.z            = 0.1;
+  circle_marker.color              = circles_color_;
 
   for (auto circle : obstacles->circles) {
     circle_marker.pose.position.x = circle.center.x;
@@ -82,26 +80,33 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
     markers_array.markers.push_back(circle_marker);
   }
 
+  // Add some empty markers with DELETE action to get rid of the old ones
+  circle_marker.action = visualization_msgs::Marker::DELETE;
+  circle_marker.scale.x = 0.0;
+  circle_marker.scale.y = 0.0;
+  circle_marker.scale.z = 0.0;
+
+  for (int i = 0; i < 20; ++i) {
+    markers_array.markers.push_back(circle_marker);
+    circle_marker.id++;
+  }
+
   // Create markers for all the segment obstacles
   visualization_msgs::Marker segments_marker;
-  segments_marker.header.frame_id = obstacles->header.frame_id;
-  segments_marker.header.stamp = ros::Time::now();
-  segments_marker.ns = "segments";
-  segments_marker.id = 0;
-  segments_marker.type = visualization_msgs::Marker::LINE_LIST;
-  segments_marker.action = visualization_msgs::Marker::ADD;
-  segments_marker.pose.position.x = 0.0;
-  segments_marker.pose.position.y = 0.0;
-  segments_marker.pose.position.z = -0.1;
-  segments_marker.pose.orientation.x = 0.0;
-  segments_marker.pose.orientation.y = 0.0;
-  segments_marker.pose.orientation.z = 0.0;
+
+  segments_marker.header.frame_id    = obstacles->header.frame_id;
+  segments_marker.header.stamp       = ros::Time::now();
+  segments_marker.lifetime           = ros::Duration();
+  segments_marker.id                 = 0;
+  segments_marker.ns                 = "segments";
+  segments_marker.type               = visualization_msgs::Marker::LINE_LIST;
+  segments_marker.action             = visualization_msgs::Marker::ADD;
+  segments_marker.pose.position.z    = -0.1;
   segments_marker.pose.orientation.w = 1.0;
-  segments_marker.scale.x = 0.04;
-  segments_marker.scale.y = 0.04;
-  segments_marker.scale.z = 0.1;
-  segments_marker.color = segments_color_;
-  segments_marker.lifetime = ros::Duration(0.0999);
+  segments_marker.scale.x            = 0.04;
+  segments_marker.scale.y            = 0.04;
+  segments_marker.scale.z            = 0.1;
+  segments_marker.color              = segments_color_;
 
   for (auto segment : obstacles->segments) {
     segments_marker.points.push_back(segment.first_point);
