@@ -92,6 +92,7 @@ private:
   bool p_use_pcl_;                // Use data from point clouds
   bool p_use_split_and_merge_;    // If false, iterative closest point is used instead of split and merge
   bool p_transform_to_world;      // Transform obstacles to world coordinate frame
+  bool p_discard_converted_segments_; // Do not publish segments from which the circles were obtained
 
   int    p_min_group_points_;     // Miminal number of points in a set to process it further
   double p_distance_proportion_;  // Proportion of allowable distances to the range of a point (based on scan angle increment)
