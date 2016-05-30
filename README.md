@@ -14,7 +14,8 @@ The main node which converts messages of type `sensor_msgs/LaserScan` from topic
 * `~use_scan` (bool, default: true) - use laser scan messages,
 * `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl is chosen, scan will have priority),
 * `~transform_to_world` (bool, default: true) - choose whether the obstacles should be published as described in the local or global coordinate frame,
-* `~max_scanner_range` (double, default: 5.0) - limitation on laser scanner range (in meters),
+* `~discard_converted_segments` (bool, default: true) - do not publish segments, from which the circles were spawned,
+* `~max_scanner_range` (double, default: 6.0) - limitation on laser scanner range (in meters),
 * `~max_x_range` (double, default: 2.0) - limitation on global coordinates (obstacles detected behind these limitations will not be published),
 * `~min_x_range` (double, default: -2.0) - as above,
 * `~max_y_range` (double, default: 2.0) - as above,
@@ -23,24 +24,24 @@ The main node which converts messages of type `sensor_msgs/LaserScan` from topic
 The following set of local parameters is dedicated to the algorithm itself:
 
 * `~use_split_and_merge` (bool, default: false) - choose wether to use Iterative End Point Fit or Split And Merge algorithm to detect segments,
-* `~min_group_points` (int, default: 3) - minimum number of points comprising a group to be further processed,
+* `~min_group_points` (int, default: 5) - minimum number of points comprising a group to be further processed,
 * `~max_group_distance` (double, default: 0.100) - if the distance between two points is greater than this value, start a new group,
 * `~distance_proportion` (double, default: 0.006136) - enlarge the allowable distance between point proportionally to the range of point,
 * `~max_split_distance` (double, default: 0.100) - if a point in group lays further from a leading line than this value, split the group, 
 * `~max_merge_separation` (double, default: 0.200) - if distance between obstacles is smaller than this value, consider merging them,
 * `~max_merge_spread` (double, default: 0.070) - merge two segments if all of their extreme points lay closer to the leading line than this value,
-* `~max_circle_radius` (double, default: 0.300) - if a circle obtained from a group would have greater radius than this value, skip it, 
-* `~radius_enlargement` (double, default: 0.050) - enlarge the circles radius by this value.
+* `~max_circle_radius` (double, default: 0.200) - if a circle obtained from a group would have greater radius than this value, skip it, 
+* `~radius_enlargement` (double, default: 0.020) - enlarge the circles radius by this value.
 
 #### 1.2. The obstacle_tracker node
 The node tracks and filters the circular obstacles with the use of Kalman Filter. The node works in a synchronous manner with the rate of 100 Hz. If detected obstacles are published less often, the tracker will super-sample them and smoothen their position and radius (their changes in time). The following local parameters can be used to tune the node:
 
-* `~fade_counter_size` (int, default: 50) - number of samples after which (if no update occured) the obstacle will be discarded,
-* `~min_correspondence_cost` (double, default 0.1) - a threshold for correspondence test,
+* `~fade_counter_size` (int, default: 100) - number of samples after which (if no update occured) the obstacle will be discarded,
+* `~min_correspondence_cost` (double, default 0.6) - a threshold for correspondence test,
 * `~pose_measure_variance` (double, default 1.0) - measurement variance of obstacles position (parameter of Kalman Filter),
 * `~pose_process_variance` (double, default 1.0) - process variance of obstacles position (parameter of Kalman Filter),
-* `~radius_measure_variance` (double, default 1.0) - measurement variance of obstacles radius (parameter of Kalman Filter),
-* `~radius_process_variance` (double, default 1.0) - process variance of obstacles radius (parameter of Kalman Filter).
+* `~radius_measure_variance` (double, default 0.001) - measurement variance of obstacles radius (parameter of Kalman Filter),
+* `~radius_process_variance` (double, default 0.001) - process variance of obstacles radius (parameter of Kalman Filter).
 
 #### 1.3. The obstacle_visualizer node
 The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few parameters to customize the markers:

@@ -48,17 +48,17 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
 
-  nh_local_.param<int>("min_group_points", p_min_group_points_, 3);
+  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
   nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
   nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);
   nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.100);
   nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.200);
   nh_local_.param<double>("max_merge_spread", p_max_merge_spread_, 0.070);
-  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.300);
-  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.050);
+  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.200);
+  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.020);
 
-  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 5.0);
+  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 6.0);
   nh_local_.param<double>("max_x_range", p_max_x_range_, 2.0);
   nh_local_.param<double>("min_x_range", p_min_x_range_, -2.0);
   nh_local_.param<double>("max_y_range", p_max_y_range_, 2.0);

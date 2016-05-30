@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -78,13 +78,14 @@ Visualization Manager:
       Use rainbow: false
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        {}
+        circles: true
+        segments: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /untracked_obstacles_markers
@@ -107,13 +108,19 @@ Visualization Manager:
       Frame Timeout: 9999
       Frames:
         All Enabled: true
+        scanner:
+          Value: true
+        world:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        world:
+          scanner:
+            {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -148,11 +155,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 79.7728
+      Scale: 138.188
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.19474
-      Y: -0.140864
+      X: 0.0572462
+      Y: 0.409111
     Saved: ~
 Window Geometry:
   Displays:
