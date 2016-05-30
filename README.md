@@ -67,7 +67,7 @@ The auxiliary node which publishes a set of virtual obstacles of type `obstacles
 
 ### 2. The messages
 
-The package provide three custom messages types:
+The package provides three custom messages types:
 
 * `CircleObstacle`
   * `geometry_msgs/Point center`
