@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Software License Agreement (BSD License)
  *
  * Copyright (c) 2015, Poznan University of Technology
@@ -38,39 +38,125 @@
 #define ARMA_DONT_USE_CXX11
 
 #include <armadillo>
-#include <list>
-#include <vector>
-
 #include <ros/ros.h>
-#include <obstacle_detector/CircleObstacle.h>
-#include <obstacle_detector/SegmentObstacle.h>
 #include <obstacle_detector/Obstacles.h>
 
-#include "../include/circle.h"
+#include "../include/kalman.h"
 
 namespace obstacle_detector
 {
 
-double CircleDistance(const CircleObstacle& c1, const CircleObstacle& c2) {
-  return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0));
+double obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
+  return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0) + pow(c1.radius - c2.radius, 2.0));
 }
+
+CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
+  CircleObstacle c;
+  c.center.x = (c1.center.x + c2.center.x) / 2.0;
+  c.center.y = (c1.center.y + c2.center.y) / 2.0;
+  c.radius = (c1.radius + c2.radius) / 2.0;
+  return c;
+}
+
+class TrackedObstacle {
+public:
+  TrackedObstacle(const CircleObstacle& init_obstacle, int fade_counter_size) : kf_(0, 3, 6) {
+    obstacle = init_obstacle;
+    fade_counter_size_ = fade_counter_size;
+    fade_counter_ = fade_counter_size;
+
+    double TP = 0.01; // Sampling time in sec.
+
+    // Initialize Kalman Filter structures
+    kf_.A(0, 1) = TP;
+    kf_.A(2, 3) = TP;
+    kf_.A(4, 5) = TP;
+
+    kf_.C(0, 0) = 1;
+    kf_.C(1, 2) = 1;
+    kf_.C(2, 4) = 1;
+
+    kf_.q_pred(0) = obstacle.center.x;
+    kf_.q_pred(2) = obstacle.center.y;
+    kf_.q_pred(4) = obstacle.radius;
+
+    kf_.q_est(0) = obstacle.center.x;
+    kf_.q_est(2) = obstacle.center.y;
+    kf_.q_est(4) = obstacle.radius;
+
+    kf_.y(0) = obstacle.center.x;
+    kf_.y(1) = obstacle.center.y;
+    kf_.y(2) = obstacle.radius;
+  }
+
+  void setCovariances(double pose_m_var, double pose_p_var, double radius_m_var, double radius_p_var) {
+    kf_.R(0, 0) = pose_m_var;
+    kf_.R(1, 1) = pose_m_var;
+    kf_.R(2, 2) = radius_m_var;
+
+    kf_.Q(0, 0) = pose_p_var;
+    kf_.Q(2, 2) = pose_p_var;
+    kf_.Q(4, 4) = radius_p_var;
+  }
+
+  void updateMeasurement(const CircleObstacle& new_obstacle) {
+    kf_.y(0) = new_obstacle.center.x;
+    kf_.y(1) = new_obstacle.center.y;
+    kf_.y(2) = new_obstacle.radius;
+
+    fade_counter_ = fade_counter_size_;
+  }
+
+  void updateTracking() {
+    kf_.updateState();
+
+    obstacle.center.x = kf_.q_est(0);
+    obstacle.center.y = kf_.q_est(2);
+    obstacle.radius = kf_.q_est(4);
+
+    fade_counter_--;
+  }
+
+  bool hasFaded() {
+    return ((fade_counter_ <= 0) ? true : false);
+  }
+
+  CircleObstacle obstacle;
+
+private:
+  KalmanFilter kf_;
+  int fade_counter_size_;
+  int fade_counter_;  // If the fade counter reaches 0, remove the obstacle from the list
+};
+
 
 class ObstacleTracker {
 public:
   ObstacleTracker();
 
 private:
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles);
-  void findCorrespondences(const arma::mat& distances, arma::imat& correspondences);
+  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
-  ros::Publisher obstacles_pub_;
+  ros::Publisher tracked_obstacles_pub_;
+  ros::Publisher untracked_obstacles_pub_;
 
-  std::vector<CircleObstacle> tracked_obstacles_;
+  Obstacles tracked_obstacles_msg_;
+  Obstacles untracked_obstacles_msg_;
+
+  std::vector<TrackedObstacle> tracked_obstacles_;
   std::vector<CircleObstacle> untracked_obstacles_;
+
+  // Parameters
+  int p_fade_counter_size_;
+  double p_min_correspondence_cost_;
+  double p_pose_measure_variance_;
+  double p_pose_process_variance_;
+  double p_radius_measure_variance_;
+  double p_radius_process_variance_;
 };
 
 } // namespace obstacle_detector

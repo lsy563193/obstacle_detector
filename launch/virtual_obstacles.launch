@@ -1,35 +1,6 @@
-<!-- Runs obstacle detector and tracker with a static scan publisher. -->
+<!-- Runs obstacle tracker with a virtual obstacle publisher. -->
 <launch>
-  <node pkg="obstacle_detector" type="static_scan_publisher" name="static_scan_publisher" output="screen"/>
-  
-  <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 10"/>
- 
-  <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
-    <param name="world_frame"          value="world"/>
-    <param name="scanner_frame"        value="scanner"/>
- 
-    <param name="use_scan"             value="true"/>
-    <param name="use_pcl"              value="false"/>
-    <param name="transform_to_world"   value="true"/>
-    <param name="use_split_and_merge"  value="false"/>
-    <param name="discard_converted_segments" value="true"/>
-
-    <param name="min_group_points"     value="5"/>
-    <param name="max_group_distance"   value="0.100"/>
-    <param name="distance_proportion"  value="0.006136"/>
-    <param name="max_split_distance"   value="0.100"/>
-
-    <param name="max_merge_separation" value="0.200"/>
-    <param name="max_merge_spread"     value="0.070"/>
-    <param name="max_circle_radius"    value="0.200"/>
-    <param name="radius_enlargement"   value="0.020"/>
-
-    <param name="max_scanner_range"    value="6.0"/>
-    <param name="max_x_range"          value="2.0"/>
-    <param name="min_x_range"          value="-2.0"/>
-    <param name="max_y_range"          value="2.0"/>
-    <param name="min_y_range"          value="-2.0"/>
-  </node>
+  <node pkg="obstacle_detector" type="virtual_obstacle_publisher" name="virtual_obstacle_publisher"/>
   
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="circles_color"  value="5"/>
