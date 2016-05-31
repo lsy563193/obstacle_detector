@@ -2,7 +2,7 @@
 <launch>
   <node pkg="obstacle_detector" type="static_scan_publisher" name="static_scan_publisher" output="screen"/>
   
-  <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 10"/>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 100"/>
  
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
     <param name="world_frame"          value="world"/>
