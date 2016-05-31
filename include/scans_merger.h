@@ -36,6 +36,7 @@
 #pragma once
 
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 
@@ -48,8 +49,8 @@ public:
   ScansMerger();
 
 private:
-  void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
-  void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
+  void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan);
+  void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan);
   void publishPCL();
 
   ros::NodeHandle nh_;
@@ -59,6 +60,9 @@ private:
   ros::Subscriber rear_scan_sub_;
   ros::Publisher  pcl_pub_;
 
+  tf::TransformListener front_tf_;
+  tf::TransformListener rear_tf_;
+
   sensor_msgs::PointCloud pcl_msg_;
 
   bool first_scan_received_;
@@ -67,9 +71,10 @@ private:
   int unreceived_rear_scans_;
 
   // Parameters
-  std::string p_pcl_frame_;         // TF frame name for the pcl message
+  std::string p_base_frame_;        // TF frame id for output PCL message
+  std::string p_front_frame_;       // TF frame id for front laser scanner
+  std::string p_rear_frame_;        // TF frame id for rear laser scanner
   bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
-  double p_scanners_separation_;    // Distance between scanner centers
   int p_max_unreceived_scans_;      // Maximum allowable unreceived scans to start publishing one scan
 };
 

@@ -40,7 +40,7 @@ using namespace obstacle_detector;
 
 ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
   nh_local_.param<std::string>("world_frame", p_world_frame_, "world");
-  nh_local_.param<std::string>("scanner_frame", p_scanner_frame_, "scanner");
+  nh_local_.param<std::string>("base_frame", p_base_frame_, "base");
 
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
@@ -71,13 +71,13 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 
   if (p_transform_to_world) {
     try {
-        tf_listener_.waitForTransform(p_world_frame_, p_scanner_frame_, ros::Time::now(), ros::Duration(5.0));
+        tf_listener_.waitForTransform(p_world_frame_, p_base_frame_, ros::Time::now(), ros::Duration(5.0));
     } catch (tf::TransformException ex) {
         ROS_ERROR("%s",ex.what());
     }
   }
 
-  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 5);
+  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 10);
 
   ROS_INFO("Obstacle Detector [OK]");
   ros::spin();
@@ -298,7 +298,7 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
 void ObstacleDetector::transformToWorld() {
   try {
     tf::StampedTransform transform;
-    tf_listener_.lookupTransform(p_world_frame_, p_scanner_frame_, ros::Time(0), transform);
+    tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
 
     tf::Vector3 origin = transform.getOrigin();
     double yaw = tf::getYaw(transform.getRotation());
@@ -334,7 +334,7 @@ void ObstacleDetector::publishObstacles() {
   if (p_transform_to_world)
     obstacles.header.frame_id = p_world_frame_;
   else
-    obstacles.header.frame_id = p_scanner_frame_;
+    obstacles.header.frame_id = p_base_frame_;
 
   for (const Segment& s : segments_) {
     obstacle_detector::SegmentObstacle segment;

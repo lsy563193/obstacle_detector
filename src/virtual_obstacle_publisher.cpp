@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 
       obst_msg.circles.push_back(circ1);
     }
-    else if (t < 15.0){
+    else if (t < 16.0){
       circ1.center.x = -0.20 - 0.2 * (t - 6.0);
       circ1.center.y = 0.0;
       circ1.radius = 0.20;
@@ -87,6 +87,9 @@ int main(int argc, char** argv) {
       obst_msg.circles.push_back(circ1);
       obst_msg.circles.push_back(circ2);
     }
+
+    if (t > 15.0)
+      start = ros::Time::now();
 
     obst_pub.publish(obst_msg);
     rate.sleep();

@@ -10,7 +10,7 @@ The package contains several nodes, which are:
 The main node which converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles, which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters:
 
 * `~world_frame` (string, default: world) - name of the global coordinate frame,
-* `~scanner_frame` (string, default: scanner) - name of the local coordinate frame (in which the points are expressed),
+* `~base_frame` (string, default: base) - name of the local coordinate frame (in which the points are expressed),
 * `~use_scan` (bool, default: true) - use laser scan messages,
 * `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl is chosen, scan will have priority),
 * `~transform_to_world` (bool, default: true) - choose whether the obstacles should be published as described in the local or global coordinate frame,
@@ -54,10 +54,11 @@ The auxiliary node which converts messages of type `obstacles_detector/Obstacles
 #### 1.4. The scans_merger node 
 The auxiliary node which converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. The node uses following local parameters:
 
-* `~pcl_frame` (string, default: base) - name of the coordinate frame used for the origin of produced point cloud (the transforms between scans and pcl frame must be also provided),
+* `~base_frame` (string, default: base) - name of the coordinate frame used for the origin of produced point cloud (the transformations between scans and pcl frame must be also provided),
+* `~front_frame` (string, default: front_scanner) - name of the coordinate frame attached to the front scanner,
+* `~rear_frame` (string, default: rear_scanner) - name of the coordinate frame attached to the rear scanner,
 * `~max_unreceived_scans` (int, default: 1) - if one of the scanners stopped providing scans, after this number of missing scans the node will switch from merging to copying points directly,
 * `~omit_overlapping_scans` (bool, default: true) - if some of the points provided by both scans exist on the same angular area, omit them,
-* `~scanners_separation` (double, default: 0.45) - the distance between centres of both scanners.
 
 #### 1.5. The static_scan_publisher node
 The auxiliary node which imitates a laser scanner and publishes a static, 360 deg laser scan of type `sensor_msgs/LaserScan` under topic `scan`. The node is mosty used for off-line tests.

@@ -86,7 +86,7 @@ private:
 
   // Parameters
   std::string p_world_frame_;     // Name of the world coordinate frame
-  std::string p_scanner_frame_;   // Name of the scanner coordinate frame
+  std::string p_base_frame_;      // Name of the scanner/pcl coordinate frame
 
   bool p_use_scan_;               // Use data from scans
   bool p_use_pcl_;                // Use data from point clouds

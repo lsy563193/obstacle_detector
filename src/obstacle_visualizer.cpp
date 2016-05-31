@@ -87,8 +87,8 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   circle_marker.scale.z = 0.0;
 
   for (int i = 0; i < 20; ++i) {
-    markers_array.markers.push_back(circle_marker);
     circle_marker.id++;
+    markers_array.markers.push_back(circle_marker);
   }
 
   // Create markers for all the segment obstacles
