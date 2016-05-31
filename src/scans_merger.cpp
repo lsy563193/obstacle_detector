@@ -123,7 +123,7 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
         base_point.x = local_point.x * cos(yaw) - local_point.y * sin(yaw) + origin.x();
         base_point.y = local_point.x * sin(yaw) + local_point.y * cos(yaw) + origin.y();
 
-        if (!(p_omit_overlapping_scans_ && base_point.x < 0.0))
+        if (!(p_omit_overlapping_scans_ && base_point.x > 0.0))
           pcl_msg_.points.push_back(base_point);
       }
       phi += rear_scan->angle_increment;
@@ -148,9 +148,6 @@ void ScansMerger::publishPCL() {
   pcl_msg_.header.stamp = ros::Time::now();
   pcl_pub_.publish(pcl_msg_);
   pcl_msg_.points.clear();
-
-  // There is no need to omit overlapping scans from one scan
-  p_omit_overlapping_scans_ = (unreceived_front_scans_ <= p_max_unreceived_scans_ && unreceived_rear_scans_ <= p_max_unreceived_scans_);
 
   first_scan_received_ = false;
   second_scan_received_ = false;
