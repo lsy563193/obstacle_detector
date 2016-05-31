@@ -39,8 +39,8 @@ using namespace obstacle_detector;
 
 ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
   nh_local_.param<std::string>("base_frame", p_base_frame_, "base");
-  nh_local_.param<std::string>("front_frame", p_base_frame_, "base");
-  nh_local_.param<std::string>("rear_frame", p_base_frame_, "base");
+  nh_local_.param<std::string>("front_frame", p_front_frame_, "front_scanner");
+  nh_local_.param<std::string>("rear_frame", p_rear_frame_, "rear_scanner");
 
   nh_local_.param<int>("max_unreceived_scans", p_max_unreceived_scans_, 1);
   nh_local_.param<bool>("omit_overlapping_scans", p_omit_overlapping_scans_, false);
