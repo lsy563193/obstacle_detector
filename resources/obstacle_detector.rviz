@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: FrontLaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -65,27 +65,83 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: LaserScan
+      Name: FrontLaserScan
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.01
       Style: Points
-      Topic: /scan
-      Unreliable: false
+      Topic: /front_scan
       Use Fixed Frame: true
       Use rainbow: false
       Value: true
-    - Class: rviz/MarkerArray
+    - Alpha: 0.7
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/LaserScan
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
       Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: RearLaserScan
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Points
+      Topic: /rear_scan
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud
+      Color: 255; 255; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: MergedPointCloud
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Points
+      Topic: /pcl
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /untracked_obstacles_markers
@@ -95,20 +151,23 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /tracked_obstacles_markers
       Name: TrackedObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 9999
       Frames:
         All Enabled: true
-        scanner:
+        base:
+          Value: true
+        front_scanner:
+          Value: true
+        rear_scanner:
           Value: true
         world:
           Value: true
@@ -119,8 +178,11 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          scanner:
-            {}
+          base:
+            front_scanner:
+              {}
+            rear_scanner:
+              {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -155,7 +217,7 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 138.188
+      Scale: 109.271
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
       X: 0.0572462
@@ -177,5 +239,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1301
-  X: 65
+  X: 58
   Y: 24
