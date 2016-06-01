@@ -65,7 +65,7 @@
     <param name="rear_frame"             value="rear_scanner"/>
 
     <param name="max_unreceived_scans"   value="1"/>
-    <param name="omit_overlapping_scans" value="true"/>
+    <param name="omit_overlapping_scans" value="false"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">

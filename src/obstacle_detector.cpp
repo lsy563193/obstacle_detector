@@ -189,17 +189,24 @@ void ObstacleDetector::detectSegments(list<Point>& point_set) {
 }
 
 void ObstacleDetector::mergeSegments() {
+  bool merged = false;
   for (auto i = segments_.begin(); i != segments_.end(); ++i) {
+    if (merged) {
+      i--;
+      merged = false;
+    }
+
     auto j = i;
-    for (++j; j != segments_.end(); ++j) {
+    j++;
+    for (j; j != segments_.end(); ++j) {
       if (compareAndMergeSegments(*i, *j)) {  // If merged - a new segment appeared at the end of the list
         auto temp_ptr = i;
         i = segments_.insert(i, segments_.back()); // Copy new segment in place; i now points to new segment
         segments_.pop_back();       // Remove the new segment from the back of the list
         segments_.erase(temp_ptr);  // Remove the first merged segment
         segments_.erase(j);         // Remove the second merged segment
-        if (i != segments_.begin())
-          i--;                      // The for loop will increment i so let it point to new segment in next iteration
+
+        merged = true;
         break;
       }
     }
