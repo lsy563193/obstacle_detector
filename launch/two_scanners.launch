@@ -65,7 +65,7 @@
     <param name="rear_frame"             value="rear_scanner"/>
 
     <param name="max_unreceived_scans"   value="1"/>
-    <param name="omit_overlapping_scans" value="false"/>
+    <param name="omit_overlapping_scans" value="true"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
@@ -89,10 +89,10 @@
     <param name="radius_enlargement"   value="0.020"/>
 
     <param name="max_scanner_range"    value="6.0"/>
-    <param name="max_x_range"          value="0.5"/>
-    <param name="min_x_range"          value="-2.0"/>
-    <param name="max_y_range"          value="2.0"/>
-    <param name="min_y_range"          value="-1.0"/>
+    <param name="max_x_range"          value="3.5"/>
+    <param name="min_x_range"          value="-3.0"/>
+    <param name="max_y_range"          value="3.0"/>
+    <param name="min_y_range"          value="-3.0"/>
   </node>
   
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
