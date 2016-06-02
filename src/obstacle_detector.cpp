@@ -221,11 +221,27 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
   if (s1.first_point().cross(s2.first_point()) < 0.0)
     return compareAndMergeSegments(s2, s1);
 
-  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)  ||        // Small separation: ----  ____
-//      (s1.first_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-//      (s1.last_point() - s2.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)   ||
-      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0) ||        // Full occlusion --===--
-      (s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) < s1.lengthSquared()) // Partial occlusion ---===
+  Point a = s1.last_point() - s1.first_point();
+  Point b = s2.first_point() - s1.first_point();
+
+  float t = a.dot(b) / a.lengthSquared();
+  Point proj = s1.first_point() + t * a;    // Last point of s2 projected on s1
+
+
+  Point projection = s1.first_point();
+
+//  Vec projection = p1_ + t * a;
+//  return (p - projection).length();
+
+  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)  ||            // Small separation  ----  ----
+      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0))              // Full occlusion    ---====---
+
+
+          //      ((s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) * (s2.last_point() - s1.last_point()).dot(s1.first_point() - s1.last_point()) < 0.0) &&
+//      a)
+
+//      ((s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) < s1.lengthSquared()) && // Partial occlusion -----=====
+//      ((s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) > 0.0)
   {
     list<Point> merged_points;
     merged_points.insert(merged_points.begin(), s1.point_set().begin(), s1.point_set().end());
