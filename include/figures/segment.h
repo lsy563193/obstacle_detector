@@ -61,6 +61,7 @@ public:
   void setLastPoint(double x, double y) { p2_.x = x; p2_.y = y; }
 
   double length() const { return (p2_ - p1_).length(); }
+  double lengthSquared() const { return (p2_ - p1_).lengthSquared(); }
   Point normal() const { return (p2_ - p1_).perpendicular().normalize(); }
   Point first_point() const { return p1_; }
   Point last_point() const { return p2_; }

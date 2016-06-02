@@ -221,12 +221,12 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
   if (s1.first_point().cross(s2.first_point()) < 0.0)
     return compareAndMergeSegments(s2, s1);
 
-//  if (s1.first_point().cross(s2.first_point())  )
-
-
-  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s1.first_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s1.last_point() - s2.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
+  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)  ||        // Small separation: ----  ____
+//      (s1.first_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
+//      (s1.last_point() - s2.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)   ||
+      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0) ||        // Full occlusion --===--
+      (s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) < s1.lengthSquared()) // Partial occlusion ---===
+  {
     list<Point> merged_points;
     merged_points.insert(merged_points.begin(), s1.point_set().begin(), s1.point_set().end());
     merged_points.insert(merged_points.end(), s2.point_set().begin(), s2.point_set().end());
