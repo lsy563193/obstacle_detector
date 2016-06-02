@@ -86,13 +86,23 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
   initial_points_.clear();
 
+  tf::StampedTransform transform;
+  tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
+
   double phi = scan->angle_min - scan->angle_increment;
 
   for (const float r : scan->ranges) {
     phi += scan->angle_increment;
 
-    if (r >= scan->range_min && r <= scan->range_max && r <= p_max_scanner_range_)
-      initial_points_.push_back(Point::fromPoolarCoords(r, phi));
+    if (r >= scan->range_min && r <= scan->range_max && r <= p_max_scanner_range_) {
+      Point p = Point::fromPoolarCoords(r, phi);
+
+      if (p_transform_to_world)
+        p = transformPoint(p, transform);
+
+      if (checkPointInLimits(p))
+        initial_points_.push_back(p);
+    }
   }
 
   processPoints();
@@ -101,9 +111,19 @@ void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan
 void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl) {
   initial_points_.clear();
 
-  for (const geometry_msgs::Point32& p : pcl->points)
-    if (Point(p.x, p.y).lengthSquared() <= pow(p_max_scanner_range_, 2.0))
-      initial_points_.push_back(Point(p.x, p.y));
+  tf::StampedTransform transform;
+  tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
+
+  for (const geometry_msgs::Point32& point : pcl->points) {
+    Point p(point.x, point.y);
+
+    if (p.lengthSquared() <= pow(p_max_scanner_range_, 2.0)) {
+      if (p_transform_to_world)
+        p = transformPoint(p, transform);
+
+      initial_points_.push_back(p);
+    }
+  }
 
   processPoints();
 }
@@ -118,10 +138,23 @@ void ObstacleDetector::processPoints() {
   detectCircles();
   mergeCircles();
 
-  if (p_transform_to_world)
-    transformToWorld();
-
   publishObstacles();
+}
+
+bool ObstacleDetector::checkPointInLimits(const Point& p) {
+  if ((p.x > p_max_x_range_) || (p.x < p_min_x_range_) || (p.y > p_max_y_range_) || (p.y < p_min_y_range_)) return false;
+  else return true;
+}
+
+Point ObstacleDetector::transformPoint(const Point& p, tf::StampedTransform& transform) {
+  Point point;
+  tf::Vector3 origin = transform.getOrigin();
+  double yaw = tf::getYaw(transform.getRotation());
+
+  point.x = p.x * cos(yaw) - p.y * sin(yaw) + origin.x();
+  point.y = p.x * sin(yaw) + p.y * cos(yaw) + origin.y();
+
+  return point;
 }
 
 void ObstacleDetector::groupPointsAndDetectSegments() {
@@ -221,27 +254,21 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
   if (s1.first_point().cross(s2.first_point()) < 0.0)
     return compareAndMergeSegments(s2, s1);
 
+  /*
+  Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
   Point a = s1.last_point() - s1.first_point();
-  Point b = s2.first_point() - s1.first_point();
+  Point b = s2_middle_point - s1.first_point();
 
   float t = a.dot(b) / a.lengthSquared();
-  Point proj = s1.first_point() + t * a;    // Last point of s2 projected on s1
+  Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
 
+  || // Small separation ----  ----
 
-  Point projection = s1.first_point();
-
-//  Vec projection = p1_ + t * a;
-//  return (p - projection).length();
-
-  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0)  ||            // Small separation  ----  ----
-      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0))              // Full occlusion    ---====---
-
-
-          //      ((s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) * (s2.last_point() - s1.last_point()).dot(s1.first_point() - s1.last_point()) < 0.0) &&
-//      a)
-
-//      ((s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) < s1.lengthSquared()) && // Partial occlusion -----=====
-//      ((s2.first_point() - s1.first_point()).dot(s1.last_point() - s1.first_point()) > 0.0)
+        (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0 || // Full or partial occlusion ---====
+        a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0) &&
+       ((s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0)))
+  */
+  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
   {
     list<Point> merged_points;
     merged_points.insert(merged_points.begin(), s1.point_set().begin(), s1.point_set().end());
@@ -328,38 +355,6 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
     }
   }
   return false;
-}
-
-void ObstacleDetector::transformToWorld() {
-  try {
-    tf::StampedTransform transform;
-    tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
-
-    tf::Vector3 origin = transform.getOrigin();
-    double yaw = tf::getYaw(transform.getRotation());
-
-    for (auto it = circles_.begin(); it != circles_.end(); ++it) {
-      Point p;
-      p.x = it->center().x * cos(yaw) - it->center().y * sin(yaw) + origin.x();
-      p.y = it->center().x * sin(yaw) + it->center().y * cos(yaw) + origin.y();
-
-      it->setCenter(p.x, p.y);
-    }
-
-    for (Segment& s : segments_) {
-      Point p;
-      p.x = s.first_point().x * cos(yaw) - s.first_point().y * sin(yaw) + origin.x();
-      p.y = s.first_point().x * sin(yaw) + s.first_point().y * cos(yaw) + origin.y();
-      s.setFirstPoint(p.x, p.y);
-
-      p.x = s.last_point().x * cos(yaw) - s.last_point().y * sin(yaw) + origin.x();
-      p.y = s.last_point().x * sin(yaw) + s.last_point().y * cos(yaw) + origin.y();
-      s.setLastPoint(p.x, p.y);
-    }
-  }
-  catch (tf::TransformException ex) {
-    ROS_ERROR("%s",ex.what());
-  }
 }
 
 void ObstacleDetector::publishObstacles() {

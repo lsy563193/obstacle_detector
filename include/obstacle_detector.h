@@ -59,6 +59,9 @@ private:
   void pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl);
 
   void processPoints();
+  Point transformPoint(const Point& p, tf::StampedTransform& transform);
+  bool checkPointInLimits(const Point& p);
+
   void groupPointsAndDetectSegments();
   void detectSegments(std::list<Point>& point_set);
   void mergeSegments();
@@ -69,7 +72,6 @@ private:
   bool compareAndMergeCircles(Circle& c1, Circle& c2);
 
   void publishObstacles();
-  void transformToWorld();
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
