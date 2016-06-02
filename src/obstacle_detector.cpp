@@ -121,7 +121,8 @@ void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl)
       if (p_transform_to_world)
         p = transformPoint(p, transform);
 
-      initial_points_.push_back(p);
+      if (checkPointInLimits(p))
+        initial_points_.push_back(p);
     }
   }
 
