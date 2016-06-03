@@ -2,6 +2,9 @@
 
 The obstacle_detector package provides utilities to detect obstacles from a 2D laser scan or an ordered point cloud. Detected obstacles come in a form of segments and circles. The package requires [Armadillo C++](http://arma.sourceforge.net) library for compilation and runtime.
 
+![Detector Example](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png)
+Format: ![Visual example of obstacle detector output.](url)
+
 ### 1. The nodes
 
 The package contains several nodes, which are:

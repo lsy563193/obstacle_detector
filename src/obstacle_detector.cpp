@@ -71,9 +71,10 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 
   if (p_transform_to_world) {
     try {
-        tf_listener_.waitForTransform(p_world_frame_, p_base_frame_, ros::Time::now(), ros::Duration(5.0));
-    } catch (tf::TransformException ex) {
-        ROS_ERROR("%s",ex.what());
+      tf_listener_.waitForTransform(p_world_frame_, p_base_frame_, ros::Time::now(), ros::Duration(5.0));
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s",ex.what());
     }
   }
 
@@ -87,7 +88,15 @@ void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan
   initial_points_.clear();
 
   tf::StampedTransform transform;
-  tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
+
+  if (p_transform_to_world) {
+    try {
+      tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s",ex.what());
+    }
+  }
 
   double phi = scan->angle_min - scan->angle_increment;
 
@@ -112,7 +121,15 @@ void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl)
   initial_points_.clear();
 
   tf::StampedTransform transform;
-  tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
+
+  if (p_transform_to_world) {
+    try {
+      tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s",ex.what());
+    }
+  }
 
   for (const geometry_msgs::Point32& point : pcl->points) {
     Point p(point.x, point.y);
@@ -254,24 +271,23 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
   // Segments must be provided counter-clockwise
   if (s1.first_point().cross(s2.first_point()) < 0.0)
     return compareAndMergeSegments(s2, s1);
+/*
+    Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
+    Point a = s1.last_point() - s1.first_point();
+    Point b = s2_middle_point - s1.first_point();
 
-  Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
-  Point a = s1.last_point() - s1.first_point();
-  Point b = s2_middle_point - s1.first_point();
+    float t = a.dot(b) / a.lengthSquared();
+    Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
 
-  float t = a.dot(b) / a.lengthSquared();
-  Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
-
- /* || // Small separation ----  ----
-         || // Full or partial occlusion ---====
-        a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0) &&
-       ())
-  */
-  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0) &&
+    || // Small separation ----  ----
+    || // Full or partial occlusion ---====
+      a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0)
+      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0)
       (s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
       (s2.last_point() - s1.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
       (s2.first_point() - s1.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
+  */
+  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
   {
     list<Point> merged_points;
     merged_points.insert(merged_points.begin(), s1.point_set().begin(), s1.point_set().end());

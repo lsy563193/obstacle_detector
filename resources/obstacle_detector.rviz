@@ -147,7 +147,6 @@ Visualization Manager:
       Marker Topic: /untracked_obstacles_markers
       Name: UntrackedObstacles
       Namespaces:
-        circles: true
         segments: true
       Queue Size: 100
       Value: true
@@ -165,7 +164,7 @@ Visualization Manager:
       Frame Timeout: 9999
       Frames:
         All Enabled: true
-        base:
+        scanner:
           Value: true
         world:
           Value: true
@@ -176,7 +175,7 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          base:
+          scanner:
             {}
       Update Interval: 0
       Value: true
@@ -212,11 +211,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 163.852
+      Scale: 95.4517
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.193334
-      Y: -0.0334533
+      X: 1.30257
+      Y: -0.150218
     Saved: ~
 Window Geometry:
   Displays:
@@ -234,5 +233,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1855
-  X: 65
+  X: 58
   Y: 24

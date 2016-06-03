@@ -84,9 +84,7 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& fron
         base_point.x = local_point.x * cos(yaw) - local_point.y * sin(yaw) + origin.x();
         base_point.y = local_point.x * sin(yaw) + local_point.y * cos(yaw) + origin.y();
 
-        if (!(p_omit_overlapping_scans_ && base_point.x < 0.0)
-                //&& base_point.x < 2.5 && base_point.y > -1.0 && base_point.y < 3.5
-                )
+        if (!(p_omit_overlapping_scans_ && base_point.x < 0.0))
           pcl_msg_.points.push_back(base_point);
       }
       phi += front_scan->angle_increment;
@@ -125,9 +123,7 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
         base_point.x = local_point.x * cos(yaw) - local_point.y * sin(yaw) + origin.x();
         base_point.y = local_point.x * sin(yaw) + local_point.y * cos(yaw) + origin.y();
 
-        if (!(p_omit_overlapping_scans_ && base_point.x > 0.0)
-                //&& base_point.x > -2.5 && base_point.y > -1.0 && base_point.y < 3.5
-                )
+        if (!(p_omit_overlapping_scans_ && base_point.x > 0.0))
           pcl_msg_.points.push_back(base_point);
       }
       phi += rear_scan->angle_increment;
