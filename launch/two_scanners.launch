@@ -78,7 +78,7 @@
     <param name="use_split_and_merge"  value="false"/>
     <param name="discard_converted_segments" value="true"/>
 
-    <param name="min_group_points"     value="5"/>
+    <param name="min_group_points"     value="7"/>
     <param name="max_group_distance"   value="0.050"/>    
     <param name="distance_proportion"  value="0.006136"/> <!-- Make it equal to angle increment in radians -->
     <param name="max_split_distance"   value="0.050"/>
@@ -92,7 +92,7 @@
     <param name="max_x_range"          value="3.5"/>
     <param name="min_x_range"          value="-3.0"/>
     <param name="max_y_range"          value="3.0"/>
-    <param name="min_y_range"          value="-3.0"/>
+    <param name="min_y_range"          value="-1.0"/>
   </node>
   
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">

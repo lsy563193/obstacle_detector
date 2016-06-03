@@ -35,13 +35,8 @@
 
 #pragma once
 
-#define ARMA_DONT_USE_CXX11
-
-#include <armadillo>
 #include <ros/ros.h>
-#include <obstacle_detector/Obstacles.h>
-
-#include "../include/kalman.h"
+#include "figures/tracked_obstacle.h"
 
 namespace obstacle_detector
 {
@@ -57,78 +52,6 @@ CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& 
   c.radius = (c1.radius + c2.radius) / 2.0;
   return c;
 }
-
-class TrackedObstacle {
-public:
-  TrackedObstacle(const CircleObstacle& init_obstacle, int fade_counter_size) : kf_(0, 3, 6) {
-    obstacle = init_obstacle;
-    fade_counter_size_ = fade_counter_size;
-    fade_counter_ = fade_counter_size;
-
-    double TP = 0.01; // Sampling time in sec.
-
-    // Initialize Kalman Filter structures
-    kf_.A(0, 1) = TP;
-    kf_.A(2, 3) = TP;
-    kf_.A(4, 5) = TP;
-
-    kf_.C(0, 0) = 1;
-    kf_.C(1, 2) = 1;
-    kf_.C(2, 4) = 1;
-
-    kf_.q_pred(0) = obstacle.center.x;
-    kf_.q_pred(2) = obstacle.center.y;
-    kf_.q_pred(4) = obstacle.radius;
-
-    kf_.q_est(0) = obstacle.center.x;
-    kf_.q_est(2) = obstacle.center.y;
-    kf_.q_est(4) = obstacle.radius;
-
-    kf_.y(0) = obstacle.center.x;
-    kf_.y(1) = obstacle.center.y;
-    kf_.y(2) = obstacle.radius;
-  }
-
-  void setCovariances(double pose_m_var, double pose_p_var, double radius_m_var, double radius_p_var) {
-    kf_.R(0, 0) = pose_m_var;
-    kf_.R(1, 1) = pose_m_var;
-    kf_.R(2, 2) = radius_m_var;
-
-    kf_.Q(0, 0) = pose_p_var;
-    kf_.Q(2, 2) = pose_p_var;
-    kf_.Q(4, 4) = radius_p_var;
-  }
-
-  void updateMeasurement(const CircleObstacle& new_obstacle) {
-    kf_.y(0) = new_obstacle.center.x;
-    kf_.y(1) = new_obstacle.center.y;
-    kf_.y(2) = new_obstacle.radius;
-
-    fade_counter_ = fade_counter_size_;
-  }
-
-  void updateTracking() {
-    kf_.updateState();
-
-    obstacle.center.x = kf_.q_est(0);
-    obstacle.center.y = kf_.q_est(2);
-    obstacle.radius = kf_.q_est(4);
-
-    fade_counter_--;
-  }
-
-  bool hasFaded() {
-    return ((fade_counter_ <= 0) ? true : false);
-  }
-
-  CircleObstacle obstacle;
-
-private:
-  KalmanFilter kf_;
-  int fade_counter_size_;
-  int fade_counter_;  // If the fade counter reaches 0, remove the obstacle from the list
-};
-
 
 class ObstacleTracker {
 public:

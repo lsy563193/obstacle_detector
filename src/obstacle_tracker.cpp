@@ -4,6 +4,8 @@ using namespace  obstacle_detector;
 using namespace arma;
 using namespace std;
 
+#define TRACKER_TESTING
+
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   nh_local_.param("fade_counter_size", p_fade_counter_size_, 100);
   nh_local_.param("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
@@ -51,10 +53,12 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   int T = tracked_obstacles_.size();
   int U = untracked_obstacles_.size();
 
-//  cout << "---" << endl;
-//  cout << "New: " << N << endl;
-//  cout << "Tracked: " << T << endl;
-//  cout << "Untracked: " << U << endl;
+  #ifdef TRACKER_TESTING
+    cout << "---" << endl;
+    cout << "New: " << N << endl;
+    cout << "Tracked: " << T << endl;
+    cout << "Untracked: " << U << endl;
+  #endif
 
   if (T + U == 0) {
     untracked_obstacles_.assign(new_obstacles->circles.begin(), new_obstacles->circles.end());
@@ -77,8 +81,10 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       cost_matrix(n, u + T) = obstacleCostFunction(new_obstacles->circles[n], untracked_obstacles_[u]);
   }
 
-//  cout << "Cost matrix:" << endl;
-//  cout << endl << cost_matrix << endl;
+  #ifdef TRACKER_TESTING
+    cout << "Cost matrix:" << endl;
+    cout << endl << cost_matrix << endl;
+  #endif
 
   /*
    * Vector of row minimal indices keeps the indices of old obstacles (tracked and untracked)
@@ -105,10 +111,12 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
   }
 
-//  cout << "Row min indices: ";
-//  for (int idx : row_min_indices)
-//    cout << idx << " ";
-//  cout << endl;
+  #ifdef TRACKER_TESTING
+    cout << "Row min indices: ";
+    for (int idx : row_min_indices)
+      cout << idx << " ";
+    cout << endl;
+  #endif
 
   /*
    * Vector of column minimal indices keeps the indices of new obstacles that has the minimum
@@ -139,10 +147,12 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
   }
 
-//  cout << "Col min indices: ";
-//  for (int idx : col_min_indices)
-//    cout << idx << " ";
-//  cout << endl;
+  #ifdef TRACKER_TESTING
+    cout << "Col min indices: ";
+    for (int idx : col_min_indices)
+      cout << idx << " ";
+    cout << endl;
+  #endif
 
   /*
    * Possible situations:
@@ -164,7 +174,10 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   for (int i = 0; i < T + U; ++i) {
     for (int j = i+1; j < T + U; ++j) {
       if (col_min_indices[i] == col_min_indices[j] && col_min_indices[i] >= 0) {
-//        cout << "Fusion" << endl;
+
+        #ifdef TRACKER_TESTING
+          cout << "Fusion" << endl;
+        #endif
 
         CircleObstacle c;
 
@@ -203,7 +216,10 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   for (int i = 0; i < N; ++i) {
     for (int j = i+1; j < N; ++j) {
       if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0) {
-//        cout << "Fission" << endl;
+
+        #ifdef TRACKER_TESTING
+          cout << "Fission" << endl;
+        #endif
 
         CircleObstacle c1;
         CircleObstacle c2;
