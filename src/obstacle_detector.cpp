@@ -53,7 +53,7 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
   nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
   nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);
   nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.100);
-  nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.200);
+  nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.100);
   nh_local_.param<double>("max_merge_spread", p_max_merge_spread_, 0.070);
   nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.200);
   nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.020);
