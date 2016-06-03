@@ -4,7 +4,7 @@ The obstacle_detector package provides utilities to detect obstacles from a 2D l
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png" alt="Visual example of obstacle detector output"/>
-  
+  <br/>
   Fig. 1. Visual example of obstacle detector output
 </p>
 
