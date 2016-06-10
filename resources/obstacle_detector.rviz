@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /RawObstacles1
         - /RawObstacles1/Namespaces1
       Splitter Ratio: 0.5
     Tree Height: 470
@@ -25,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: MergedPointCloud
+    SyncSource: RearLaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -59,7 +60,7 @@ Visualization Manager:
       Color: 255; 0; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -75,7 +76,7 @@ Visualization Manager:
       Topic: /rear_scan
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
@@ -88,7 +89,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -104,7 +105,7 @@ Visualization Manager:
       Topic: /front_scan
       Use Fixed Frame: true
       Use rainbow: false
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -217,11 +218,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 86.1646
+      Scale: 146.713
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: -0.150461
-      Y: -0.430733
+      X: 0.0537839
+      Y: -1.11586
     Saved: ~
 Window Geometry:
   Displays:
@@ -240,4 +241,4 @@ Window Geometry:
     collapsed: false
   Width: 1291
   X: 55
-  Y: 94
+  Y: 74
