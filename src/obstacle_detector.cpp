@@ -39,12 +39,8 @@ using namespace std;
 using namespace obstacle_detector;
 
 ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
-  nh_local_.param<std::string>("world_frame", p_world_frame_, "world");
-  nh_local_.param<std::string>("base_frame", p_base_frame_, "base");
-
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
-  nh_local_.param<bool>("transform_to_world", p_transform_to_world, true);
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
 
@@ -58,25 +54,10 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
   nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.200);
   nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.020);
 
-  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 6.0);
-  nh_local_.param<double>("max_x_range", p_max_x_range_, 2.0);
-  nh_local_.param<double>("min_x_range", p_min_x_range_, -2.0);
-  nh_local_.param<double>("max_y_range", p_max_y_range_, 2.0);
-  nh_local_.param<double>("min_y_range", p_min_y_range_, -2.0);
-
   if (p_use_scan_)
     scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
   else if (p_use_pcl_)
     pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
-
-  if (p_transform_to_world) {
-    try {
-      tf_listener_.waitForTransform(p_world_frame_, p_base_frame_, ros::Time::now(), ros::Duration(5.0));
-    }
-    catch (tf::TransformException ex) {
-      ROS_ERROR("%s",ex.what());
-    }
-  }
 
   obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 10);
 
@@ -86,31 +67,15 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
   initial_points_.clear();
-
-  tf::StampedTransform transform;
-
-  if (p_transform_to_world) {
-    try {
-      tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
-    }
-    catch (tf::TransformException ex) {
-      ROS_ERROR("%s",ex.what());
-    }
-  }
+  frame_id_ = scan->header.frame_id;
 
   double phi = scan->angle_min - scan->angle_increment;
 
   for (const float r : scan->ranges) {
     phi += scan->angle_increment;
 
-    if (r >= scan->range_min && r <= scan->range_max && r <= p_max_scanner_range_) {
-      Point p = Point::fromPoolarCoords(r, phi);
-
-      if (p_transform_to_world)
-        p = transformPoint(p, transform);
-
-      if (checkPointInLimits(p))
-        initial_points_.push_back(p);
+    if (r >= scan->range_min && r <= scan->range_max) {
+      initial_points_.push_back(Point::fromPoolarCoords(r, phi));
     }
   }
 
@@ -119,28 +84,12 @@ void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan
 
 void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl) {
   initial_points_.clear();
-
-  tf::StampedTransform transform;
-
-  if (p_transform_to_world) {
-    try {
-      tf_listener_.lookupTransform(p_world_frame_, p_base_frame_, ros::Time(0), transform);
-    }
-    catch (tf::TransformException ex) {
-      ROS_ERROR("%s",ex.what());
-    }
-  }
+  frame_id_ = pcl->header.frame_id;
 
   for (const geometry_msgs::Point32& point : pcl->points) {
     Point p(point.x, point.y);
 
-    if (p.lengthSquared() <= pow(p_max_scanner_range_, 2.0)) {
-      if (p_transform_to_world)
-        p = transformPoint(p, transform);
-
-      if (checkPointInLimits(p))
-        initial_points_.push_back(p);
-    }
+    initial_points_.push_back(p);
   }
 
   processPoints();
@@ -157,22 +106,6 @@ void ObstacleDetector::processPoints() {
   mergeCircles();
 
   publishObstacles();
-}
-
-bool ObstacleDetector::checkPointInLimits(const Point& p) {
-  if ((p.x > p_max_x_range_) || (p.x < p_min_x_range_) || (p.y > p_max_y_range_) || (p.y < p_min_y_range_)) return false;
-  else return true;
-}
-
-Point ObstacleDetector::transformPoint(const Point& p, tf::StampedTransform& transform) {
-  Point point;
-  tf::Vector3 origin = transform.getOrigin();
-  double yaw = tf::getYaw(transform.getRotation());
-
-  point.x = p.x * cos(yaw) - p.y * sin(yaw) + origin.x();
-  point.y = p.x * sin(yaw) + p.y * cos(yaw) + origin.y();
-
-  return point;
 }
 
 void ObstacleDetector::groupPointsAndDetectSegments() {
@@ -378,12 +311,8 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
 
 void ObstacleDetector::publishObstacles() {
   Obstacles obstacles;
+  obstacles.header.frame_id = frame_id_;
   obstacles.header.stamp = ros::Time::now();
-
-  if (p_transform_to_world)
-    obstacles.header.frame_id = p_world_frame_;
-  else
-    obstacles.header.frame_id = p_base_frame_;
 
   for (const Segment& s : segments_) {
     obstacle_detector::SegmentObstacle segment;

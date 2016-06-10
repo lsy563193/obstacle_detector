@@ -64,6 +64,7 @@ private:
   int p_circles_color_;
   int p_segments_color_;
   double p_alpha_;
+  double p_z_layer_;
 };
 
 } // namespace obstacle_detector

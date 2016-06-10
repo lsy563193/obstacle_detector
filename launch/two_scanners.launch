@@ -60,23 +60,27 @@
   -->
 
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
+    <param name="world_frame"            value="world"/>
     <param name="base_frame"             value="base"/>
     <param name="front_frame"            value="front_scanner"/>
     <param name="rear_frame"             value="rear_scanner"/>
 
     <param name="max_unreceived_scans"   value="1"/>
     <param name="omit_overlapping_scans" value="true"/>
+    <param name="transform_to_world"   value="true"/>
+
+    <param name="max_scanner_range"    value="6.0"/>
+    <param name="max_x_range"          value="1.5"/>
+    <param name="min_x_range"          value="-1.5"/>
+    <param name="max_y_range"          value="0.5"/>
+    <param name="min_y_range"          value="-4.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
-    <param name="world_frame"          value="world"/>
-    <param name="scanner_frame"        value="base"/>
- 
     <param name="use_scan"             value="false"/>
     <param name="use_pcl"              value="true"/>
-    <param name="transform_to_world"   value="true"/>
     <param name="use_split_and_merge"  value="false"/>
-    <param name="discard_converted_segments" value="true"/>
+    <param name="discard_converted_segments" value="false"/>
 
     <param name="min_group_points"     value="7"/>
     <param name="max_group_distance"   value="0.050"/>    
@@ -87,18 +91,13 @@
     <param name="max_merge_spread"     value="0.070"/>
     <param name="max_circle_radius"    value="0.250"/>
     <param name="radius_enlargement"   value="0.020"/>
-
-    <param name="max_scanner_range"    value="6.0"/>
-    <param name="max_x_range"          value="3.5"/>
-    <param name="min_x_range"          value="-3.0"/>
-    <param name="max_y_range"          value="3.0"/>
-    <param name="min_y_range"          value="-1.0"/>
   </node>
   
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="circles_color"  value="5"/>
-    <param name="segments_color" value="7"/>
+    <param name="segments_color" value="4"/>
     <param name="alpha"          value="0.7"/>
+    <param name="z_layer"        value="0.5"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
@@ -114,6 +113,7 @@
     <param name="circles_color"  value="2"/>
     <param name="segments_color" value="2"/>
     <param name="alpha"          value="0.7"/>
+    <param name="z_layer"        value="1.0"/>
 
     <remap from="obstacles" to="untracked_obstacles"/>
     <remap from="obstacles_markers" to="untracked_obstacles_markers"/>
@@ -123,6 +123,7 @@
     <param name="circles_color"  value="3"/>
     <param name="segments_color" value="3"/>
     <param name="alpha"          value="0.7"/>
+    <param name="z_layer"        value="1.0"/>
 
     <remap from="obstacles" to="tracked_obstacles"/>
     <remap from="obstacles_markers" to="tracked_obstacles_markers"/>

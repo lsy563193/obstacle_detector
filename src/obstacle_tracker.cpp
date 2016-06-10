@@ -4,7 +4,7 @@ using namespace  obstacle_detector;
 using namespace arma;
 using namespace std;
 
-#define TRACKER_TESTING
+#define TRACKER_TESTING1
 
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   nh_local_.param("fade_counter_size", p_fade_counter_size_, 100);

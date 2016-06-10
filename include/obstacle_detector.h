@@ -59,8 +59,6 @@ private:
   void pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl);
 
   void processPoints();
-  Point transformPoint(const Point& p, tf::StampedTransform& transform);
-  bool checkPointInLimits(const Point& p);
 
   void groupPointsAndDetectSegments();
   void detectSegments(std::list<Point>& point_set);
@@ -80,20 +78,16 @@ private:
   ros::Subscriber pcl_sub_;
   ros::Publisher  obstacles_pub_;
 
-  tf::TransformListener tf_listener_;
+  std::string frame_id_;    // Name of TF frame for obstacles message
 
   std::vector<Point> initial_points_;
   std::list<Segment> segments_;
   std::list<Circle>  circles_;
 
   // Parameters
-  std::string p_world_frame_;     // Name of the world coordinate frame
-  std::string p_base_frame_;      // Name of the scanner/pcl coordinate frame
-
   bool p_use_scan_;               // Use data from scans
   bool p_use_pcl_;                // Use data from point clouds
   bool p_use_split_and_merge_;    // If false, iterative closest point is used instead of split and merge
-  bool p_transform_to_world;      // Transform obstacles to world coordinate frame
   bool p_discard_converted_segments_; // Do not publish segments from which the circles were obtained
 
   int    p_min_group_points_;     // Miminal number of points in a set to process it further
@@ -105,12 +99,6 @@ private:
   double p_max_merge_spread_;     // Maximal allowable spread of initial segments around merged segment
   double p_max_circle_radius_;    // Maximal allowable radius of a detected circle
   double p_radius_enlargement_;   // Additional boundary for the obstacle
-
-  double p_max_scanner_range_;    // Restrictions on laser scanner
-  double p_max_x_range_;          // Restrictions on world coordinates
-  double p_min_x_range_;
-  double p_max_y_range_;
-  double p_min_y_range_;
 };
 
 } // namespace obstacle_detector

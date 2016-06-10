@@ -41,6 +41,7 @@ ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
   nh_local_.param("circles_color", p_circles_color_, 1);
   nh_local_.param("segments_color", p_segments_color_, 1);
   nh_local_.param("alpha", p_alpha_, 1.0);
+  nh_local_.param("z_layer", p_z_layer_, 0.0);
 
   obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
   markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
@@ -65,7 +66,7 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   circle_marker.ns                 = "circles";
   circle_marker.type               = visualization_msgs::Marker::CYLINDER;
   circle_marker.action             = visualization_msgs::Marker::ADD;
-  circle_marker.pose.position.z    = -0.2;
+  circle_marker.pose.position.z    = p_z_layer_;
   circle_marker.pose.orientation.w = 1.0;
   circle_marker.scale.z            = 0.1;
   circle_marker.color              = circles_color_;
@@ -101,7 +102,7 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   segments_marker.ns                 = "segments";
   segments_marker.type               = visualization_msgs::Marker::LINE_LIST;
   segments_marker.action             = visualization_msgs::Marker::ADD;
-  segments_marker.pose.position.z    = -0.1;
+  segments_marker.pose.position.z    = p_z_layer_;
   segments_marker.pose.orientation.w = 1.0;
   segments_marker.scale.x            = 0.04;
   segments_marker.scale.y            = 0.04;
