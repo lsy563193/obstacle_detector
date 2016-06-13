@@ -200,7 +200,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
         TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
         to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
-        to.updateMeasurement(new_obstacles->circles[col_min_indices[i]]);
+        to.updateMeasurement(new_obstacles->circles[col_min_indices[j]]);
 
         tracked_obstacles_.push_back(to);
 
@@ -274,8 +274,11 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   }
 
   // Remove tracked obstacles that are no longer existent due to fusion or fission
-  for (int idx : erase_indices)
-    tracked_obstacles_.erase(tracked_obstacles_.begin() + idx);
+  int decreaser = 0;
+  for (int idx : erase_indices) {
+    tracked_obstacles_.erase(tracked_obstacles_.begin() + idx - decreaser);
+    decreaser++;
+  }
 
   // Remove old untracked obstacles and save new ones
   untracked_obstacles_.clear();

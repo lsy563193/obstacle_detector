@@ -71,9 +71,9 @@
 
     <param name="max_scanner_range"    value="6.0"/>
     <param name="max_x_range"          value="1.5"/>
-    <param name="min_x_range"          value="-1.5"/>
-    <param name="max_y_range"          value="0.5"/>
-    <param name="min_y_range"          value="-4.0"/>
+    <param name="min_x_range"          value="-0.8"/>
+    <param name="max_y_range"          value="3.5"/>
+    <param name="min_y_range"          value="-2.5"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
@@ -82,12 +82,12 @@
     <param name="use_split_and_merge"  value="false"/>
     <param name="discard_converted_segments" value="false"/>
 
-    <param name="min_group_points"     value="7"/>
-    <param name="max_group_distance"   value="0.050"/>    
+    <param name="min_group_points"     value="6"/>
+    <param name="max_group_distance"   value="0.060"/>    
     <param name="distance_proportion"  value="0.006136"/> <!-- Make it equal to angle increment in radians -->
     <param name="max_split_distance"   value="0.050"/>
 
-    <param name="max_merge_separation" value="0.200"/>
+    <param name="max_merge_separation" value="0.150"/>
     <param name="max_merge_spread"     value="0.070"/>
     <param name="max_circle_radius"    value="0.250"/>
     <param name="radius_enlargement"   value="0.020"/>
@@ -102,11 +102,11 @@
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
     <param name="fade_counter_size"       value="100"/>
-    <param name="min_correspondence_cost" value="0.6"/>
+    <param name="min_correspondence_cost" value="0.5"/>
     <param name="pose_measure_variance"   value="1.0"/>
     <param name="radius_measure_variance" value="1.0"/>
-    <param name="pose_process_variance"   value="0.001"/>    
-    <param name="radius_process_variance" value="0.001"/>
+    <param name="pose_process_variance"   value="0.0001"/>    
+    <param name="radius_process_variance" value="0.0001"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="untracked_obstacle_visualizer" output="screen">

@@ -23,10 +23,10 @@ int main(int argc, char** argv) {
     obst_msg.header.stamp = ros::Time::now();
     obst_msg.circles.clear();
 
-    circ3.center.x = 1.0 * cos(0.2 * t);
-    circ3.center.y = 1.0;
-    circ3.radius = 0.15;
-    obst_msg.circles.push_back(circ3);
+//    circ3.center.x = 1.0 * cos(0.2 * t);
+//    circ3.center.y = 1.0;
+//    circ3.radius = 0.15;
+//    obst_msg.circles.push_back(circ3);
 
 //    // Circular motion example
 //    circ1.center.x = 1.5 * cos(0.2 * t) + 0.001 * (rand() % 100);
