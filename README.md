@@ -5,7 +5,7 @@ The obstacle_detector package provides utilities to detect and track obstacles f
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png" alt="Visual example of obstacle detector output"/>
   <br/>
-  Fig. 1. Visual example of obstacle detector output
+  Fig. 1. Visual example of obstacle detector output.
 </p>
 
 ### 1. The nodes
@@ -14,7 +14,7 @@ The package contains separate nodes to perform separate tasks. The data is proce
 
 `laser scans -> scans merger -> point cloud -> obstacle detector -> obstacles -> obstacle tracker`
 
-Any parameter required by the scanner must provided in SI units.
+Any parameter required by the scanner must be provided in SI unit.
 
 #### 1.1. The scans_merger node
 This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses the following set of local parameters:
