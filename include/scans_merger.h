@@ -63,7 +63,6 @@ private:
   ros::Subscriber rear_scan_sub_;
   ros::Publisher  pcl_pub_;
 
-  tf::TransformListener world_tf_;
   tf::TransformListener front_tf_;
   tf::TransformListener rear_tf_;
 
@@ -75,18 +74,16 @@ private:
   int unreceived_rear_scans_;
 
   // Parameters
-  std::string p_world_frame_;       // TF frame id of the world
   std::string p_base_frame_;        // TF frame id for output PCL message
   std::string p_front_frame_;       // TF frame id for front laser scanner
   std::string p_rear_frame_;        // TF frame id for rear laser scanner
 
   bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
-  bool p_transform_to_world;      // Transform obstacles to world coordinate frame
 
   int p_max_unreceived_scans_;      // Maximum allowable unreceived scans to start publishing one scan
 
-  double p_max_scanner_range_;    // Restrictions on laser scanner
-  double p_max_x_range_;          // Restrictions on world coordinates
+  double p_max_scanner_range_;      // Restrictions on laser scanner range
+  double p_max_x_range_;            // Restrictions on world coordinates
   double p_min_x_range_;
   double p_max_y_range_;
   double p_min_y_range_;

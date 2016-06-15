@@ -10,22 +10,32 @@ The obstacle_detector package provides utilities to detect and track obstacles f
 
 ### 1. The nodes
 
-The package contains several nodes, which are:
+The package contains separate nodes to perform separate tasks. The data is processed in a following manner:
 
-#### 1.1. The obstacle_detector node 
-The main node which converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles, which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters (all units are in SI):
+`laser scans -> scans merger -> point cloud -> obstacle detector -> obstacles -> obstacle tracker`
 
-* `~world_frame` (string, default: world) - name of the global coordinate frame,
-* `~base_frame` (string, default: base) - name of the local coordinate frame (in which the points are expressed),
+Any parameter required by the scanner must provided in SI units.
+
+#### 1.1. The scans_merger node
+This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses the following set of local parameters:
+
+* `~base_frame` (string, default: base) - name of the relative coordinate frame used as the origin of the produced point cloud (use world frame for conversion of points to the global coordinate frame),
+* `~front_frame` (string, default: front_scanner) - name of the coordinate frame attached to the front scanner,
+* `~rear_frame` (string, default: rear_scanner) - name of the coordinate frame attached to the rear scanner,
+* `~omit_overlapping_scans` (bool, default: true) - if some of the points provided by both scans exist on the same angular area, omit them,
+* `~max_unreceived_scans` (int, default: 1) - if one of the scanners stopped providing scans, after this number of missing scans the node will switch from merging to copying points directly,
+* `~max_scanner_range` (double, default: 10.0) - restriction on laser scanner range,
+* `~max_x_range` (double, default: 10.0) - limitation for points coordinates (points with coordinates behind these limitations will be discarded),
+* `~min_x_range` (double, default: -10.0) - as above,
+* `~max_y_range` (double, default: 10.0) - as above,
+* `~min_y_range` (double, default: -10.0) - as above.
+
+#### 1.2. The obstacle_detector node 
+This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles, which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters:
+
 * `~use_scan` (bool, default: true) - use laser scan messages,
 * `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl are chosen, scan will have priority),
-* `~transform_to_world` (bool, default: true) - choose whether to convert incoming points to a global coordinate frame (if true, the obstacles coordinates will be also described with relation to global coordinate frame),
-* `~discard_converted_segments` (bool, default: true) - do not publish segments, from which the circles were spawned,
-* `~max_scanner_range` (double, default: 6.0) - limitation on laser scanner range,
-* `~max_x_range` (double, default: 2.0) - limitation for points coordinates (points with coordinates behind these limitations will not be processed),
-* `~min_x_range` (double, default: -2.0) - as above,
-* `~max_y_range` (double, default: 2.0) - as above,
-* `~min_y_range` (double, default: -2.0) - as above.
+* `~discard_converted_segments` (bool, default: true) - do not publish segments, from which the circles were spawned.
 
 The following set of local parameters is dedicated to the algorithm itself:
 
@@ -39,8 +49,8 @@ The following set of local parameters is dedicated to the algorithm itself:
 * `~max_circle_radius` (double, default: 0.200) - if a circle would have greater radius than this value, skip it, 
 * `~radius_enlargement` (double, default: 0.020) - enlarge the circles radius by this value.
 
-#### 1.2. The obstacle_tracker node
-The node tracks and filters the circular obstacles with the use of Kalman filter. The node works in a synchronous manner with the rate of 100 Hz. If detected obstacles are published less often, the tracker will supersample them and smoothen their position and radius (their changes in time). The following local parameters can be used to tune the node:
+#### 1.3. The obstacle_tracker node
+This node tracks and filters the circular obstacles with the use of Kalman filter. The node works in a synchronous manner with the rate of 100 Hz. If detected obstacles are published less often, the tracker will supersample them and smoothen their position and radius. The following set of local parameters can be used to tune the node:
 
 * `~fade_counter_size` (int, default: 100) - number of samples after which (if no update occured) the obstacle will be discarded,
 * `~min_correspondence_cost` (double, default 0.6) - a threshold for correspondence test,
@@ -49,22 +59,12 @@ The node tracks and filters the circular obstacles with the use of Kalman filter
 * `~radius_measure_variance` (double, default 0.001) - measurement variance of obstacles radius (parameter of Kalman Filter),
 * `~radius_process_variance` (double, default 0.001) - process variance of obstacles radius (parameter of Kalman Filter).
 
-#### 1.3. The obstacle_visualizer node
-The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few parameters to customize the markers:
+#### 1.4. The obstacle_visualizer node
+The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few local parameters to customize the markers:
 
 * `~circles_color` (int, default: 1) - a color code for circular obstacles (0: black, 1: white, 2: red, 3: green, 4: blue, 5: yellow, 6: magenta, 7: cyan), 
 * `~segments_color` (int, default: 1) - as above but for segment obstacles,
 * `~alpha` (double, default: 1.0) - alpha (transparency) value.
-
-
-#### 1.4. The scans_merger node
-The auxiliary node which converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses following local parameters:
-
-* `~base_frame` (string, default: base) - name of the coordinate frame used for the origin of produced point cloud,
-* `~front_frame` (string, default: front_scanner) - name of the coordinate frame attached to the front scanner,
-* `~rear_frame` (string, default: rear_scanner) - name of the coordinate frame attached to the rear scanner,
-* `~max_unreceived_scans` (int, default: 1) - if one of the scanners stopped providing scans, after this number of missing scans the node will switch from merging to copying points directly,
-* `~omit_overlapping_scans` (bool, default: true) - if some of the points provided by both scans exist on the same angular area, omit them.
 
 #### 1.5. The static_scan_publisher node
 The auxiliary node which imitates a laser scanner and publishes a static, 360 deg laser scan of type `sensor_msgs/LaserScan` under topic `scan`. The node is mosty used for off-line tests.
@@ -92,7 +92,7 @@ The package provides three custom messages types:
 Provided launch files are good examples of how to use obstacle_detector package. They give a full list of parameters used by each of provided nodes.
 
 * `single_scanner.launch` - Starts a single `hokuyo_node` to obtain laser scans from Hokuyo device, a `laser_scan_matcher_node` or `static_transform_publisher` to provide appropriate transformation from global to local coordinate frame, `obstacle_detector`, `obstacle_tracker` and `obstacle_visualizator` nodes, as well as `rviz` with provided configuration file.
-* `two_scanners.launch` - Starts two `hokuyo_node`s, assuming that the udev configuration provides links to both devices (if not, familiarize with the description in the resources/ folder or change the devices names to /dev/ttyACM0 and /dev/ttyACM1 appropriately), provides appropriate transformations with `laser_scan_matcher_node` or `static_transform_publisher`s, uses `scans_merger` to convert both scans into pcl, and runs `obstacle_detector`, `obstacle_tracker` and `obstacle_visualizator` nodes as well as `rviz`.
+* `two_scanners.launch` - Starts two `hokuyo_node`s, assuming that the udev configuration provides links to both devices (if not, familiarize with the description in the `resources/` folder or change the devices names to `/dev/ttyACM0` and `/dev/ttyACM1` appropriately), provides appropriate transformations with `laser_scan_matcher_node` or `static_transform_publisher`s, uses `scans_merger` to convert both scans into pcl, and runs `obstacle_detector`, `obstacle_tracker` and `obstacle_visualizator` nodes as well as `rviz`.
 * `virtual_scanner` - Used for debug and tests purposes. Starts a `static_scan_publisher`, provides global to local transformation and runs `obstacle_detector`, `obstacle_tracker`, `obstacle_visualizator` nodes and `rviz`.
 * `virtual_obstacles` - Used for debug and tests purposes. Starts a `virtual_obstacles_publisher`, provides global to local transformation and runs `obstacle_tracker`, `obstacle_visualizator` nodes and `rviz`.
 

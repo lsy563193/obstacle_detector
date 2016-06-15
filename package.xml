@@ -2,7 +2,7 @@
 <package format="2">
   <name>obstacle_detector</name>
   <version>1.0.0</version>
-  <description>Detecting obstacles from laser scanner</description>
+  <description>Detecting obstacles from laser scans</description>
   <maintainer email="mateusz.przybyla@doctorate.put.poznan.pl">Mateusz Przybyla</maintainer>
   <author>Mateusz Przybyla</author>
   <license>BSD</license>
@@ -13,10 +13,9 @@
 
   <depend>tf</depend>
   <depend>roscpp</depend>
-  <depend>rospy</depend>
   <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>visualization_msgs</depend>
 
   <export>
