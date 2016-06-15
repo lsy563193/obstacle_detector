@@ -41,6 +41,7 @@
 #include <obstacle_detector/Obstacles.h>
 
 #include "../kalman.h"
+#include "point.h"
 
 namespace obstacle_detector
 {
@@ -101,6 +102,9 @@ public:
     obstacle.center.y = kf_.q_est(2);
     obstacle.radius = kf_.q_est(4);
 
+    velocity.x = kf_.q_est(1);
+    velocity.y = kf_.q_est(3);
+
     fade_counter_--;
   }
 
@@ -109,6 +113,10 @@ public:
   }
 
   CircleObstacle obstacle;
+  std::string label;
+  Point velocity;
+  bool was_fused;
+  bool was_fissed;
 
 private:
   KalmanFilter kf_;
