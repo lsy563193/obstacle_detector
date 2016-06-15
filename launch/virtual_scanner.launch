@@ -7,53 +7,45 @@
   <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 100"/>
  
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
-    <param name="world_frame"          value="world"/>
-    <param name="base_frame"           value="scanner"/>
- 
     <param name="use_scan"             value="true"/>
     <param name="use_pcl"              value="false"/>
-    <param name="transform_to_world"   value="true"/>
     <param name="use_split_and_merge"  value="false"/>
-    <param name="discard_converted_segments" value="true"/>
+    <param name="discard_converted_segments" value="false"/>
 
-    <param name="min_group_points"     value="5"/>
-    <param name="max_group_distance"   value="0.100"/>
-    <param name="distance_proportion"  value="0.006136"/>
-    <param name="max_split_distance"   value="0.100"/>
+    <param name="min_group_points"     value="6"/>
+    <param name="max_group_distance"   value="0.060"/>    
+    <param name="distance_proportion"  value="0.006136"/> <!-- Make it equal to angle increment in radians -->
+    <param name="max_split_distance"   value="0.050"/>
 
-    <param name="max_merge_separation" value="0.200"/>
+    <param name="max_merge_separation" value="0.150"/>
     <param name="max_merge_spread"     value="0.070"/>
-    <param name="max_circle_radius"    value="0.300"/>
+    <param name="max_circle_radius"    value="0.250"/>
     <param name="radius_enlargement"   value="0.020"/>
 
-    <param name="max_scanner_range"    value="6.0"/>
-    <param name="max_x_range"          value="6.0"/>
-    <param name="min_x_range"          value="-6.0"/>
-    <param name="max_y_range"          value="6.0"/>
-    <param name="min_y_range"          value="-6.0"/>
-    
     <remap from="scan" to="front_scan"/>
   </node>
   
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
-    <param name="circles_color"  value="5"/>
-    <param name="segments_color" value="7"/>
+    <param name="circles_color"  value="7"/>
+    <param name="segments_color" value="6"/>
     <param name="alpha"          value="0.7"/>
+    <param name="z_layer"        value="0.5"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
     <param name="fade_counter_size"       value="100"/>
-    <param name="min_correspondence_cost" value="0.6"/>
+    <param name="min_correspondence_cost" value="0.3"/>
     <param name="pose_measure_variance"   value="1.0"/>
     <param name="radius_measure_variance" value="1.0"/>
-    <param name="pose_process_variance"   value="0.001"/>    
-    <param name="radius_process_variance" value="0.001"/>
+    <param name="pose_process_variance"   value="0.0001"/>    
+    <param name="radius_process_variance" value="0.0001"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="untracked_obstacle_visualizer" output="screen">
     <param name="circles_color"  value="2"/>
     <param name="segments_color" value="2"/>
     <param name="alpha"          value="0.7"/>
+    <param name="z_layer"        value="1.0"/>
 
     <remap from="obstacles" to="untracked_obstacles"/>
     <remap from="obstacles_markers" to="untracked_obstacles_markers"/>
@@ -63,6 +55,7 @@
     <param name="circles_color"  value="3"/>
     <param name="segments_color" value="3"/>
     <param name="alpha"          value="0.7"/>
+    <param name="z_layer"        value="1.0"/>
 
     <remap from="obstacles" to="tracked_obstacles"/>
     <remap from="obstacles_markers" to="tracked_obstacles_markers"/>

@@ -2,6 +2,8 @@
 <launch>
   <node pkg="obstacle_detector" type="virtual_obstacle_publisher" name="virtual_obstacle_publisher"/>
   
+  <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
+
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="circles_color"  value="5"/>
     <param name="segments_color" value="7"/>

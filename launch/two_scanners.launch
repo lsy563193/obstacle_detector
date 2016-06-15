@@ -60,14 +60,12 @@
   -->
 
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
-    <param name="world_frame"            value="world"/>
     <param name="base_frame"             value="base"/>
     <param name="front_frame"            value="front_scanner"/>
     <param name="rear_frame"             value="rear_scanner"/>
 
     <param name="max_unreceived_scans"   value="1"/>
     <param name="omit_overlapping_scans" value="true"/>
-    <param name="transform_to_world"   value="true"/>
 
     <param name="max_scanner_range"    value="6.0"/>
     <param name="max_x_range"          value="1.5"/>
@@ -102,7 +100,7 @@
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
     <param name="fade_counter_size"       value="100"/>
-    <param name="min_correspondence_cost" value="0.5"/>
+    <param name="min_correspondence_cost" value="0.3"/>
     <param name="pose_measure_variance"   value="1.0"/>
     <param name="radius_measure_variance" value="1.0"/>
     <param name="pose_process_variance"   value="0.0001"/>    
