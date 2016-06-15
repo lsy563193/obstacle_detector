@@ -30,6 +30,12 @@ This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `
 * `~max_y_range` (double, default: 10.0) - as above,
 * `~min_y_range` (double, default: -10.0) - as above.
 
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/1482514/16087445/4af50edc-3323-11e6-88c7-c7ee12b6d63b.gif" alt="Visual example of obstacle detector output"/>
+  <br/>
+  Fig. 2. Visual example of scans merging with coordinates restrictions.
+</p>
+
 #### 1.2. The obstacle_detector node 
 This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles, which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters:
 
@@ -49,6 +55,12 @@ The following set of local parameters is dedicated to the algorithm itself:
 * `~max_circle_radius` (double, default: 0.200) - if a circle would have greater radius than this value, skip it, 
 * `~radius_enlargement` (double, default: 0.020) - enlarge the circles radius by this value.
 
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/1482514/16087483/63733baa-3323-11e6-8a72-f9e17b6691d5.gif" alt="Visual example of obstacle detector output"/>
+  <br/>
+  Fig. 3. Visual example of obstacles detection.
+</p>
+
 #### 1.3. The obstacle_tracker node
 This node tracks and filters the circular obstacles with the use of Kalman filter. The node works in a synchronous manner with the rate of 100 Hz. If detected obstacles are published less often, the tracker will supersample them and smoothen their position and radius. The following set of local parameters can be used to tune the node:
 
@@ -58,6 +70,12 @@ This node tracks and filters the circular obstacles with the use of Kalman filte
 * `~pose_process_variance` (double, default 1.0) - process variance of obstacles position (parameter of Kalman Filter),
 * `~radius_measure_variance` (double, default 0.001) - measurement variance of obstacles radius (parameter of Kalman Filter),
 * `~radius_process_variance` (double, default 0.001) - process variance of obstacles radius (parameter of Kalman Filter).
+
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/1482514/16087421/32d1f52c-3323-11e6-86bb-c1ac851d1b77.gif" alt="Visual example of obstacle detector output"/>
+  <br/>
+  Fig. 4. Visual example of obstacle tracking.
+</p>
 
 #### 1.4. The obstacle_visualizer node
 The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few local parameters to customize the markers:
