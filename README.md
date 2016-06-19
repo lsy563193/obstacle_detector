@@ -20,10 +20,7 @@ Any parameter required by the scanner must be provided in SI unit.
 This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses the following set of local parameters:
 
 * `~base_frame` (string, default: base) - name of the relative coordinate frame used as the origin of the produced point cloud (use world frame for conversion of points to the global coordinate frame),
-* `~front_frame` (string, default: front_scanner) - name of the coordinate frame attached to the front scanner,
-* `~rear_frame` (string, default: rear_scanner) - name of the coordinate frame attached to the rear scanner,
 * `~omit_overlapping_scans` (bool, default: true) - if some of the points provided by both scans exist on the same angular area, omit them,
-* `~max_unreceived_scans` (int, default: 1) - if one of the scanners stopped providing scans, after this number of missing scans the node will switch from merging to copying points directly,
 * `~max_scanner_range` (double, default: 10.0) - restriction on laser scanner range,
 * `~max_x_range` (double, default: 10.0) - limitation for points coordinates (points with coordinates behind these limitations will be discarded),
 * `~min_x_range` (double, default: -10.0) - as above,

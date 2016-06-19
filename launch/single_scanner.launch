@@ -41,10 +41,7 @@
   
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
     <param name="base_frame"             value="base"/>
-    <param name="front_frame"            value="front_scanner"/>
-    <param name="rear_frame"             value="rear_scanner"/>
 
-    <param name="max_unreceived_scans"   value="1"/>
     <param name="omit_overlapping_scans" value="false"/>
 
     <param name="max_scanner_range"    value="6.0"/>

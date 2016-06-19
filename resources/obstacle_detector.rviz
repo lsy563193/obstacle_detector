@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: FrontLaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -119,7 +119,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -136,40 +136,41 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /untracked_obstacles_markers
       Name: UntrackedObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /tracked_obstacles_markers
       Name: TrackedObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 9999
       Frames:
         All Enabled: true
         base:
+          Value: true
+        front_scanner:
+          Value: true
+        rear_scanner:
           Value: true
         world:
           Value: true
@@ -181,7 +182,10 @@ Visualization Manager:
       Tree:
         world:
           base:
-            {}
+            front_scanner:
+              {}
+            rear_scanner:
+              {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -216,7 +220,7 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 141.365
+      Scale: 91.9847
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
       X: 0.334061

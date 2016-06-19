@@ -39,10 +39,6 @@ using namespace obstacle_detector;
 
 ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
   nh_local_.param<std::string>("base_frame", p_base_frame_, "base");
-  nh_local_.param<std::string>("front_frame", p_front_frame_, "front_scanner");
-  nh_local_.param<std::string>("rear_frame", p_rear_frame_, "rear_scanner");
-
-  nh_local_.param<int>("max_unreceived_scans", p_max_unreceived_scans_, 1);
 
   nh_local_.param<bool>("omit_overlapping_scans", p_omit_overlapping_scans_, true);
 
@@ -56,15 +52,9 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
   rear_scan_sub_ = nh_.subscribe("rear_scan", 10, &ScansMerger::rearScanCallback, this);
   pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
 
-  try {
-    front_tf_.waitForTransform(p_base_frame_, p_front_frame_, ros::Time::now(), ros::Duration(5.0));
-    rear_tf_.waitForTransform(p_base_frame_, p_rear_frame_, ros::Time::now(), ros::Duration(5.0));
-  } catch (tf::TransformException ex) {
-      ROS_ERROR("%s",ex.what());
-  }
+  front_scan_received_ = false;
+  rear_scan_received_ = false;
 
-  first_scan_received_ = false;
-  second_scan_received_ = false;
   unreceived_front_scans_ = 0;
   unreceived_rear_scans_ = 0;
 
@@ -75,10 +65,10 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
 void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan) {
   try {
     tf::StampedTransform transform;
-    front_tf_.lookupTransform(p_base_frame_, p_front_frame_, ros::Time(0), transform);
+    front_tf_.lookupTransform(p_base_frame_, front_scan->header.frame_id, ros::Time(0), transform);
 
-    tf::Vector3 origin = transform.getOrigin();
-    double yaw = tf::getYaw(transform.getRotation());
+    tf::Vector3 base_origin = transform.getOrigin();
+    double base_yaw = tf::getYaw(transform.getRotation());
 
     geometry_msgs::Point32 local_point, base_point;
     float phi = front_scan->angle_min;
@@ -88,7 +78,7 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& fron
         local_point.x = r * cos(phi);
         local_point.y = r * sin(phi);
 
-        base_point = transformPoint(local_point, transform);
+        base_point = transformPoint(local_point, base_origin.x(), base_origin.y(), base_yaw);
 
         if (!(p_omit_overlapping_scans_ && base_point.x < 0.0) && checkPointInLimits(base_point))
           pcl_msg_.points.push_back(base_point);
@@ -96,9 +86,9 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& fron
       phi += front_scan->angle_increment;
     }
 
-    first_scan_received_ = true;
+    front_scan_received_ = true;
 
-    if (second_scan_received_ || unreceived_rear_scans_ > p_max_unreceived_scans_) {
+    if (rear_scan_received_ || unreceived_rear_scans_ > 0) {
       publishPCL();
 
       unreceived_front_scans_ = 0;
@@ -113,10 +103,10 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& fron
 void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan) {
   try {
     tf::StampedTransform transform;
-    rear_tf_.lookupTransform(p_base_frame_, p_rear_frame_, ros::Time(0), transform);
+    rear_tf_.lookupTransform(p_base_frame_, rear_scan->header.frame_id, ros::Time(0), transform);
 
-    tf::Vector3 origin = transform.getOrigin();
-    double yaw = tf::getYaw(transform.getRotation());
+    tf::Vector3 base_origin = transform.getOrigin();
+    double base_yaw = tf::getYaw(transform.getRotation());
 
     geometry_msgs::Point32 local_point, base_point;
     float phi = rear_scan->angle_min;
@@ -126,7 +116,7 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
         local_point.x = r * cos(phi);
         local_point.y = r * sin(phi);
 
-        base_point = transformPoint(local_point, transform);
+        base_point = transformPoint(local_point, base_origin.x(), base_origin.y(), base_yaw);
 
         if (!(p_omit_overlapping_scans_ && base_point.x > 0.0) && checkPointInLimits(base_point))
           pcl_msg_.points.push_back(base_point);
@@ -134,9 +124,9 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
       phi += rear_scan->angle_increment;
     }
 
-    second_scan_received_ = true;
+    rear_scan_received_ = true;
 
-    if (first_scan_received_ || unreceived_front_scans_ > p_max_unreceived_scans_) {
+    if (front_scan_received_ || unreceived_front_scans_ > 0) {
       publishPCL();
 
       unreceived_rear_scans_ = 0;
@@ -148,14 +138,11 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
   }
 }
 
-geometry_msgs::Point32 ScansMerger::transformPoint(const geometry_msgs::Point32& p, const tf::StampedTransform& transform) {
+geometry_msgs::Point32 ScansMerger::transformPoint(const geometry_msgs::Point32& p, float x, float y, float phi) {
   geometry_msgs::Point32 point;
 
-  tf::Vector3 origin = transform.getOrigin();
-  double yaw = tf::getYaw(transform.getRotation());
-
-  point.x = p.x * cos(yaw) - p.y * sin(yaw) + origin.x();
-  point.y = p.x * sin(yaw) + p.y * cos(yaw) + origin.y();
+  point.x = p.x * cos(phi) - p.y * sin(phi) + x;
+  point.y = p.x * sin(phi) + p.y * cos(phi) + y;
 
   return point;
 }
@@ -174,8 +161,8 @@ void ScansMerger::publishPCL() {
 
   pcl_msg_.points.clear();
 
-  first_scan_received_ = false;
-  second_scan_received_ = false;
+  front_scan_received_ = false;
+  rear_scan_received_ = false;
 }
 
 int main(int argc, char **argv) {

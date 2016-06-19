@@ -1,7 +1,7 @@
 <!-- Runs obstacle detector and tracker with two Hokuyo laser scanners.
      Uses laser_scan_matcher or static tf for world to base transformation. -->
 <launch>
-  <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen">
+  <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen" respawn="true">
     <param name="port"           value="/dev/sensors/hokuyo_H0904847"/>
     <param name="frame_id"       value="front_scanner"/>
 
@@ -17,7 +17,7 @@
     <remap from="scan" to="front_scan"/>
   </node>
 
-  <node pkg="hokuyo_node" type="hokuyo_node" name="rear_hokuyo" output="screen">
+  <node pkg="hokuyo_node" type="hokuyo_node" name="rear_hokuyo" output="screen" respawn="true">
     <param name="port"           value="/dev/sensors/hokuyo_H1320250"/>
     <param name="frame_id"       value="rear_scanner"/>
 
@@ -60,18 +60,14 @@
   -->
 
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
-    <param name="base_frame"             value="base"/>
-    <param name="front_frame"            value="front_scanner"/>
-    <param name="rear_frame"             value="rear_scanner"/>
-
-    <param name="max_unreceived_scans"   value="1"/>
+    <param name="base_frame"             value="world"/>
     <param name="omit_overlapping_scans" value="true"/>
 
-    <param name="max_scanner_range"    value="6.0"/>
-    <param name="max_x_range"          value="1.5"/>
-    <param name="min_x_range"          value="-0.8"/>
-    <param name="max_y_range"          value="3.5"/>
-    <param name="min_y_range"          value="-2.5"/>
+    <param name="max_scanner_range"    value="10.0"/>
+    <param name="max_x_range"          value="10.0"/>
+    <param name="min_x_range"          value="-10.0"/>
+    <param name="max_y_range"          value="10.0"/>
+    <param name="min_y_range"          value="-10.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
