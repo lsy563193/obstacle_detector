@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ 
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
 find_package(Armadillo REQUIRED)
 
-add_message_files(FILES CircleObstacle.msg SegmentObstacle.msg Obstacles.msg)
+add_message_files(FILES CircleObstacle.msg SegmentObstacle.msg Obstacles.msg TrackedObstacle.msg TrackedObstacles.msg)
 generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 catkin_package(
