@@ -69,14 +69,13 @@ void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan
   initial_points_.clear();
   frame_id_ = scan->header.frame_id;
 
-  double phi = scan->angle_min - scan->angle_increment;
+  double phi = scan->angle_min;
 
   for (const float r : scan->ranges) {
-    phi += scan->angle_increment;
-
-    if (r >= scan->range_min && r <= scan->range_max) {
+    if (r >= scan->range_min && r <= scan->range_max)
       initial_points_.push_back(Point::fromPoolarCoords(r, phi));
-    }
+
+    phi += scan->angle_increment;
   }
 
   processPoints();
@@ -86,11 +85,8 @@ void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl)
   initial_points_.clear();
   frame_id_ = pcl->header.frame_id;
 
-  for (const geometry_msgs::Point32& point : pcl->points) {
-    Point p(point.x, point.y);
-
-    initial_points_.push_back(p);
-  }
+  for (const geometry_msgs::Point32& point : pcl->points)
+    initial_points_.push_back(Point(point.x, point.y));
 
   processPoints();
 }
@@ -165,10 +161,8 @@ void ObstacleDetector::detectSegments(list<Point>& point_set) {
     if (!p_use_split_and_merge_)
       segment = fitSegment(point_set);
 
-    if (segment.length() > 0.0) {
-      segments_.push_back(segment);
-      segments_.back().point_set().assign(point_set.begin(), point_set.end());
-    }
+    segments_.push_back(segment);
+    segments_.back().point_set().assign(point_set.begin(), point_set.end());
   }
 }
 

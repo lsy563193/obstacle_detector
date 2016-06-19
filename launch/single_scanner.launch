@@ -1,7 +1,7 @@
 <!-- Runs obstacle detector and tracker with a single Hokuyo laser scanner. 
      Uses laser_scan_matcher or static tf for world to base transformation. -->
 <launch>
-  <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen">
+  <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen" respawn="true">
     <param name="port"           value="/dev/sensors/hokuyo_H0904847"/>
     <param name="frame_id"       value="front_scanner"/>
 
