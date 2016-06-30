@@ -1,6 +1,6 @@
 #include "../include/obstacle_tracker.h"
 
-using namespace  obstacle_detector;
+using namespace obstacle_detector;
 using namespace arma;
 using namespace std;
 
@@ -16,7 +16,6 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
 
   obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
   tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
-  untracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("untracked_obstacles", 10);
 
   ROS_INFO("Obstacle Tracker [OK]");
   ros::Rate rate(100);
@@ -24,19 +23,22 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   while (ros::ok()) {
     ros::spinOnce();
 
+    // Update or discard tracked obstacles
+    for (int i = 0; i < tracked_obstacles_.size(); ++i) {
+      if (!tracked_obstacles_[i].hasFaded())
+        tracked_obstacles_[i].updateTracking();
+      else
+        tracked_obstacles_.erase(tracked_obstacles_.begin() + i--);
+    }
+
     tracked_obstacles_msg_.header.stamp = ros::Time::now();
     tracked_obstacles_msg_.circles.clear();
 
-    for (auto it = tracked_obstacles_.begin(); it != tracked_obstacles_.end(); ++it) {
-      if (it->hasFaded()) {
-        it = tracked_obstacles_.erase(it);
-        --it;
-      }
-      else {
-        it->updateTracking();
-        tracked_obstacles_msg_.circles.push_back(it->getObstacle());
-      }
-    }
+    for (auto tracked_obstacle : tracked_obstacles_)
+      tracked_obstacles_msg_.circles.push_back(tracked_obstacle.getObstacle());
+
+    for (auto untracked_obstacle : untracked_obstacles_)
+      tracked_obstacles_msg_.circles.push_back(untracked_obstacle);
 
     if (!tracked_obstacles_msg_.circles.empty())
       tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
@@ -45,9 +47,27 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   }
 }
 
+double ObstacleTracker::obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
+  // TODO: Add gauss elipses
+  return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0) + pow(c1.radius - c2.radius, 2.0));
+}
+
+CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
+  CircleObstacle c;
+
+  c.center.x = (c1.center.x + c2.center.x) / 2.0;
+  c.center.y = (c1.center.y + c2.center.y) / 2.0;
+  c.velocity.x = (c1.velocity.x + c2.velocity.x) / 2.0;
+  c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
+  c.radius = (c1.radius + c2.radius) / 2.0;
+  c.tracked = c1.tracked || c2.tracked;
+  c.label.data = c1.label.data + c2.label.data;
+
+  return c;
+}
+
 void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
   tracked_obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
-  untracked_obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
 
   int N = new_obstacles->circles.size();
   int T = tracked_obstacles_.size();
@@ -257,6 +277,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
   // Check for other possibilities
   vector<CircleObstacle> new_untracked_obstacles;
+
   for (int n = 0; n < N; ++n) {
     if (row_min_indices[n] == -1) {
       new_untracked_obstacles.push_back(new_obstacles->circles[n]);
@@ -268,7 +289,6 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       CircleObstacle c = meanCircObstacle(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
       TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
       to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
-      to.updateMeasurement(new_obstacles->circles[n]);
       tracked_obstacles_.push_back(to);
     }
   }
@@ -283,12 +303,6 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   // Remove old untracked obstacles and save new ones
   untracked_obstacles_.clear();
   untracked_obstacles_.assign(new_untracked_obstacles.begin(), new_untracked_obstacles.end());
-
-  // Prepare and publish untracked obstacles message
-  untracked_obstacles_msg_.header.stamp = ros::Time::now();
-  untracked_obstacles_msg_.circles.clear();
-  untracked_obstacles_msg_.circles.assign(untracked_obstacles_.begin(), untracked_obstacles_.end());
-  untracked_obstacles_pub_.publish(untracked_obstacles_msg_);
 }
 
 int main(int argc, char** argv) {

@@ -52,6 +52,8 @@ public:
     double TP = 0.01; // Sampling time in sec.
 
     obstacle_ = init_obstacle;
+    obstacle_.tracked = true;
+
     fade_counter_size_ = fade_counter_size;
     fade_counter_ = fade_counter_size;
 

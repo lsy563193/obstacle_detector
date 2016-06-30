@@ -55,13 +55,15 @@ private:
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
-  ros::Publisher  markers_pub_;
+  ros::Publisher markers_pub_;
 
-  std_msgs::ColorRGBA circles_color_;
+  std_msgs::ColorRGBA tracked_circles_color_;
+  std_msgs::ColorRGBA untracked_circles_color_;
   std_msgs::ColorRGBA segments_color_;
 
   // Parameters
-  int p_circles_color_;
+  int p_tracked_circles_color_;
+  int p_untracked_circles_color_;
   int p_segments_color_;
   double p_alpha_;
   double p_z_layer_;
