@@ -10,11 +10,11 @@ The obstacle_detector package provides utilities to detect and track obstacles f
 
 ### 1. The nodes
 
-The package contains separate nodes to perform separate tasks. The data is processed in a following manner:
+The package provides separate nodes to perform separate tasks. The data is processed in a following manner:
 
 `laser scans -> scans merger -> point cloud -> obstacle detector -> obstacles -> obstacle tracker`
 
-Any parameter required by the scanner must be provided in SI unit.
+The nodes are configurable with the use of ROS parameter server. Any numerical parameter required by the nodes must be provided in SI unit.
 
 #### 1.1. The scans_merger node
 This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses the following set of local parameters:
@@ -34,7 +34,7 @@ This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `
 </p>
 
 #### 1.2. The obstacle_detector node 
-This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles, which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters:
+This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters:
 
 * `~use_scan` (bool, default: true) - use laser scan messages,
 * `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl are chosen, scan will have priority),
@@ -59,7 +59,9 @@ The following set of local parameters is dedicated to the algorithm itself:
 </p>
 
 #### 1.3. The obstacle_tracker node
-This node tracks and filters the circular obstacles with the use of Kalman filter. The node works in a synchronous manner with the rate of 100 Hz. If detected obstacles are published less often, the tracker will supersample them and smoothen their position and radius. The following set of local parameters can be used to tune the node:
+This node tracks and filters the circular obstacles with the use of Kalman filter. It subscribes to messages of custom type `obstacle_detector/Obstacles` from topic `obstacles` and publishes messages of the same type under topic `tracked_obstacles`. The tracking algorithm is applied only to the circular obstacles, hence the segments list of the published message is always empty. In fact, published messages contain both tracked and untracked circular obstacles. One can distinguish them by checking the `bool tracked` field of the `obstacle_detector/CircleObstacle` message type. 
+
+The node works in a synchronous manner with the rate of 100 Hz. If detected obstacles are published less often, the tracker will supersample them and smoothen their position and radius. The following set of local parameters can be used to tune the node:
 
 * `~fade_counter_size` (int, default: 100) - number of samples after which (if no update occured) the obstacle will be discarded,
 * `~min_correspondence_cost` (double, default 0.6) - a threshold for correspondence test,
@@ -77,23 +79,28 @@ This node tracks and filters the circular obstacles with the use of Kalman filte
 #### 1.4. The obstacle_visualizer node
 The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few local parameters to customize the markers:
 
-* `~circles_color` (int, default: 1) - a color code for circular obstacles (0: black, 1: white, 2: red, 3: green, 4: blue, 5: yellow, 6: magenta, 7: cyan), 
+* `~tracked_circles_color` (int, default: 1) - a color code for tracked circular obstacles (0: black, 1: white, 2: red, 3: green, 4: blue, 5: yellow, 6: magenta, 7: cyan),
+* `~untracked_circles_color` (int, default: 1) - as above but for untracked circular obstacles, 
 * `~segments_color` (int, default: 1) - as above but for segment obstacles,
-* `~alpha` (double, default: 1.0) - alpha (transparency) value.
+* `~alpha` (double, default: 1.0) - alpha (transparency) value,
+* `~z_layer` (double, default: 0.0) - position of obstacles in Z axis.
 
 #### 1.5. The static_scan_publisher node
-The auxiliary node which imitates a laser scanner and publishes a static, 360 deg laser scan of type `sensor_msgs/LaserScan` under topic `scan`. The node is mosty used for off-line tests.
+The auxiliary node which imitates a laser scanner and publishes a static, 360 deg laser scan of type `sensor_msgs/LaserScan` under topic `scan`. The node is mostly used for off-line tests.
 
 #### 1.6. The virtual_obstacle_publisher node
-The auxiliary node which publishes a set of virtual obstacles of type `obstacles_detector/Obstacles` under topic `obstacles`. The node is mosty used for off-line tests.
+The auxiliary node which publishes a set of virtual obstacles of type `obstacles_detector/Obstacles` under topic `obstacles`. The node is mostly used for off-line tests.
 
 ### 2. The messages
 
-The package provides three custom messages types:
+The package provides three custom messages types. All of their numerical values are provided in SI units.
 
 * `CircleObstacle`
   * `geometry_msgs/Point center`
+  * `geometry_msgs/Vector3 velocity`
   * `float64 radius`
+  * `std_msgs/String label`
+  * `bool tracked` 
 * `SegmentObstacle`
   * `geometry_msgs/Point first_point`
   * `geometry_msgs/Point last_point`
