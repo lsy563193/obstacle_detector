@@ -300,6 +300,7 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
       return true;
     }
   }
+
   return false;
 }
 
@@ -324,7 +325,10 @@ void ObstacleDetector::publishObstacles() {
 
     circle.center.x = c.center().x;
     circle.center.y = c.center().y;
+    circle.velocity.x = 0.0;
+    circle.velocity.y = 0.0;
     circle.radius = c.radius();
+    circle.tracked = false;
 
     obstacles.circles.push_back(circle);
   }

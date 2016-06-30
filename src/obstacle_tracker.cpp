@@ -34,7 +34,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
       }
       else {
         it->updateTracking();
-        tracked_obstacles_msg_.circles.push_back(it->obstacle);
+        tracked_obstacles_msg_.circles.push_back(it->getObstacle());
       }
     }
 
@@ -75,7 +75,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
   for (int n = 0; n < N; ++n) {
     for (int t = 0; t < T; ++t)
-      cost_matrix(n, t) = obstacleCostFunction(new_obstacles->circles[n], tracked_obstacles_[t].obstacle);
+      cost_matrix(n, t) = obstacleCostFunction(new_obstacles->circles[n], tracked_obstacles_[t].getObstacle());
 
     for (int u = 0; u < U; ++u)
       cost_matrix(n, u + T) = obstacleCostFunction(new_obstacles->circles[n], untracked_obstacles_[u]);
@@ -182,16 +182,16 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         CircleObstacle c;
 
         if (i < T && j < T) {
-          c = meanCircObstacle(tracked_obstacles_[i].obstacle, tracked_obstacles_[j].obstacle);
+          c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), tracked_obstacles_[j].getObstacle());
           erase_indices.push_back(i);
           erase_indices.push_back(j);
         }
         else if (i < T && j >= T) {
-          c = meanCircObstacle(tracked_obstacles_[i].obstacle, untracked_obstacles_[j - T]);
+          c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), untracked_obstacles_[j - T]);
           erase_indices.push_back(i);
         }
         else if (i >= T && j < T) {
-          c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].obstacle);
+          c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].getObstacle());
           erase_indices.push_back(j);
         }
         else if (i >= T && j >= T) {
@@ -225,8 +225,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         CircleObstacle c2;
 
         if (row_min_indices[i] < T) {
-          c1 = meanCircObstacle(new_obstacles->circles[i], tracked_obstacles_[row_min_indices[i]].obstacle);
-          c2 = meanCircObstacle(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].obstacle);
+          c1 = meanCircObstacle(new_obstacles->circles[i], tracked_obstacles_[row_min_indices[i]].getObstacle());
+          c2 = meanCircObstacle(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].getObstacle());
 
           erase_indices.push_back(row_min_indices[i]);
         }

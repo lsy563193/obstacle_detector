@@ -1,1 +1,0 @@
-TrackedObstacle[] obstacles

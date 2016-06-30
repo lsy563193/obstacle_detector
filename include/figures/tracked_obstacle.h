@@ -49,32 +49,36 @@ namespace obstacle_detector
 class TrackedObstacle {
 public:
   TrackedObstacle(const CircleObstacle& init_obstacle, int fade_counter_size) : kf_(0, 3, 6) {
-    obstacle = init_obstacle;
+    double TP = 0.01; // Sampling time in sec.
+
+    obstacle_ = init_obstacle;
     fade_counter_size_ = fade_counter_size;
     fade_counter_ = fade_counter_size;
-
-    double TP = 0.01; // Sampling time in sec.
 
     // Initialize Kalman Filter structures
     kf_.A(0, 1) = TP;
     kf_.A(2, 3) = TP;
     kf_.A(4, 5) = TP;
 
-    kf_.C(0, 0) = 1;
-    kf_.C(1, 2) = 1;
-    kf_.C(2, 4) = 1;
+    kf_.C(0, 0) = 1.0;
+    kf_.C(1, 2) = 1.0;
+    kf_.C(2, 4) = 1.0;
 
-    kf_.q_pred(0) = obstacle.center.x;
-    kf_.q_pred(2) = obstacle.center.y;
-    kf_.q_pred(4) = obstacle.radius;
+    kf_.q_pred(0) = obstacle_.center.x;
+    kf_.q_pred(1) = obstacle_.velocity.x;
+    kf_.q_pred(2) = obstacle_.center.y;
+    kf_.q_pred(3) = obstacle_.velocity.y;
+    kf_.q_pred(4) = obstacle_.radius;
 
-    kf_.q_est(0) = obstacle.center.x;
-    kf_.q_est(2) = obstacle.center.y;
-    kf_.q_est(4) = obstacle.radius;
+    kf_.q_est(0) = obstacle_.center.x;
+    kf_.q_est(1) = obstacle_.velocity.x;
+    kf_.q_est(2) = obstacle_.center.y;
+    kf_.q_est(3) = obstacle_.velocity.y;
+    kf_.q_est(4) = obstacle_.radius;
 
-    kf_.y(0) = obstacle.center.x;
-    kf_.y(1) = obstacle.center.y;
-    kf_.y(2) = obstacle.radius;
+    kf_.y(0) = obstacle_.center.x;
+    kf_.y(1) = obstacle_.center.y;
+    kf_.y(2) = obstacle_.radius;
   }
 
   void setCovariances(double pose_m_var, double pose_p_var, double radius_m_var, double radius_p_var) {
@@ -98,28 +102,28 @@ public:
   void updateTracking() {
     kf_.updateState();
 
-    obstacle.center.x = kf_.q_est(0);
-    obstacle.center.y = kf_.q_est(2);
-    obstacle.radius = kf_.q_est(4);
+    obstacle_.center.x = kf_.q_est(0);
+    obstacle_.center.y = kf_.q_est(2);
 
-    velocity.x = kf_.q_est(1);
-    velocity.y = kf_.q_est(3);
+    obstacle_.velocity.x = kf_.q_est(1);
+    obstacle_.velocity.y = kf_.q_est(3);
+
+    obstacle_.radius = kf_.q_est(4);
 
     fade_counter_--;
   }
 
-  bool hasFaded() {
-    return ((fade_counter_ <= 0) ? true : false);
-  }
-
-  CircleObstacle obstacle;
-  std::string label;
-  Point velocity;
-  bool was_fused;
-  bool was_fissed;
+  void setLabel(std::string label) { obstacle_.label.data = label; }
+  CircleObstacle getObstacle() const { return obstacle_; }
+  bool hasFaded() const { return ((fade_counter_ <= 0) ? true : false); }
 
 private:
   KalmanFilter kf_;
+  CircleObstacle obstacle_;
+
+//  bool was_fused_;
+//  bool was_fissed_;
+
   int fade_counter_size_;
   int fade_counter_;  // If the fade counter reaches 0, remove the obstacle from the list
 };
