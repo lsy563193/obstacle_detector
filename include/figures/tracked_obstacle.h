@@ -123,6 +123,8 @@ private:
   KalmanFilter kf_;
   CircleObstacle obstacle_;
 
+  static int obstacle_counter_;
+
 //  bool was_fused_;
 //  bool was_fissed_;
 

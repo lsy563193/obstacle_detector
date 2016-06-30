@@ -5,9 +5,11 @@
   <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
-    <param name="circles_color"  value="5"/>
-    <param name="segments_color" value="7"/>
-    <param name="alpha"          value="0.7"/>
+    <param name="tracked_circles_color"   value="7"/>
+    <param name="untracked_circles_color" value="7"/>
+    <param name="segments_color"          value="6"/>
+    <param name="alpha"                   value="0.7"/>
+    <param name="z_layer"                 value="0.5"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
@@ -15,23 +17,16 @@
     <param name="min_correspondence_cost" value="0.3"/>
     <param name="pose_measure_variance"   value="1.0"/>
     <param name="radius_measure_variance" value="1.0"/>
-    <param name="pose_process_variance"   value="0.001"/>    
-    <param name="radius_process_variance" value="0.001"/>
-  </node>
-
-  <node pkg="obstacle_detector" type="obstacle_visualizer" name="untracked_obstacle_visualizer" output="screen">
-    <param name="circles_color"  value="2"/>
-    <param name="segments_color" value="2"/>
-    <param name="alpha"          value="0.7"/>
-
-    <remap from="obstacles" to="untracked_obstacles"/>
-    <remap from="obstacles_markers" to="untracked_obstacles_markers"/>
+    <param name="pose_process_variance"   value="0.0001"/>    
+    <param name="radius_process_variance" value="0.0001"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">
-    <param name="circles_color"  value="3"/>
-    <param name="segments_color" value="3"/>
-    <param name="alpha"          value="0.7"/>
+    <param name="tracked_circles_color"   value="3"/>
+    <param name="untracked_circles_color" value="2"/>
+    <param name="segments_color"          value="6"/>
+    <param name="alpha"                   value="0.7"/>
+    <param name="z_layer"                 value="1.0"/>
 
     <remap from="obstacles" to="tracked_obstacles"/>
     <remap from="obstacles_markers" to="tracked_obstacles_markers"/>
