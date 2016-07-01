@@ -52,7 +52,8 @@ private:
   void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan);
   void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan);
 
-  geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& p, const tf::StampedTransform& transform);
+  geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& p, float x, float y, float phi);
+
   bool checkPointInLimits(const geometry_msgs::Point32& p);
   void publishPCL();
 
@@ -68,19 +69,16 @@ private:
 
   sensor_msgs::PointCloud pcl_msg_;
 
-  bool first_scan_received_;
-  bool second_scan_received_;
+  bool front_scan_received_;
+  bool rear_scan_received_;
+
   int unreceived_front_scans_;
   int unreceived_rear_scans_;
 
   // Parameters
   std::string p_base_frame_;        // TF frame id for output PCL message
-  std::string p_front_frame_;       // TF frame id for front laser scanner
-  std::string p_rear_frame_;        // TF frame id for rear laser scanner
 
   bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
-
-  int p_max_unreceived_scans_;      // Maximum allowable unreceived scans to start publishing one scan
 
   double p_max_scanner_range_;      // Restrictions on laser scanner range
   double p_max_x_range_;            // Restrictions on world coordinates

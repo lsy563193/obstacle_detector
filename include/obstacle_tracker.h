@@ -41,23 +41,13 @@
 namespace obstacle_detector
 {
 
-double obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
-  return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0) + pow(c1.radius - c2.radius, 2.0));
-}
-
-CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
-  CircleObstacle c;
-  c.center.x = (c1.center.x + c2.center.x) / 2.0;
-  c.center.y = (c1.center.y + c2.center.y) / 2.0;
-  c.radius = (c1.radius + c2.radius) / 2.0;
-  return c;
-}
-
 class ObstacleTracker {
 public:
   ObstacleTracker();
 
 private:
+  double obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2);
+  CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2);
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
   ros::NodeHandle nh_;
@@ -65,10 +55,8 @@ private:
 
   ros::Subscriber obstacles_sub_;
   ros::Publisher tracked_obstacles_pub_;
-  ros::Publisher untracked_obstacles_pub_;
 
   Obstacles tracked_obstacles_msg_;
-  Obstacles untracked_obstacles_msg_;
 
   std::vector<TrackedObstacle> tracked_obstacles_;
   std::vector<CircleObstacle> untracked_obstacles_;
