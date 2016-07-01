@@ -49,18 +49,16 @@ namespace obstacle_detector
 class TrackedObstacle {
 public:
   TrackedObstacle(const CircleObstacle& init_obstacle, int fade_counter_size) : kf_(0, 3, 6) {
-    double TP = 0.01; // Sampling time in sec.
-
     obstacle_ = init_obstacle;
     obstacle_.tracked = true;
+    obstacle_.obstacle_id = ++obstacle_number_;
 
     fade_counter_size_ = fade_counter_size;
-    fade_counter_ = fade_counter_size;
 
     // Initialize Kalman Filter structures
-    kf_.A(0, 1) = TP;
-    kf_.A(2, 3) = TP;
-    kf_.A(4, 5) = TP;
+    kf_.A(0, 1) = TP_;
+    kf_.A(2, 3) = TP_;
+    kf_.A(4, 5) = TP_;
 
     kf_.C(0, 0) = 1.0;
     kf_.C(1, 2) = 1.0;
@@ -77,10 +75,6 @@ public:
     kf_.q_est(2) = obstacle_.center.y;
     kf_.q_est(3) = obstacle_.velocity.y;
     kf_.q_est(4) = obstacle_.radius;
-
-    kf_.y(0) = obstacle_.center.x;
-    kf_.y(1) = obstacle_.center.y;
-    kf_.y(2) = obstacle_.radius;
   }
 
   void setCovariances(double pose_m_var, double pose_p_var, double radius_m_var, double radius_p_var) {
@@ -115,7 +109,9 @@ public:
     fade_counter_--;
   }
 
-  void setLabel(std::string label) { obstacle_.label.data = label; }
+  void setFused() { fused_ = true; }
+  void setFissed() { fissed_ = true; }
+
   CircleObstacle getObstacle() const { return obstacle_; }
   bool hasFaded() const { return ((fade_counter_ <= 0) ? true : false); }
 
@@ -123,13 +119,14 @@ private:
   KalmanFilter kf_;
   CircleObstacle obstacle_;
 
-  static int obstacle_counter_;
-
-//  bool was_fused_;
-//  bool was_fissed_;
+  static int obstacle_number_;
+  static const double TP_;      // Sampling time in sec.
 
   int fade_counter_size_;
-  int fade_counter_;  // If the fade counter reaches 0, remove the obstacle from the list
+  int fade_counter_;            // If the fade counter reaches 0, remove the obstacle from the list
+
+  bool fused_;
+  bool fissed_;
 };
 
 }

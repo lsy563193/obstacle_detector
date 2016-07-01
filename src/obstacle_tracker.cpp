@@ -6,6 +6,9 @@ using namespace std;
 
 #define TRACKER_TESTING
 
+int TrackedObstacle::obstacle_number_ = 0;
+const double TrackedObstacle::TP_ = 0.01;
+
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   nh_local_.param("fade_counter_size", p_fade_counter_size_, 100);
   nh_local_.param("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
@@ -60,8 +63,6 @@ CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const
   c.velocity.x = (c1.velocity.x + c2.velocity.x) / 2.0;
   c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
   c.radius = (c1.radius + c2.radius) / 2.0;
-  c.tracked = c1.tracked || c2.tracked;
-  c.label.data = c1.label.data + c2.label.data;
 
   return c;
 }
@@ -221,6 +222,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
         to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
         to.updateMeasurement(new_obstacles->circles[col_min_indices[j]]);
+        to.setFused();
 
         tracked_obstacles_.push_back(to);
 
@@ -264,6 +266,9 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         to1.updateMeasurement(new_obstacles->circles[i]);
         to2.updateMeasurement(new_obstacles->circles[j]);
 
+        to1.setFissed();
+        to2.setFissed();
+
         tracked_obstacles_.push_back(to1);
         tracked_obstacles_.push_back(to2);
 
@@ -287,8 +292,11 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
     else if (row_min_indices[n] >= T) {
       CircleObstacle c = meanCircObstacle(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
+
       TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
       to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
+      to.updateMeasurement(c);
+
       tracked_obstacles_.push_back(to);
     }
   }

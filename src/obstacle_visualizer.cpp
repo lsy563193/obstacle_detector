@@ -41,6 +41,7 @@ ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
   nh_local_.param("tracked_circles_color", p_tracked_circles_color_, 3);
   nh_local_.param("untracked_circles_color", p_untracked_circles_color_, 2);
   nh_local_.param("segments_color", p_segments_color_, 1);
+  nh_local_.param("text_color", p_text_color_, 1);
   nh_local_.param("alpha", p_alpha_, 1.0);
   nh_local_.param("z_layer", p_z_layer_, 0.0);
 
@@ -50,6 +51,7 @@ ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
   setColor(tracked_circles_color_, p_tracked_circles_color_, p_alpha_);
   setColor(untracked_circles_color_, p_untracked_circles_color_, p_alpha_);
   setColor(segments_color_, p_segments_color_, p_alpha_);
+  setColor(text_color_, p_text_color_, p_alpha_);
 
   ROS_INFO("Obstacle Visualizer [OK]");
   ros::spin();
@@ -69,8 +71,6 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   circle_marker.type               = visualization_msgs::Marker::CYLINDER;
   circle_marker.action             = visualization_msgs::Marker::ADD;
   circle_marker.pose.position.z    = p_z_layer_;
-  circle_marker.pose.orientation.w = 1.0;
-  circle_marker.scale.z            = 0.1;
 
   for (auto circle : obstacles->circles) {
     circle_marker.pose.position.x = circle.center.x;
@@ -96,6 +96,42 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   for (int i = 0; i < 20; ++i) {
     circle_marker.id++;
     markers_array.markers.push_back(circle_marker);
+  }
+
+  // Create text markers for all of the tracked obstacles
+  visualization_msgs::Marker text_marker;
+
+  text_marker.header.frame_id    = obstacles->header.frame_id;
+  text_marker.header.stamp       = obstacles->header.stamp;
+  text_marker.lifetime           = ros::Duration();
+  text_marker.id                 = 0;
+  text_marker.ns                 = "names";
+  text_marker.type               = visualization_msgs::Marker::TEXT_VIEW_FACING;
+  text_marker.action             = visualization_msgs::Marker::ADD;
+  text_marker.pose.position.z    = p_z_layer_;
+  text_marker.scale.z            = 0.2;
+
+  for (auto circle : obstacles->circles) {
+    if (circle.tracked) {
+      text_marker.pose.position.x = circle.center.x;
+      text_marker.pose.position.y = circle.center.y + circle.radius + 0.1;
+      text_marker.id++;
+      text_marker.color = text_color_;
+      text_marker.text = "O" + std::to_string(circle.obstacle_id);
+
+      markers_array.markers.push_back(text_marker);
+    }
+  }
+
+  // Add some empty markers with DELETE action to get rid of the old ones
+  text_marker.action = visualization_msgs::Marker::DELETE;
+  text_marker.scale.x = 0.0;
+  text_marker.scale.y = 0.0;
+  text_marker.scale.z = 0.0;
+
+  for (int i = 0; i < 20; ++i) {
+    text_marker.id++;
+    markers_array.markers.push_back(text_marker);
   }
 
   // Create markers for all of the segment obstacles
