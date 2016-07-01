@@ -82,6 +82,7 @@ The auxiliary node which converts messages of type `obstacles_detector/Obstacles
 * `~tracked_circles_color` (int, default: 1) - a color code for tracked circular obstacles (0: black, 1: white, 2: red, 3: green, 4: blue, 5: yellow, 6: magenta, 7: cyan),
 * `~untracked_circles_color` (int, default: 1) - as above but for untracked circular obstacles, 
 * `~segments_color` (int, default: 1) - as above but for segment obstacles,
+* `~text_color` (int, default: 1) - as above but for names of tracked obstacles,
 * `~alpha` (double, default: 1.0) - alpha (transparency) value,
 * `~z_layer` (double, default: 0.0) - position of obstacles in Z axis.
 
@@ -99,7 +100,7 @@ The package provides three custom messages types. All of their numerical values 
   * `geometry_msgs/Point center`
   * `geometry_msgs/Vector3 velocity`
   * `float64 radius`
-  * `std_msgs/String label`
+  * `int32 obstacle_id`
   * `bool tracked` 
 * `SegmentObstacle`
   * `geometry_msgs/Point first_point`
