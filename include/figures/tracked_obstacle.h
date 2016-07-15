@@ -83,8 +83,11 @@ public:
     kf_.R(2, 2) = radius_m_var;
 
     kf_.Q(0, 0) = pose_p_var;
+    kf_.Q(1, 1) = pose_p_var;
     kf_.Q(2, 2) = pose_p_var;
+    kf_.Q(3, 3) = pose_p_var;
     kf_.Q(4, 4) = radius_p_var;
+    kf_.Q(5, 5) = radius_p_var;
   }
 
   void updateMeasurement(const CircleObstacle& new_obstacle) {

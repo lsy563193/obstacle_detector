@@ -65,6 +65,9 @@ private:
   int counter_;
   bool recording_;
   ros::Time start_mark_;
+
+  // Parameter
+  std::string p_filename_prefix_;
 };
 
 } // namespace obstacle_detector

@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: RearLaserScan
+    SyncSource: MergedPointCloud
 Visualization Manager:
   Class: ""
   Displays:
@@ -135,22 +135,21 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /untracked_obstacles_markers
       Name: UntrackedObstacles
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /tracked_obstacles_markers
@@ -220,11 +219,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 81.1927
+      Scale: 296.956
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.266499
-      Y: -0.446908
+      X: 1.21815
+      Y: -0.0176215
     Saved: ~
 Window Geometry:
   Displays:

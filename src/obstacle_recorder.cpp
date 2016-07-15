@@ -38,8 +38,10 @@
 using namespace obstacle_detector;
 
 ObstacleRecorder::ObstacleRecorder() : nh_(""), nh_local_("~") {
+  nh_local_.param<std::string>("filename_prefix", p_filename_prefix_, "raw_");
+
   obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleRecorder::obstaclesCallback, this);
-  recording_trigger_srv_ = nh_.advertiseService("recording_trigger", &ObstacleRecorder::recordingTrigger, this);
+  recording_trigger_srv_ = nh_.advertiseService(p_filename_prefix_ + "recording_trigger", &ObstacleRecorder::recordingTrigger, this);
 
   recording_ = false;
 
@@ -78,12 +80,13 @@ bool ObstacleRecorder::recordingTrigger(std_srvs::Trigger::Request& req, std_srv
 
     std::string username = getenv("USER");
     std::string foldername = "/home/" + username + "/obstacle_records/";
-    std::string filename = foldername + "obstacles_" + std::string(the_date) + ".txt";
+    std::string filename = foldername + p_filename_prefix_ + "obstacles_" + std::string(the_date) + ".txt";
 
     boost::filesystem::create_directories(foldername);
     file_.open(filename);
 
     // Number, time, label, tracked, x, y, r, v_x, v_y
+    file_ << ros::Time::now() << "\n";
     file_ << "n" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\n";
 
     recording_ = true;
