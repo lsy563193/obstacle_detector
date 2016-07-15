@@ -64,10 +64,10 @@
     <param name="omit_overlapping_scans" value="true"/>
 
     <param name="max_scanner_range"    value="10.0"/>
-    <param name="max_x_range"          value="10.0"/>
-    <param name="min_x_range"          value="-10.0"/>
-    <param name="max_y_range"          value="10.0"/>
-    <param name="min_y_range"          value="-10.0"/>
+    <param name="max_x_range"          value="2.5"/>
+    <param name="min_x_range"          value="0.0"/>
+    <param name="max_y_range"          value="1.5"/>
+    <param name="min_y_range"          value="-1.5"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
@@ -78,7 +78,7 @@
 
     <param name="min_group_points"     value="6"/>
     <param name="max_group_distance"   value="0.060"/>    
-    <param name="distance_proportion"  value="0.006136"/> <!-- Make it equal to angle increment in radians -->
+    <param name="distance_proportion"  value="0.006136"/>
     <param name="max_split_distance"   value="0.050"/>
 
     <param name="max_merge_separation" value="0.150"/>
@@ -113,6 +113,10 @@
 
     <remap from="obstacles" to="tracked_obstacles"/>
     <remap from="obstacles_markers" to="tracked_obstacles_markers"/>
+  </node>
+
+  <node pkg="obstacle_detector" type="obstacle_recorder" name="obstacle_recorder" output="screen">
+    <remap from="obstacles" to="tracked_obstacles"/>
   </node>
 
   <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/>

@@ -3,7 +3,7 @@ project(obstacle_detector)
 
 set(CMAKE_CXX_FLAGS "-std=c++0x -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
 find_package(Armadillo REQUIRED)
 
 add_message_files(FILES CircleObstacle.msg SegmentObstacle.msg Obstacles.msg)
@@ -12,7 +12,7 @@ generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES obstacle_detector
-   CATKIN_DEPENDS roscpp std_msgs geometry_msgs sensor_msgs visualization_msgs tf message_runtime
+   CATKIN_DEPENDS roscpp std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_runtime
    DEPENDS system_lib
 )
 
@@ -30,6 +30,10 @@ add_dependencies(obstacle_tracker ${PROJECT_NAME}_gencpp)
 add_executable(obstacle_visualizer src/obstacle_visualizer.cpp include/obstacle_visualizer.h)
 target_link_libraries(obstacle_visualizer ${catkin_LIBRARIES})
 add_dependencies(obstacle_visualizer ${PROJECT_NAME}_gencpp)
+
+add_executable(obstacle_recorder src/obstacle_recorder.cpp include/obstacle_recorder.h)
+target_link_libraries(obstacle_recorder ${catkin_LIBRARIES})
+add_dependencies(obstacle_recorder ${PROJECT_NAME}_gencpp)
 
 add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h)
 target_link_libraries(scans_merger ${catkin_LIBRARIES})

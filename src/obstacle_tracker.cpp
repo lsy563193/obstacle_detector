@@ -4,7 +4,7 @@ using namespace obstacle_detector;
 using namespace arma;
 using namespace std;
 
-#define TRACKER_TESTING
+#define TRACKER_TESTING1
 
 int TrackedObstacle::obstacle_number_ = 0;
 const double TrackedObstacle::TP_ = 0.01;
