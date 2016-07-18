@@ -68,7 +68,9 @@ public:
   Point center() const { return center_; }
   double radius() const { return radius_; }
   double distanceTo(const Point& p) { return (p - center_).length() - radius_; }
+
   std::list<Point>& point_set() { return point_set_; }
+  int num_points() const { return point_set_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Circle& c)
   { out << "C: " << c.center_ << ", R: " << c.radius_; return out; }

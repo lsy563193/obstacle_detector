@@ -77,17 +77,17 @@ public:
     kf_.q_est(4) = obstacle_.radius;
   }
 
-  void setCovariances(double pose_m_var, double pose_p_var, double radius_m_var, double radius_p_var) {
-    kf_.R(0, 0) = pose_m_var;
-    kf_.R(1, 1) = pose_m_var;
-    kf_.R(2, 2) = radius_m_var;
+  void setCovariances(double process_var, double measurement_var) {
+    kf_.R(0, 0) = measurement_var;
+    kf_.R(1, 1) = measurement_var;
+    kf_.R(2, 2) = measurement_var;
 
-    kf_.Q(0, 0) = pose_p_var;
-    kf_.Q(1, 1) = pose_p_var;
-    kf_.Q(2, 2) = pose_p_var;
-    kf_.Q(3, 3) = pose_p_var;
-    kf_.Q(4, 4) = radius_p_var;
-    kf_.Q(5, 5) = radius_p_var;
+    kf_.Q(0, 0) = process_var;
+    kf_.Q(1, 1) = process_var;
+    kf_.Q(2, 2) = process_var;
+    kf_.Q(3, 3) = process_var;
+    kf_.Q(4, 4) = process_var;
+    kf_.Q(5, 5) = process_var;
   }
 
   void updateMeasurement(const CircleObstacle& new_obstacle) {

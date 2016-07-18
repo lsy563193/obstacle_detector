@@ -34,7 +34,7 @@ This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `
 </p>
 
 #### 1.2. The obstacle_detector node 
-This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the poolar nature of laser scanners. The node is configurable with the following set of local parameters:
+This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the polar nature of laser scanners. The node is configurable with the following set of local parameters:
 
 * `~use_scan` (bool, default: true) - use laser scan messages,
 * `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl are chosen, scan will have priority),
@@ -65,10 +65,8 @@ The node works in a synchronous manner with the rate of 100 Hz. If detected obst
 
 * `~fade_counter_size` (int, default: 100) - number of samples after which (if no update occured) the obstacle will be discarded,
 * `~min_correspondence_cost` (double, default 0.6) - a threshold for correspondence test,
-* `~pose_measure_variance` (double, default 1.0) - measurement variance of obstacles position (parameter of Kalman Filter),
-* `~pose_process_variance` (double, default 1.0) - process variance of obstacles position (parameter of Kalman Filter),
-* `~radius_measure_variance` (double, default 0.001) - measurement variance of obstacles radius (parameter of Kalman Filter),
-* `~radius_process_variance` (double, default 0.001) - process variance of obstacles radius (parameter of Kalman Filter).
+* `~measurement_variance` (double, default 1.0) - variance of measured obstacles values (parameter of Kalman Filter),
+* `~process_variance` (double, default 1.0) - variance of obstacles motion process (parameter of Kalman Filter).
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/1482514/16087421/32d1f52c-3323-11e6-86bb-c1ac851d1b77.gif" alt="Visual example of obstacle detector output"/>
@@ -86,10 +84,17 @@ The auxiliary node which converts messages of type `obstacles_detector/Obstacles
 * `~alpha` (double, default: 1.0) - alpha (transparency) value,
 * `~z_layer` (double, default: 0.0) - position of obstacles in Z axis.
 
-#### 1.5. The static_scan_publisher node
+#### 1.5. The obstacle_recorder node
+The auxiliary node which enables data recording and saving in file. To start recording the data one must call the service provided by the node by `rossrv call service_name`. Another call for the service will stop recording the data. The service name is configurable with parameter:
+
+* `~filename_prefix` (string, default: "raw_") - prefix for text files produced by the recorder.
+
+Although the parameter is dedicated to text files, it also changes the service name (e.g. `/raw_recording_trigger`).
+
+#### 1.6. The static_scan_publisher node
 The auxiliary node which imitates a laser scanner and publishes a static, 360 deg laser scan of type `sensor_msgs/LaserScan` under topic `scan`. The node is mostly used for off-line tests.
 
-#### 1.6. The virtual_obstacle_publisher node
+#### 1.7. The virtual_obstacle_publisher node
 The auxiliary node which publishes a set of virtual obstacles of type `obstacles_detector/Obstacles` under topic `obstacles`. The node is mostly used for off-line tests.
 
 ### 2. The messages
@@ -100,11 +105,13 @@ The package provides three custom messages types. All of their numerical values 
   * `geometry_msgs/Point center`
   * `geometry_msgs/Vector3 velocity`
   * `float64 radius`
+  * `int32 num_points`
   * `int32 obstacle_id`
   * `bool tracked` 
 * `SegmentObstacle`
   * `geometry_msgs/Point first_point`
   * `geometry_msgs/Point last_point`
+  * `int32 num_points`
 * `Obstacles`
   * `Header header`
   * `obstacle_detector/SegmentObstacle[] segments`

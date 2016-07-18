@@ -59,6 +59,7 @@ void ObstacleRecorder::obstaclesCallback(const obstacle_detector::Obstacles::Con
             << t << "\t"
             << circle.obstacle_id << "\t"
             << (int)circle.tracked << "\t"
+            << circle.num_points << "\t"
             << circle.center.x << "\t"
             << circle.center.y << "\t"
             << circle.radius << "\t"
@@ -86,8 +87,8 @@ bool ObstacleRecorder::recordingTrigger(std_srvs::Trigger::Request& req, std_srv
     file_.open(filename);
 
     // Number, time, label, tracked, x, y, r, v_x, v_y
-    file_ << ros::Time::now() << "\n";
-    file_ << "n" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\n";
+    file_ << "ROS time at start: " << ros::Time::now() << "\n";
+    file_ << "idx" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "N" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\n";
 
     recording_ = true;
   }

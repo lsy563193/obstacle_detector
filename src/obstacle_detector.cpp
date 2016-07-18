@@ -241,6 +241,7 @@ void ObstacleDetector::detectCircles() {
     c.setRadius(c.radius() + p_radius_enlargement_);
 
     if (c.radius() < p_max_circle_radius_) {
+      c.point_set().assign(itr->point_set().begin(), itr->point_set().end());
       circles_.push_back(c);
 
       if (p_discard_converted_segments_) {
@@ -296,6 +297,8 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
     c.setRadius(c.radius() + max(c1.radius(), c2.radius()));
 
     if (c.radius() < p_max_circle_radius_) {
+      c.point_set().assign(c1.point_set().begin(), c1.point_set().end());
+      c.point_set().insert(c.point_set().end(), c2.point_set().begin(), c2.point_set().end());
       circles_.push_back(c);
       return true;
     }
@@ -316,6 +319,7 @@ void ObstacleDetector::publishObstacles() {
     segment.first_point.y = s.first_point().y;
     segment.last_point.x = s.last_point().x;
     segment.last_point.y = s.last_point().y;
+    segment.num_points = s.num_points();
 
     obstacles.segments.push_back(segment);
   }
@@ -328,6 +332,8 @@ void ObstacleDetector::publishObstacles() {
     circle.velocity.x = 0.0;
     circle.velocity.y = 0.0;
     circle.radius = c.radius();
+    circle.num_points = c.num_points();
+    circle.obstacle_id = 0;
     circle.tracked = false;
 
     obstacles.circles.push_back(circle);

@@ -12,10 +12,8 @@ const double TrackedObstacle::TP_ = 0.01;
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   nh_local_.param("fade_counter_size", p_fade_counter_size_, 100);
   nh_local_.param("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
-  nh_local_.param("pose_measure_variance", p_pose_measure_variance_, 1.0);
-  nh_local_.param("pose_process_variance", p_pose_process_variance_, 1.0);
-  nh_local_.param("radius_measure_variance", p_radius_measure_variance_, 0.001);
-  nh_local_.param("radius_process_variance", p_radius_process_variance_, 0.001);
+  nh_local_.param("measurement_variance", p_measurement_variance_, 1.0);
+  nh_local_.param("process_variance", p_process_variance_, 0.0001);
 
   obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
   tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
@@ -220,7 +218,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         }
 
         TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
-        to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
+        to.setCovariances(p_process_variance_, p_measurement_variance_);
         to.updateMeasurement(new_obstacles->circles[col_min_indices[j]]);
         to.setFused();
 
@@ -260,8 +258,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         TrackedObstacle to1 = TrackedObstacle(c1, p_fade_counter_size_);
         TrackedObstacle to2 = TrackedObstacle(c2, p_fade_counter_size_);
 
-        to1.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
-        to2.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
+        to1.setCovariances(p_process_variance_, p_measurement_variance_);
+        to2.setCovariances(p_process_variance_, p_measurement_variance_);
 
         to1.updateMeasurement(new_obstacles->circles[i]);
         to2.updateMeasurement(new_obstacles->circles[j]);
@@ -294,7 +292,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       CircleObstacle c = meanCircObstacle(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
 
       TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
-      to.setCovariances(p_pose_measure_variance_, p_pose_process_variance_, p_radius_measure_variance_, p_radius_process_variance_);
+      to.setCovariances(p_process_variance_, p_measurement_variance_);
       to.updateMeasurement(c);
 
       tracked_obstacles_.push_back(to);

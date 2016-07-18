@@ -70,8 +70,10 @@ public:
     Point b = p - p1_;
     return p1_ + a.dot(b) * a / a.lengthSquared();
   }
-  std::list<Point>& point_set() { return point_set_; }
   double distanceTo(const Point& p) const { return (p - projection(p)).length(); }
+
+  std::list<Point>& point_set() { return point_set_; }
+  int num_points() const { return point_set_.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Segment& s)
   { out << "p1: " << s.p1_ << ", p2: " << s.p2_; return out; }

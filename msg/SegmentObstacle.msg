@@ -3,3 +3,4 @@
 geometry_msgs/Point first_point  # First point of the segment [m]
 geometry_msgs/Point last_point   # Last point of the segment [m]
 
+int32 num_points                 # Number of points comprising obstacle

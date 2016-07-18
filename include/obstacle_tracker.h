@@ -64,10 +64,8 @@ private:
   // Parameters
   int p_fade_counter_size_;
   double p_min_correspondence_cost_;
-  double p_pose_measure_variance_;
-  double p_pose_process_variance_;
-  double p_radius_measure_variance_;
-  double p_radius_process_variance_;
+  double p_measurement_variance_;
+  double p_process_variance_;
 };
 
 } // namespace obstacle_detector
