@@ -340,7 +340,7 @@ void ObstacleDetector::publishObstacles() {
     circle.velocity.y = 0.0;
     circle.radius = c.radius();
     circle.num_points = c.num_points();
-    circle.obstacle_id = 0;
+    circle.obstacle_id.data = string("");
     circle.tracked = false;
 
     obstacles.circles.push_back(circle);

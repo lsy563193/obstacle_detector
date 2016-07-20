@@ -118,7 +118,7 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
       text_marker.pose.position.y = circle.center.y + circle.radius + 0.1;
       text_marker.id++;
       text_marker.color = text_color_;
-      text_marker.text = "O" + std::to_string(circle.obstacle_id);
+      text_marker.text = circle.obstacle_id.data;//"O" + std::to_string(circle.obstacle_id);
 
       markers_array.markers.push_back(text_marker);
     }

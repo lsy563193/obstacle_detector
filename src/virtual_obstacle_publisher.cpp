@@ -38,55 +38,55 @@ int main(int argc, char** argv) {
 //    circ2.radius = 0.15 + 0.001 * (rand() % 100);
 
 
-//    // Fusion example
-//    if (t < 5.0) {
-//      circ1.center.x = -1.20 + 0.2 * t;
-//      circ1.center.y = 0.0;
-//      circ1.radius = 0.20;
-
-//      circ2.center.x = 1.20 - 0.2 * t;
-//      circ2.center.y = 0.0;
-//      circ2.radius = 0.20;
-
-//      obst_msg.circles.push_back(circ1);
-//      obst_msg.circles.push_back(circ2);
-//    }
-//    else if (t < 15.0) {
-//      circ1.center.x = 0.0;
-//      circ1.center.y = 0.0;
-//      circ1.radius = 0.20 + 0.20 * exp(-(t - 5.0) / 1.0);
-
-//      obst_msg.circles.push_back(circ1);
-//    }
-
-
-    // Fission example
+    // Fusion example
     if (t < 5.0) {
-      circ1.center.x = 0.0;
+      circ1.center.x = -1.20 + 0.2 * t;
       circ1.center.y = 0.0;
       circ1.radius = 0.20;
 
-      obst_msg.circles.push_back(circ1);
-    }
-    else if (t < 6.0) {
-      circ1.center.x = 0.0;
-      circ1.center.y = 0.0;
-      circ1.radius = 0.20 + 0.20 * (1.0 - exp(-(t - 5.0) / 1.0));
-
-      obst_msg.circles.push_back(circ1);
-    }
-    else if (t < 16.0){
-      circ1.center.x = -0.20 - 0.2 * (t - 6.0);
-      circ1.center.y = 0.0;
-      circ1.radius = 0.20;
-
-      circ2.center.x = 0.20 + 0.2 * (t - 6.0);
+      circ2.center.x = 1.20 - 0.2 * t;
       circ2.center.y = 0.0;
       circ2.radius = 0.20;
 
       obst_msg.circles.push_back(circ1);
       obst_msg.circles.push_back(circ2);
     }
+    else if (t < 15.0) {
+      circ1.center.x = 0.0;
+      circ1.center.y = 0.0;
+      circ1.radius = 0.20 + 0.20 * exp(-(t - 5.0) / 1.0);
+
+      obst_msg.circles.push_back(circ1);
+    }
+
+
+//    // Fission example
+//    if (t < 5.0) {
+//      circ1.center.x = 0.0;
+//      circ1.center.y = 0.0;
+//      circ1.radius = 0.20;
+
+//      obst_msg.circles.push_back(circ1);
+//    }
+//    else if (t < 6.0) {
+//      circ1.center.x = 0.0;
+//      circ1.center.y = 0.0;
+//      circ1.radius = 0.20 + 0.20 * (1.0 - exp(-(t - 5.0) / 1.0));
+
+//      obst_msg.circles.push_back(circ1);
+//    }
+//    else if (t < 16.0){
+//      circ1.center.x = -0.20 - 0.2 * (t - 6.0);
+//      circ1.center.y = 0.0;
+//      circ1.radius = 0.20;
+
+//      circ2.center.x = 0.20 + 0.2 * (t - 6.0);
+//      circ2.center.y = 0.0;
+//      circ2.radius = 0.20;
+
+//      obst_msg.circles.push_back(circ1);
+//      obst_msg.circles.push_back(circ2);
+//    }
 
     if (t > 15.0)
       start = ros::Time::now();

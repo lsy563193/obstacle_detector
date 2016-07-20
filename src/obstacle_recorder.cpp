@@ -57,7 +57,7 @@ void ObstacleRecorder::obstaclesCallback(const obstacle_detector::Obstacles::Con
     for (auto circle : obstacles->circles) {
       file_ << counter_ << "\t"
             << t << "\t"
-            << circle.obstacle_id << "\t"
+            << circle.obstacle_id.data << "\t"
             << (int)circle.tracked << "\t"
             << circle.num_points << "\t"
             << circle.center.x << "\t"

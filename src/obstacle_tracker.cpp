@@ -61,8 +61,9 @@ CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const
   c.velocity.x = (c1.velocity.x + c2.velocity.x) / 2.0;
   c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
   c.radius = (c1.radius + c2.radius) / 2.0;
-  c.tracked = c1.tracked || c2.tracked;
   c.num_points = c1.num_points + c2.num_points;
+  c.obstacle_id.data = c1.obstacle_id.data + c2.obstacle_id.data;
+  c.tracked = c1.tracked || c2.tracked;
 
   return c;
 }
