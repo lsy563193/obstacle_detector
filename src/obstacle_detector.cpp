@@ -136,19 +136,26 @@ void ObstacleDetector::detectSegments(list<Point>& point_set) {
   double max_distance = 0.0;
   double distance     = 0.0;
 
-  // Seek the point of division; omit first and last point of the set
-  for (auto point_itr = ++point_set.begin(); point_itr != --point_set.end(); ++point_itr) {
+  int split_index = -1;
+  int point_index = 1;
+
+  // Seek the point of division
+  for (auto point_itr = point_set.begin(); point_itr != point_set.end(); ++point_itr) {
     if ((distance = segment.distanceTo(*point_itr)) >= max_distance) {
       double r = (*point_itr).length();
 
       if (distance > p_max_split_distance_ + r * p_distance_proportion_) {
         max_distance = distance;
         set_divider = point_itr;
+        split_index = point_index;
       }
     }
+
+    point_index++;
   }
 
-  if (max_distance > 0.0) { // Split the set
+  // Split the set only if the sub-groups are not 'small'
+  if (max_distance > 0.0 && split_index > p_min_group_points_ && split_index < point_set.size() - p_min_group_points_) {
     point_set.insert(set_divider, *set_divider);  // Clone the dividing point for each group
 
     list<Point> subset1, subset2;

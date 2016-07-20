@@ -83,7 +83,7 @@
 
     <param name="max_merge_separation" value="0.150"/>
     <param name="max_merge_spread"     value="0.070"/>
-    <param name="max_circle_radius"    value="0.250"/>
+    <param name="max_circle_radius"    value="0.300"/>
     <param name="radius_enlargement"   value="0.030"/>
   </node>
   
