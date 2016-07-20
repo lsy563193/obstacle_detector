@@ -66,8 +66,8 @@
     <param name="max_scanner_range"    value="10.0"/>
     <param name="max_x_range"          value="3.0"/>
     <param name="min_x_range"          value="0.0"/>
-    <param name="max_y_range"          value="1.5"/>
-    <param name="min_y_range"          value="-1.5"/>
+    <param name="max_y_range"          value="2.0"/>
+    <param name="min_y_range"          value="-2.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">

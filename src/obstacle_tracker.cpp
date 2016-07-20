@@ -19,7 +19,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
 
   ROS_INFO("Obstacle Tracker [OK]");
-  ros::Rate rate(100);
+  ros::Rate rate(100.0);
 
   while (ros::ok()) {
     ros::spinOnce();
@@ -49,7 +49,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
 }
 
 double ObstacleTracker::obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
-  // TODO: Add gauss elipses
+  // TODO: Add gauss elipses for penalties
   return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0) + pow(c1.radius - c2.radius, 2.0));
 }
 
@@ -61,6 +61,8 @@ CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const
   c.velocity.x = (c1.velocity.x + c2.velocity.x) / 2.0;
   c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
   c.radius = (c1.radius + c2.radius) / 2.0;
+  c.tracked = c1.tracked || c2.tracked;
+  c.num_points = c1.num_points + c2.num_points;
 
   return c;
 }
@@ -184,7 +186,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
    * A fusion occurs if two old (tracked or not) obstacles have the same corresponding new obstacle - check columnwise.
    * A fission occurs if two new obstacles have the same corresponding old (tracked or not) obstacle - check rowswise.
    * If a fusion occured - create a tracked obstacle from the two old obstacles, update it with the new one, and remove the two old ones.
-   * If a fission occured - create two tracked obstacles from the single old obstacle and update them with the new ones.
+   * If a fission occured - create two tracked obstacles from the single old obstacle and update them with the new ones, them remove the old one.
    */
 
   vector<int> erase_indices;  // Indcises of tracked obstacles that will be removed
@@ -235,7 +237,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   // Check for fission
   for (int i = 0; i < N; ++i) {
     for (int j = i+1; j < N; ++j) {
-      if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0) {
+      if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0 &&
+         find(erase_indices.begin(), erase_indices.end(), row_min_indices[i]) == erase_indices.end()) {  // Check if the old obstacle is not already in erase list
 
         #ifdef TRACKER_TESTING
           cout << "Fission" << endl;
@@ -254,6 +257,9 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
           c1 = meanCircObstacle(new_obstacles->circles[i], untracked_obstacles_[row_min_indices[i] - T]);
           c2 = meanCircObstacle(new_obstacles->circles[j], untracked_obstacles_[row_min_indices[j] - T]);
         }
+
+        c1.num_points = new_obstacles->circles[i].num_points;
+        c2.num_points = new_obstacles->circles[j].num_points;
 
         TrackedObstacle to1 = TrackedObstacle(c1, p_fade_counter_size_);
         TrackedObstacle to2 = TrackedObstacle(c2, p_fade_counter_size_);
@@ -278,6 +284,20 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
   }
 
+#ifdef TRACKER_TESTING
+  cout << "Row min indices after: ";
+  for (int idx : row_min_indices)
+    cout << idx << " ";
+  cout << endl;
+#endif
+
+#ifdef TRACKER_TESTING
+  cout << "Col min indices after: ";
+  for (int idx : col_min_indices)
+    cout << idx << " ";
+  cout << endl;
+#endif
+
   // Check for other possibilities
   vector<CircleObstacle> new_untracked_obstacles;
 
@@ -290,6 +310,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
     else if (row_min_indices[n] >= T) {
       CircleObstacle c = meanCircObstacle(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
+      c.num_points = new_obstacles->circles[n].num_points;
 
       TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
       to.setCovariances(p_process_variance_, p_measurement_variance_);
@@ -300,11 +321,17 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   }
 
   // Remove tracked obstacles that are no longer existent due to fusion or fission
-  int decreaser = 0;
-  for (int idx : erase_indices) {
-    tracked_obstacles_.erase(tracked_obstacles_.begin() + idx - decreaser);
-    decreaser++;
-  }
+  // Sort in descending order to remove from back of the list
+  sort(erase_indices.rbegin(), erase_indices.rend());
+  for (int idx : erase_indices)
+    tracked_obstacles_.erase(tracked_obstacles_.begin() + idx);
+
+#ifdef TRACKER_TESTING
+  cout << "Erase indices: ";
+  for (int idx : erase_indices)
+    cout << idx << " ";
+  cout << endl;
+#endif
 
   // Remove old untracked obstacles and save new ones
   untracked_obstacles_.clear();

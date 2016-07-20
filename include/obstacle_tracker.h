@@ -46,9 +46,10 @@ public:
   ObstacleTracker();
 
 private:
+  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
+
   double obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2);
   CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2);
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
