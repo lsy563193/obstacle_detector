@@ -10,10 +10,10 @@ int TrackedObstacle::obstacle_number_ = 0;
 const double TrackedObstacle::TP_ = 0.01;
 
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
-  nh_local_.param("fade_counter_size", p_fade_counter_size_, 100);
-  nh_local_.param("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
-  nh_local_.param("measurement_variance", p_measurement_variance_, 1.0);
-  nh_local_.param("process_variance", p_process_variance_, 0.0001);
+  nh_local_.param<int>("fade_counter_size", p_fade_counter_size_, 100);
+  nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
+  nh_local_.param<double>("measurement_variance", p_measurement_variance_, 1.0);
+  nh_local_.param<double>("process_variance", p_process_variance_, 0.001);
 
   obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
   tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);

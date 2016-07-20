@@ -38,12 +38,12 @@
 using namespace obstacle_detector;
 
 ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
-  nh_local_.param("tracked_circles_color", p_tracked_circles_color_, 3);
-  nh_local_.param("untracked_circles_color", p_untracked_circles_color_, 2);
-  nh_local_.param("segments_color", p_segments_color_, 1);
-  nh_local_.param("text_color", p_text_color_, 1);
-  nh_local_.param("alpha", p_alpha_, 1.0);
-  nh_local_.param("z_layer", p_z_layer_, 0.0);
+  nh_local_.param<int>("tracked_circles_color", p_tracked_circles_color_, 3);
+  nh_local_.param<int>("untracked_circles_color", p_untracked_circles_color_, 2);
+  nh_local_.param<int>("segments_color", p_segments_color_, 1);
+  nh_local_.param<int>("text_color", p_text_color_, 1);
+  nh_local_.param<double>("alpha", p_alpha_, 1.0);
+  nh_local_.param<double>("z_layer", p_z_layer_, 0.0);
 
   obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
   markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
@@ -77,6 +77,7 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
     circle_marker.pose.position.y = circle.center.y;
     circle_marker.scale.x = 2.0 * circle.radius;
     circle_marker.scale.y = 2.0 * circle.radius;
+    circle_marker.scale.z = 0.05; // Height of the cylinder
     circle_marker.id++;
 
     if (circle.tracked)
@@ -89,9 +90,7 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
 
   // Add some empty markers with DELETE action to get rid of the old ones
   circle_marker.action = visualization_msgs::Marker::DELETE;
-  circle_marker.scale.x = 0.0;
-  circle_marker.scale.y = 0.0;
-  circle_marker.scale.z = 0.0;
+  circle_marker.color.a = 0.0;
 
   for (int i = 0; i < 20; ++i) {
     circle_marker.id++;
@@ -109,7 +108,9 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   text_marker.type               = visualization_msgs::Marker::TEXT_VIEW_FACING;
   text_marker.action             = visualization_msgs::Marker::ADD;
   text_marker.pose.position.z    = p_z_layer_;
-  text_marker.scale.z            = 0.2;
+  text_marker.scale.x            = 0.0;
+  text_marker.scale.y            = 0.0;
+  text_marker.scale.z            = 0.2; // Size of the text
 
   for (auto circle : obstacles->circles) {
     if (circle.tracked) {
@@ -125,9 +126,7 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
 
   // Add some empty markers with DELETE action to get rid of the old ones
   text_marker.action = visualization_msgs::Marker::DELETE;
-  text_marker.scale.x = 0.0;
-  text_marker.scale.y = 0.0;
-  text_marker.scale.z = 0.0;
+  text_marker.color.a = 0.0;
 
   for (int i = 0; i < 20; ++i) {
     text_marker.id++;
@@ -144,11 +143,11 @@ void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::C
   segments_marker.ns                 = "segments";
   segments_marker.type               = visualization_msgs::Marker::LINE_LIST;
   segments_marker.action             = visualization_msgs::Marker::ADD;
-  segments_marker.pose.position.z    = p_z_layer_;
+  segments_marker.pose.position.z    = p_z_layer_ + 0.1;
   segments_marker.pose.orientation.w = 1.0;
-  segments_marker.scale.x            = 0.04;
-  segments_marker.scale.y            = 0.04;
-  segments_marker.scale.z            = 0.1;
+  segments_marker.scale.x            = 0.04;  // Width of the segment
+  segments_marker.scale.y            = 0.0;
+  segments_marker.scale.z            = 0.0;
   segments_marker.color              = segments_color_;
 
   for (auto segment : obstacles->segments) {
