@@ -41,6 +41,7 @@ ObstacleRecorder::ObstacleRecorder() : nh_(""), nh_local_("~") {
   nh_local_.param<std::string>("filename_prefix", p_filename_prefix_, "raw_");
 
   obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleRecorder::obstaclesCallback, this);
+  optitrack_sub_ = nh_.subscribe<geometry_msgs::Pose2D>("youbot_pose", 10, &ObstacleRecorder::optitrackCallback, this);
   recording_trigger_srv_ = nh_.advertiseService(p_filename_prefix_ + "recording_trigger", &ObstacleRecorder::recordingTrigger, this);
 
   recording_ = false;
@@ -57,16 +58,23 @@ void ObstacleRecorder::obstaclesCallback(const obstacle_detector::Obstacles::Con
     for (auto circle : obstacles->circles) {
       file_ << counter_ << "\t"
             << t << "\t"
-            << circle.obstacle_id.data << "\t"
+            << 0 << "\t"  //circle.obstacle_id.data
             << (int)circle.tracked << "\t"
             << circle.num_points << "\t"
             << circle.center.x << "\t"
             << circle.center.y << "\t"
             << circle.radius << "\t"
             << circle.velocity.x << "\t"
-            << circle.velocity.y << "\n";
+            << circle.velocity.y << "\t"
+            << latest_pose_.x << "\t"
+            << latest_pose_.y << "\t"
+            << latest_pose_.theta << "\n";
     }
   }
+}
+
+void ObstacleRecorder::optitrackCallback(const geometry_msgs::Pose2D::ConstPtr& optitrack) {
+  latest_pose_ = *optitrack;
 }
 
 bool ObstacleRecorder::recordingTrigger(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res) {
@@ -86,9 +94,9 @@ bool ObstacleRecorder::recordingTrigger(std_srvs::Trigger::Request& req, std_srv
     boost::filesystem::create_directories(foldername);
     file_.open(filename);
 
-    // Number, time, label, tracked, x, y, r, v_x, v_y
+    // Number, time, label, tracked, x, y, r, v_x, v_y, ox, oy, oth
     file_ << "ROS time at start: " << ros::Time::now() << "\n";
-    file_ << "idx" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "N" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\n";
+    file_ << "idx" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "N" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\t" << "ox" << "\t" << "oy" << "\t" << "oth" << "\n";
 
     recording_ = true;
   }

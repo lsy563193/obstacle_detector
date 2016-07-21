@@ -2,7 +2,7 @@
      Uses laser_scan_matcher or static tf for world to base transformation. -->
 <launch>
   <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen" respawn="true">
-    <param name="port"           value="/dev/sensors/hokuyo_H0904847"/>
+    <param name="port"           value="/dev/sensors/hokuyo_H1320250"/>
     <param name="frame_id"       value="front_scanner"/>
 
     <param name="intensity"      value="false"/>
@@ -18,7 +18,7 @@
   </node>
 
   <node pkg="hokuyo_node" type="hokuyo_node" name="rear_hokuyo" output="screen" respawn="true">
-    <param name="port"           value="/dev/sensors/hokuyo_H1320250"/>
+    <param name="port"           value="/dev/sensors/hokuyo_H0904847"/>
     <param name="frame_id"       value="rear_scanner"/>
 
     <param name="intensity"      value="false"/>
@@ -33,12 +33,18 @@
     <remap from="scan" to="rear_scan"/>
   </node>
 
-  <node pkg="tf" type="static_transform_publisher" name="base_to_front_scanner" output="screen" args="0.025 0 0 0 0 0 base front_scanner 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_to_front_scanner" output="screen" args="-0.125 0 0 0 0 0 base front_scanner 100"/>
 
-  <node pkg="tf" type="static_transform_publisher" name="base_to_rear_scanner" output="screen" args="-0.025 0 0 3.14159265 0 0 base rear_scanner 100"/>
-  
+  <node pkg="tf" type="static_transform_publisher" name="base_to_rear_scanner" output="screen" args="-0.175 0 0 3.14159265 0 0 base rear_scanner 100"/>
+
+  <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
+    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load" />
+  </node>
+
+  <!--
   <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
-  
+  -->
+
   <!--
   <node pkg="laser_scan_matcher" type="laser_scan_matcher_node" name="scan_matching" output="screen">
     <param name="fixed_frame"     value="world"/>
@@ -64,10 +70,10 @@
     <param name="omit_overlapping_scans" value="true"/>
 
     <param name="max_scanner_range"    value="10.0"/>
-    <param name="max_x_range"          value="3.0"/>
-    <param name="min_x_range"          value="0.0"/>
-    <param name="max_y_range"          value="2.0"/>
-    <param name="min_y_range"          value="-2.0"/>
+    <param name="max_x_range"          value="0.0"/>
+    <param name="min_x_range"          value="-2.0"/>
+    <param name="max_y_range"          value="1.5"/>
+    <param name="min_y_range"          value="-1.5"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">

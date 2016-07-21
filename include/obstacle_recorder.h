@@ -42,6 +42,7 @@
 #include <ros/ros.h>
 #include <std_srvs/Trigger.h>
 #include <obstacle_detector/Obstacles.h>
+#include <geometry_msgs/Pose2D.h>
 
 namespace obstacle_detector
 {
@@ -53,18 +54,21 @@ public:
 
 private:
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles);
+  void optitrackCallback(const geometry_msgs::Pose2D::ConstPtr& optitrack);
   bool recordingTrigger(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
+  ros::Subscriber optitrack_sub_;
   ros::ServiceServer recording_trigger_srv_;
 
   std::ofstream file_;
   int counter_;
   bool recording_;
   ros::Time start_mark_;
+  geometry_msgs::Pose2D latest_pose_;
 
   // Parameter
   std::string p_filename_prefix_;
