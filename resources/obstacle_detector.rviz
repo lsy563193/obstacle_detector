@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /RawObstacles1/Namespaces1
+        - /TrackedObstacles1/Namespaces1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 883
@@ -26,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: MergedPointCloud
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -157,7 +158,7 @@ Visualization Manager:
       Name: TrackedObstacles
       Namespaces:
         circles: true
-        names: true
+        names: false
         segments: true
       Queue Size: 100
       Value: true

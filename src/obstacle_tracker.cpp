@@ -62,7 +62,6 @@ CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const
   c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
   c.radius = (c1.radius + c2.radius) / 2.0;
   c.num_points = c1.num_points + c2.num_points;
-  c.obstacle_id.data = c1.obstacle_id.data + c2.obstacle_id.data;
   c.tracked = c1.tracked || c2.tracked;
 
   return c;
@@ -192,54 +191,10 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
   vector<int> erase_indices;  // Indcises of tracked obstacles that will be removed
 
-  // Check for fusion
-  for (int i = 0; i < T + U; ++i) {
-    for (int j = i+1; j < T + U; ++j) {
-      if (col_min_indices[i] == col_min_indices[j] && col_min_indices[i] >= 0) {
-
-        #ifdef TRACKER_TESTING
-          cout << "Fusion" << endl;
-        #endif
-
-        CircleObstacle c;
-
-        if (i < T && j < T) {
-          c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), tracked_obstacles_[j].getObstacle());
-          erase_indices.push_back(i);
-          erase_indices.push_back(j);
-        }
-        else if (i < T && j >= T) {
-          c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), untracked_obstacles_[j - T]);
-          erase_indices.push_back(i);
-        }
-        else if (i >= T && j < T) {
-          c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].getObstacle());
-          erase_indices.push_back(j);
-        }
-        else if (i >= T && j >= T) {
-          c = meanCircObstacle(untracked_obstacles_[i - T], untracked_obstacles_[j - T]);
-        }
-
-        TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
-        to.setCovariances(p_process_variance_, p_measurement_variance_);
-        to.updateMeasurement(new_obstacles->circles[col_min_indices[j]]);
-        to.setFused();
-
-        tracked_obstacles_.push_back(to);
-
-        // Mark both old obstacles as fused (correspondence index -2)
-        col_min_indices[i] = col_min_indices[j] = -2;
-
-        break;
-      }
-    }
-  }
-
   // Check for fission
   for (int i = 0; i < N; ++i) {
     for (int j = i+1; j < N; ++j) {
-      if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0 &&
-         find(erase_indices.begin(), erase_indices.end(), row_min_indices[i]) == erase_indices.end()) {  // Check if the old obstacle is not already in erase list
+      if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0) {  // Check if the old obstacle is not already in erase list
 
         #ifdef TRACKER_TESTING
           cout << "Fission" << endl;
@@ -251,6 +206,17 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         if (row_min_indices[i] < T) {
           c1 = meanCircObstacle(new_obstacles->circles[i], tracked_obstacles_[row_min_indices[i]].getObstacle());
           c2 = meanCircObstacle(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].getObstacle());
+
+          string name = tracked_obstacles_[row_min_indices[i]].getObstacle().obstacle_id.data;
+
+          if (name.find("-") != string::npos) {
+            c1.obstacle_id.data = name.substr(0, name.find("-"));
+            c2.obstacle_id.data = name.substr(name.find("-")+1);
+          }
+          else {
+            c1.obstacle_id.data = string("");
+            c2.obstacle_id.data = string("");
+          }
 
           erase_indices.push_back(row_min_indices[i]);
         }
@@ -279,6 +245,56 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
         // Mark both new obstacles as fissed (correspondence index -3)
         row_min_indices[i] = row_min_indices[j] = -3;
+
+        break;
+      }
+    }
+  }
+
+  // Check for fusion
+  for (int i = 0; i < T + U; ++i) {
+    for (int j = i+1; j < T + U; ++j) {
+      if (col_min_indices[i] == col_min_indices[j] && col_min_indices[i] >= 0 &&
+          find(erase_indices.begin(), erase_indices.end(), i) == erase_indices.end() &&
+          find(erase_indices.begin(), erase_indices.end(), j) == erase_indices.end()) {
+
+        #ifdef TRACKER_TESTING
+          cout << "Fusion" << endl;
+        #endif
+
+        CircleObstacle c;
+
+        if (i < T && j < T) {
+          c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), tracked_obstacles_[j].getObstacle());
+          c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-" + tracked_obstacles_[j].getObstacle().obstacle_id.data;
+
+          erase_indices.push_back(i);
+          erase_indices.push_back(j);
+        }
+        else if (i < T && j >= T) {
+          c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), untracked_obstacles_[j - T]);
+          c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-OX";
+
+          erase_indices.push_back(i);
+        }
+        else if (i >= T && j < T) {
+          c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].getObstacle());
+          c.obstacle_id.data = tracked_obstacles_[j].getObstacle().obstacle_id.data + "-OX";
+          erase_indices.push_back(j);
+        }
+        else if (i >= T && j >= T) {
+          c = meanCircObstacle(untracked_obstacles_[i - T], untracked_obstacles_[j - T]);
+        }
+
+        TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
+        to.setCovariances(p_process_variance_, p_measurement_variance_);
+        to.updateMeasurement(new_obstacles->circles[col_min_indices[j]]);
+        to.setFused();
+
+        tracked_obstacles_.push_back(to);
+
+        // Mark both old obstacles as fused (correspondence index -2)
+        col_min_indices[i] = col_min_indices[j] = -2;
 
         break;
       }

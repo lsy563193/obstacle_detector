@@ -52,7 +52,7 @@ public:
     obstacle_ = init_obstacle;
     obstacle_.tracked = true;
 
-    if (obstacle_.obstacle_id.data == "")
+    if (obstacle_.obstacle_id.data == "" || obstacle_.obstacle_id.data == "-")
       obstacle_.obstacle_id.data = "O" + std::to_string(++obstacle_number_);
 
     fade_counter_size_ = fade_counter_size;
