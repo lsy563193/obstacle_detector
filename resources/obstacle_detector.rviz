@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /RawObstacles1/Namespaces1
         - /TrackedObstacles1/Namespaces1
-        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 883
   - Class: rviz/Selection
@@ -27,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: MergedPointCloud
+    SyncSource: FrontLaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -145,13 +144,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /untracked_obstacles_markers
       Name: UntrackedObstacles
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /tracked_obstacles_markers
@@ -166,12 +165,12 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 9999
       Frames:
-        All Enabled: true
+        All Enabled: false
         base:
           Value: true
         front_scanner:
           Value: true
-        rear_scanner:
+        optitrack_base:
           Value: true
         world:
           Value: true
@@ -182,11 +181,10 @@ Visualization Manager:
       Show Names: false
       Tree:
         world:
-          base:
-            front_scanner:
-              {}
-            rear_scanner:
-              {}
+          optitrack_base:
+            base:
+              front_scanner:
+                {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -212,7 +210,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
+      Angle: 3.14159
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -221,7 +219,7 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 140.493
+      Scale: 99.0612
       Target Frame: world
       Value: TopDownOrtho (rviz)
       X: 0
