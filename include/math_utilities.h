@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Software License Agreement (BSD License)
  *
  * Copyright (c) 2015, Poznan University of Technology
@@ -35,38 +35,43 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include "figures/tracked_obstacle.h"
+#include <tf/transform_listener.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Point32.h>
 
 namespace obstacle_detector
 {
 
-class ObstacleTracker {
-public:
-  ObstacleTracker();
+geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const tf::Transform& transform) {
+  geometry_msgs::Point p;
 
-private:
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
+  tf::Vector3 origin = transform.getOrigin();
+  double theta = tf::getYaw(transform.getRotation());
 
-  double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
-  CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2);
+  p.x =  point.x * cos(theta) + point.y * sin(theta) + origin.x();
+  p.y = -point.x * sin(theta) + point.y * cos(theta) + origin.y();
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
+  return p;
+}
 
-  ros::Subscriber obstacles_sub_;
-  ros::Publisher tracked_obstacles_pub_;
+geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& point, const tf::Transform& transform) {
+  geometry_msgs::Point32 p;
 
-  Obstacles tracked_obstacles_msg_;
+  tf::Vector3 origin = transform.getOrigin();
+  double theta = tf::getYaw(transform.getRotation());
 
-  std::vector<TrackedObstacle> tracked_obstacles_;
-  std::vector<CircleObstacle> untracked_obstacles_;
+  p.x =  point.x * cos(theta) + point.y * sin(theta) + origin.x();
+  p.y = -point.x * sin(theta) + point.y * cos(theta) + origin.y();
 
-  // Parameters
-  int p_fade_counter_size_;
-  double p_min_correspondence_cost_;
-  double p_measurement_variance_;
-  double p_process_variance_;
-};
+  return p;
+}
 
-} // namespace obstacle_detector
+
+bool checkPointInLimits(const geometry_msgs::Point32& p, double x_min, double x_max, double y_min, double y_max) {
+  if ((p.x > x_max) || (p.x < x_min) || (p.y > y_max) || (p.y < y_min))
+    return false;
+  else
+    return true;
+}
+
+}

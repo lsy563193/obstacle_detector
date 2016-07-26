@@ -40,6 +40,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 
+#include "math_utilities.h"
+
 namespace obstacle_detector
 {
 
@@ -51,10 +53,6 @@ public:
 private:
   void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan);
   void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan);
-
-  geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& p, float x, float y, float phi);
-
-  bool checkPointInLimits(const geometry_msgs::Point32& p);
   void publishPCL();
 
   ros::NodeHandle nh_;
@@ -81,7 +79,7 @@ private:
   bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
 
   double p_max_scanner_range_;      // Restrictions on laser scanner range
-  double p_max_x_range_;            // Restrictions on world coordinates
+  double p_max_x_range_;            // Restrictions on points coordinates
   double p_min_x_range_;
   double p_max_y_range_;
   double p_min_y_range_;

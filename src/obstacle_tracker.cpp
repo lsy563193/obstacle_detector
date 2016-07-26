@@ -48,9 +48,9 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   }
 }
 
-double ObstacleTracker::obstacleCostFunction(const CircleObstacle& c1, const CircleObstacle& c2) {
+double ObstacleTracker::obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle) {
   // TODO: Add gauss elipses for penalties
-  return sqrt(pow(c1.center.x - c2.center.x, 2.0) + pow(c1.center.y - c2.center.y, 2.0) + pow(c1.radius - c2.radius, 2.0));
+  return sqrt(pow(new_obstacle.center.x - old_obstacle.center.x, 2.0) + pow(new_obstacle.center.y - old_obstacle.center.y, 2.0) + pow(new_obstacle.radius - old_obstacle.radius, 2.0));
 }
 
 CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
@@ -61,7 +61,6 @@ CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const
   c.velocity.x = (c1.velocity.x + c2.velocity.x) / 2.0;
   c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
   c.radius = (c1.radius + c2.radius) / 2.0;
-  c.num_points = c1.num_points + c2.num_points;
   c.tracked = c1.tracked || c2.tracked;
 
   return c;
@@ -189,12 +188,13 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
    * If a fission occured - create two tracked obstacles from the single old obstacle and update them with the new ones, them remove the old one.
    */
 
-  vector<int> erase_indices;  // Indcises of tracked obstacles that will be removed
+  vector<int> erase_indices;  // Indcises of old, tracked obstacles that will be removed
 
   // Check for fission
-  for (int i = 0; i < N; ++i) {
+  for (int i = 0; i < N-1; ++i) {
     for (int j = i+1; j < N; ++j) {
-      if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0) {  // Check if the old obstacle is not already in erase list
+      if (row_min_indices[i] == row_min_indices[j] && row_min_indices[i] >= 0 &&
+          find(erase_indices.begin(), erase_indices.end(), row_min_indices[i]) == erase_indices.end()) {
 
         #ifdef TRACKER_TESTING
           cout << "Fission" << endl;
@@ -224,9 +224,6 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
           c1 = meanCircObstacle(new_obstacles->circles[i], untracked_obstacles_[row_min_indices[i] - T]);
           c2 = meanCircObstacle(new_obstacles->circles[j], untracked_obstacles_[row_min_indices[j] - T]);
         }
-
-        c1.num_points = new_obstacles->circles[i].num_points;
-        c2.num_points = new_obstacles->circles[j].num_points;
 
         TrackedObstacle to1 = TrackedObstacle(c1, p_fade_counter_size_);
         TrackedObstacle to2 = TrackedObstacle(c2, p_fade_counter_size_);
@@ -327,7 +324,6 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
     else if (row_min_indices[n] >= T) {
       CircleObstacle c = meanCircObstacle(new_obstacles->circles[n], untracked_obstacles_[row_min_indices[n] - T]);
-      c.num_points = new_obstacles->circles[n].num_points;
 
       TrackedObstacle to = TrackedObstacle(c, p_fade_counter_size_);
       to.setCovariances(p_process_variance_, p_measurement_variance_);

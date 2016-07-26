@@ -18,7 +18,7 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
 
-add_executable(obstacle_detector src/obstacle_detector.cpp include/obstacle_detector.h
+add_executable(obstacle_detector src/obstacle_detector.cpp include/obstacle_detector.h include/math_utilities.h
                include/figures/point.h include/figures/segment.h include/figures/circle.h include/figures/figure_fitting.h)
 target_link_libraries(obstacle_detector ${catkin_LIBRARIES} ${ARMADILLO_LIBRARIES})
 add_dependencies(obstacle_detector ${${PROJECT_NAME}_EXPORTED_TARGETS})

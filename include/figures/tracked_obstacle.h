@@ -79,6 +79,10 @@ public:
     kf_.q_est(4) = obstacle_.radius;
   }
 
+  ~TrackedObstacle() {
+//    obstacle_number_--;
+  }
+
   void setCovariances(double process_var, double measurement_var) {
     kf_.R(0, 0) = measurement_var;
     kf_.R(1, 1) = measurement_var;

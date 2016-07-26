@@ -33,16 +33,6 @@
     <remap from="scan" to="rear_scan"/>
   </node>
 
-  <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
-    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load" />
-  </node>
-
-  <node pkg="tf" type="static_transform_publisher" name="optitrack_base_to_base" output="screen" args="0 0 0 0 3.14159265 3.14159265 optitrack_base base 100"/>
-
-  <node pkg="tf" type="static_transform_publisher" name="base_to_front_scanner" output="screen" args="-0.125 0 0 0 0 0 base front_scanner 100"/>
-
-  <node pkg="tf" type="static_transform_publisher" name="base_to_rear_scanner" output="screen" args="-0.175 0 0 3.14159265 0 0 base rear_scanner 100"/>
-
   <!--
   <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
 
@@ -65,22 +55,37 @@
   </node>
   -->
 
+  <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
+    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load" />
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="optitrack_base_to_base" output="screen" args="0 0 0 0 3.14159265 3.14159265 optitrack_base base 100"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.15 0 0 0 0 0 base scanner_base 100"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_front_scanner" output="screen" args="0.025 0 0 0 0 0 scanner_base front_scanner 100"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_rear_scanner" output="screen" args="-0.025 0 0 3.14159265 0 0 scanner_base rear_scanner 100"/>
+
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
-    <param name="base_frame"             value="base"/>
+    <param name="base_frame"             value="scanner_base"/>
     <param name="omit_overlapping_scans" value="true"/>
 
     <param name="max_scanner_range"    value="10.0"/>
     <param name="max_x_range"          value="2.0"/>
     <param name="min_x_range"          value="0.0"/>
-    <param name="max_y_range"          value="1.5"/>
-    <param name="min_y_range"          value="-1.5"/>
+    <param name="max_y_range"          value="1.0"/>
+    <param name="min_y_range"          value="-1.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
+    <param name="world_frame"          value="world"/>
+
     <param name="use_scan"             value="false"/>
     <param name="use_pcl"              value="true"/>
     <param name="use_split_and_merge"  value="false"/>
     <param name="discard_converted_segments" value="false"/>
+    <param name="transform_to_world"   value="true"/>
 
     <param name="min_group_points"     value="5"/>
     <param name="max_group_distance"   value="0.060"/>    
@@ -103,7 +108,7 @@
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
     <param name="fade_counter_size"       value="200"/>
-    <param name="min_correspondence_cost" value="0.5"/>
+    <param name="min_correspondence_cost" value="0.3"/>
     <param name="measurement_variance"    value="1.0"/>
     <param name="process_variance"        value="0.01"/>    
   </node>

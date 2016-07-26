@@ -39,10 +39,13 @@ using namespace std;
 using namespace obstacle_detector;
 
 ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
+  nh_local_.param<string>("world_frame", p_world_frame_, "world");
+
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
+  nh_local_.param<bool>("transform_to_world", p_transform_to_world_, true);
 
   nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
@@ -316,7 +319,6 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
 
 void ObstacleDetector::publishObstacles() {
   Obstacles obstacles;
-  obstacles.header.frame_id = frame_id_;
   obstacles.header.stamp = ros::Time::now();
 
   for (const Segment& s : segments_) {
@@ -326,7 +328,6 @@ void ObstacleDetector::publishObstacles() {
     segment.first_point.y = s.first_point().y;
     segment.last_point.x = s.last_point().x;
     segment.last_point.y = s.last_point().y;
-    segment.num_points = s.num_points();
 
     obstacles.segments.push_back(segment);
   }
@@ -339,12 +340,37 @@ void ObstacleDetector::publishObstacles() {
     circle.velocity.x = 0.0;
     circle.velocity.y = 0.0;
     circle.radius = c.radius();
-    circle.num_points = c.num_points();
+
     circle.obstacle_id.data = string("");
     circle.tracked = false;
 
     obstacles.circles.push_back(circle);
   }
+
+  if (p_transform_to_world_) {
+    try {
+      tf::StampedTransform transform;
+      tf_listener_.lookupTransform(frame_id_, p_world_frame_, ros::Time(0), transform);
+
+      ROS_INFO_STREAM(transform.getOrigin().x() << " " << transform.getOrigin().y() << " " << tf::getYaw(transform.getRotation()));
+
+      for (auto s : obstacles.segments) {
+        s.first_point = transformPoint(s.first_point, transform);
+        s.last_point = transformPoint(s.last_point, transform);
+      }
+
+      for (auto c : obstacles.circles) {
+        c.center = transformPoint(c.center, transform);
+      }
+
+      obstacles.header.frame_id = p_world_frame_;
+    }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s",ex.what());
+    }
+  }
+  else
+    obstacles.header.frame_id = frame_id_;
 
   obstacles_pub_.publish(obstacles);
 }

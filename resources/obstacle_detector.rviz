@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /RawObstacles1/Namespaces1
         - /TrackedObstacles1/Namespaces1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 883
   - Class: rviz/Selection
@@ -26,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: FrontLaserScan
+    SyncSource: RearLaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -136,13 +137,14 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        {}
+        circles: true
+        segments: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /untracked_obstacles_markers
@@ -152,25 +154,27 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /tracked_obstacles_markers
       Name: TrackedObstacles
       Namespaces:
-        circles: true
-        names: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 9999
       Frames:
-        All Enabled: false
+        All Enabled: true
         base:
           Value: true
         front_scanner:
           Value: true
         optitrack_base:
+          Value: true
+        rear_scanner:
+          Value: true
+        scanner_base:
           Value: true
         world:
           Value: true
@@ -183,8 +187,11 @@ Visualization Manager:
         world:
           optitrack_base:
             base:
-              front_scanner:
-                {}
+              scanner_base:
+                front_scanner:
+                  {}
+                rear_scanner:
+                  {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -219,7 +226,7 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 99.0612
+      Scale: 112.322
       Target Frame: world
       Value: TopDownOrtho (rviz)
       X: 0
