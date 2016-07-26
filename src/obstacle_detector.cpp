@@ -350,18 +350,15 @@ void ObstacleDetector::publishObstacles() {
   if (p_transform_to_world_) {
     try {
       tf::StampedTransform transform;
-      tf_listener_.lookupTransform(frame_id_, p_world_frame_, ros::Time(0), transform);
+      tf_listener_.lookupTransform(p_world_frame_, frame_id_, ros::Time(0), transform);
 
-      ROS_INFO_STREAM(transform.getOrigin().x() << " " << transform.getOrigin().y() << " " << tf::getYaw(transform.getRotation()));
-
-      for (auto s : obstacles.segments) {
+      for (auto& s : obstacles.segments) {
         s.first_point = transformPoint(s.first_point, transform);
         s.last_point = transformPoint(s.last_point, transform);
       }
 
-      for (auto c : obstacles.circles) {
+      for (auto& c : obstacles.circles)
         c.center = transformPoint(c.center, transform);
-      }
 
       obstacles.header.frame_id = p_world_frame_;
     }

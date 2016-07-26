@@ -48,8 +48,8 @@ geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const tf:
   tf::Vector3 origin = transform.getOrigin();
   double theta = tf::getYaw(transform.getRotation());
 
-  p.x =  point.x * cos(theta) + point.y * sin(theta) + origin.x();
-  p.y = -point.x * sin(theta) + point.y * cos(theta) + origin.y();
+  p.x = point.x * cos(theta) - point.y * sin(theta) + origin.x();
+  p.y = point.x * sin(theta) + point.y * cos(theta) + origin.y();
 
   return p;
 }
@@ -60,8 +60,8 @@ geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& point, const
   tf::Vector3 origin = transform.getOrigin();
   double theta = tf::getYaw(transform.getRotation());
 
-  p.x =  point.x * cos(theta) + point.y * sin(theta) + origin.x();
-  p.y = -point.x * sin(theta) + point.y * cos(theta) + origin.y();
+  p.x = point.x * cos(theta) - point.y * sin(theta) + origin.x();
+  p.y = point.x * sin(theta) + point.y * cos(theta) + origin.y();
 
   return p;
 }

@@ -1,5 +1,5 @@
 <!-- Runs obstacle detector and tracker with two Hokuyo laser scanners.
-     Uses mocap_optitrack, laser_scan_matcher or static tf for world to base transformation. -->
+     Uses mocap_optitrack, laser_scan_matcher or static_tf for world to base transformation. -->
 <launch>
   <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen" respawn="true">
     <param name="port"           value="/dev/sensors/hokuyo_H1320250"/>
@@ -56,24 +56,22 @@
   -->
 
   <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
-    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load" />
+    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load"/>
   </node>
 
-  <node pkg="tf" type="static_transform_publisher" name="optitrack_base_to_base" output="screen" args="0 0 0 0 3.14159265 3.14159265 optitrack_base base 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.15 0 0 0 0 0 base scanner_base 10"/>
 
-  <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.15 0 0 0 0 0 base scanner_base 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_front_scanner" output="screen" args="0.025 0 0 0 0 0 scanner_base front_scanner 10"/>
 
-  <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_front_scanner" output="screen" args="0.025 0 0 0 0 0 scanner_base front_scanner 100"/>
-
-  <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_rear_scanner" output="screen" args="-0.025 0 0 3.14159265 0 0 scanner_base rear_scanner 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_rear_scanner" output="screen" args="-0.025 0 0 3.14159265 0 0 scanner_base rear_scanner 10"/>
 
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
     <param name="base_frame"             value="scanner_base"/>
-    <param name="omit_overlapping_scans" value="true"/>
+    <param name="omit_overlapping_scans" value="false"/>
 
     <param name="max_scanner_range"    value="10.0"/>
     <param name="max_x_range"          value="2.0"/>
-    <param name="min_x_range"          value="0.0"/>
+    <param name="min_x_range"          value="-1.0"/>
     <param name="max_y_range"          value="1.0"/>
     <param name="min_y_range"          value="-1.0"/>
   </node>

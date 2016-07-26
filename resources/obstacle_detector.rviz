@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: RearLaserScan
+    SyncSource: FrontLaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -154,27 +154,21 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /tracked_obstacles_markers
       Name: TrackedObstacles
       Namespaces:
-        {}
+        circles: true
+        names: true
+        segments: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 9999
       Frames:
         All Enabled: true
-        base:
-          Value: true
-        front_scanner:
-          Value: true
-        optitrack_base:
-          Value: true
-        rear_scanner:
-          Value: true
-        scanner_base:
+        scanner:
           Value: true
         world:
           Value: true
@@ -185,13 +179,8 @@ Visualization Manager:
       Show Names: false
       Tree:
         world:
-          optitrack_base:
-            base:
-              scanner_base:
-                front_scanner:
-                  {}
-                rear_scanner:
-                  {}
+          scanner:
+            {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -226,7 +215,7 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 112.322
+      Scale: 142.462
       Target Frame: world
       Value: TopDownOrtho (rviz)
       X: 0

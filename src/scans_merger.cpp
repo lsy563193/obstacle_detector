@@ -66,7 +66,7 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& fron
   try {
     geometry_msgs::Point32 local_point, base_point;
     tf::StampedTransform transform;
-    front_tf_.lookupTransform(p_base_frame_, front_scan->header.frame_id, ros::Time(0), transform); // TF from base to front_scanner
+    front_tf_.lookupTransform(p_base_frame_, front_scan->header.frame_id, ros::Time(0), transform);
 
     float phi = front_scan->angle_min;
     for (const float r : front_scan->ranges) {
@@ -100,7 +100,7 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
   try {
     geometry_msgs::Point32 local_point, base_point;
     tf::StampedTransform transform;
-    rear_tf_.lookupTransform(p_base_frame_, rear_scan->header.frame_id, ros::Time(0), transform); // TF from base to rear_scanner
+    rear_tf_.lookupTransform(p_base_frame_, rear_scan->header.frame_id, ros::Time(0), transform);
 
     float phi = rear_scan->angle_min;
     for (const float r : rear_scan->ranges) {
