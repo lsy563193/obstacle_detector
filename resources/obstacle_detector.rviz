@@ -137,14 +137,13 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        circles: true
-        segments: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /untracked_obstacles_markers
@@ -225,11 +224,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 217.92
+      Scale: 212.198
       Target Frame: world
       Value: TopDownOrtho (rviz)
-      X: 1.22052
-      Y: -0.196166
+      X: 0.12848
+      Y: 0.126952
     Saved: ~
 Window Geometry:
   Displays:

@@ -89,11 +89,11 @@ public:
     kf_.R(2, 2) = measurement_var;
 
     kf_.Q(0, 0) = process_var;
-    kf_.Q(1, 1) = process_var;
+    kf_.Q(1, 1) = process_var * 10.0;
     kf_.Q(2, 2) = process_var;
-    kf_.Q(3, 3) = process_var;
+    kf_.Q(3, 3) = process_var * 10.0;
     kf_.Q(4, 4) = process_var;
-    kf_.Q(5, 5) = process_var;
+    kf_.Q(5, 5) = process_var * 10.0;
   }
 
   void updateMeasurement(const CircleObstacle& new_obstacle) {
