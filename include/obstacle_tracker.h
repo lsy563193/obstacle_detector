@@ -64,6 +64,7 @@ private:
 
   // Parameters
   int p_fade_counter_size_;
+  bool p_track_labels_;
   double p_min_correspondence_cost_;
   double p_measurement_variance_;
   double p_process_variance_;

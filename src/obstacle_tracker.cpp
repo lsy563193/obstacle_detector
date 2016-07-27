@@ -11,6 +11,7 @@ const double TrackedObstacle::TP_ = 0.01;
 
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   nh_local_.param<int>("fade_counter_size", p_fade_counter_size_, 100);
+  nh_local_.param<bool>("track_labels", p_track_labels_, true);
   nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
   nh_local_.param<double>("measurement_variance", p_measurement_variance_, 1.0);
   nh_local_.param<double>("process_variance", p_process_variance_, 0.001);
@@ -207,15 +208,17 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
           c1 = meanCircObstacle(new_obstacles->circles[i], tracked_obstacles_[row_min_indices[i]].getObstacle());
           c2 = meanCircObstacle(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].getObstacle());
 
-          string name = tracked_obstacles_[row_min_indices[i]].getObstacle().obstacle_id.data;
+          if (p_track_labels_) {
+            string name = tracked_obstacles_[row_min_indices[i]].getObstacle().obstacle_id.data;
 
-          if (name.find("-") != string::npos) {
-            c1.obstacle_id.data = name.substr(0, name.find("-"));
-            c2.obstacle_id.data = name.substr(name.find("-")+1);
-          }
-          else {
-            c1.obstacle_id.data = string("");
-            c2.obstacle_id.data = string("");
+            if (name.find("-") != string::npos) {
+              c1.obstacle_id.data = name.substr(0, name.find("-"));
+              c2.obstacle_id.data = name.substr(name.find("-")+1);
+            }
+            else {
+              c1.obstacle_id.data = string("");
+              c2.obstacle_id.data = string("");
+            }
           }
 
           erase_indices.push_back(row_min_indices[i]);
@@ -263,20 +266,24 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
         if (i < T && j < T) {
           c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), tracked_obstacles_[j].getObstacle());
-          c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-" + tracked_obstacles_[j].getObstacle().obstacle_id.data;
+          if (p_track_labels_)
+            c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-" + tracked_obstacles_[j].getObstacle().obstacle_id.data;
 
           erase_indices.push_back(i);
           erase_indices.push_back(j);
         }
         else if (i < T && j >= T) {
           c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), untracked_obstacles_[j - T]);
-          c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-OX";
+          if (p_track_labels_)
+            c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-OX";
 
           erase_indices.push_back(i);
         }
         else if (i >= T && j < T) {
           c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].getObstacle());
-          c.obstacle_id.data = tracked_obstacles_[j].getObstacle().obstacle_id.data + "-OX";
+          if (p_track_labels_)
+            c.obstacle_id.data = tracked_obstacles_[j].getObstacle().obstacle_id.data + "-OX";
+
           erase_indices.push_back(j);
         }
         else if (i >= T && j >= T) {

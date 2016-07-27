@@ -168,7 +168,13 @@ Visualization Manager:
       Frame Timeout: 9999
       Frames:
         All Enabled: true
-        scanner:
+        base:
+          Value: true
+        front_scanner:
+          Value: true
+        rear_scanner:
+          Value: true
+        scanner_base:
           Value: true
         world:
           Value: true
@@ -179,8 +185,12 @@ Visualization Manager:
       Show Names: false
       Tree:
         world:
-          scanner:
-            {}
+          base:
+            scanner_base:
+              front_scanner:
+                {}
+              rear_scanner:
+                {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -215,11 +225,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 142.462
+      Scale: 217.92
       Target Frame: world
       Value: TopDownOrtho (rviz)
-      X: 0
-      Y: 0
+      X: 1.22052
+      Y: -0.196166
     Saved: ~
 Window Geometry:
   Displays:
