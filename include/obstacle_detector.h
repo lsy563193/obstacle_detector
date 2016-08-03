@@ -42,10 +42,10 @@
 #include <obstacle_detector/Obstacles.h>
 
 #include "math_utilities.h"
-#include "../include/figures/point.h"
-#include "../include/figures/segment.h"
-#include "../include/figures/circle.h"
-#include "../include/figures/figure_fitting.h"
+#include "figures/point.h"
+#include "figures/segment.h"
+#include "figures/circle.h"
+#include "figures/figure_fitting.h"
 
 namespace obstacle_detector
 {

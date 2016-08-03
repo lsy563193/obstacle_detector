@@ -34,7 +34,9 @@
   </node>
 
   <!--
-  <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
+  <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
+    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load"/>
+  </node>
 
   <node pkg="laser_scan_matcher" type="laser_scan_matcher_node" name="scan_matching" output="screen">
     <param name="fixed_frame"     value="world"/>
@@ -55,9 +57,7 @@
   </node>
   -->
 
-  <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
-    <rosparam file="$(find mocap_optitrack)/config/mocap.yaml" command="load"/>
-  </node>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 10"/>
 
   <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.15 0 0 0 0 0 base scanner_base 10"/>
 
@@ -77,7 +77,7 @@
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
-    <param name="world_frame"          value="base"/>
+    <param name="world_frame"          value="world"/>
 
     <param name="use_scan"             value="false"/>
     <param name="use_pcl"              value="true"/>
