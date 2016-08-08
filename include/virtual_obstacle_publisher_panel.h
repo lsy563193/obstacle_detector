@@ -35,6 +35,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include <ros/ros.h>
 #include <rviz/panel.h>
 #include <std_srvs/Empty.h>
@@ -63,6 +65,8 @@ public:
 private Q_SLOTS:
   void processInputs();
   void addObstacle();
+  void removeObstacles();
+  void reset();
 
 private:
   void verifyInputs();
@@ -73,9 +77,12 @@ private:
 
 private:
   QCheckBox* activate_checkbox_;
+
   QListWidget* obstacles_list_;
+  std::vector<QListWidgetItem*> obstacles_list_items_;
 
   QPushButton* add_button_;
+  QPushButton* remove_button_;
   QPushButton* reset_button_;
 
   QLineEdit* x_input_;

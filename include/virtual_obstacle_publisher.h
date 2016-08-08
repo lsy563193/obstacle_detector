@@ -63,6 +63,7 @@ private:
 
   obstacle_detector::Obstacles obstacles_;
   ros::Time tic_, toc_;
+  double t_;
 
   // Parameters
   bool p_active_;
@@ -78,6 +79,8 @@ private:
 
   std::vector<double> p_vx_vector_;
   std::vector<double> p_vy_vector_;
+
+  std::string p_parent_frame_;
 };
 
 } // namespace obstacle_detector

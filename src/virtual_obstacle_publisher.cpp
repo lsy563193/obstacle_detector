@@ -38,31 +38,32 @@
 using namespace std;
 using namespace obstacle_detector;
 
-VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("virtual_obstacle_publisher") {
+VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~") {
   std_srvs::Empty empty;
   updateParams(empty.request, empty.response);
-
-  obstacles_.header.frame_id = "world";
 
   params_srv_ = nh_local_.advertiseService("params", &VirtualObstaclePublisher::updateParams, this);
 
   ROS_INFO("Virtual Obstacle Publisher [OK]");
   ros::Rate rate(p_loop_rate_);
   tic_ = ros::Time::now();
+  t_ = 0.0;
 
   while (ros::ok()) {
     ros::spinOnce();
 
     if (p_active_) {
       toc_ = ros::Time::now();
-      double t = (toc_ - tic_).toSec();
+      double dt = (toc_ - tic_).toSec();
+      t_ += dt;
+      tic_ = toc_;
 
-      calculateObstaclesPositions(t);
+      calculateObstaclesPositions(dt);
 
       if (p_fusion_example_)
-        fusionExample(t);
+        fusionExample(t_);
       else if (p_fission_example_)
-        fissionExample(t);
+        fissionExample(t_);
 
       obstacles_.header.stamp = ros::Time::now();
       obstacle_pub_.publish(obstacles_);
@@ -87,6 +88,8 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
   nh_local_.getParam("vx_vector", p_vx_vector_);
   nh_local_.getParam("vy_vector", p_vy_vector_);
 
+  nh_local_.getParam("parent_frame", p_parent_frame_);
+
   if (p_active_)
     obstacle_pub_ = nh_.advertise<Obstacles>("obstacles", 10);
   else
@@ -99,6 +102,7 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
       p_x_vector_.size() < p_vx_vector_.size() || p_x_vector_.size() < p_vy_vector_.size())
     return false;
 
+  obstacles_.header.frame_id = p_parent_frame_;
   obstacles_.circles.clear();
 
   for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
@@ -116,15 +120,11 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
   return true;
 }
 
-void VirtualObstaclePublisher::calculateObstaclesPositions(double t) {
-  static double prev_t;
-
+void VirtualObstaclePublisher::calculateObstaclesPositions(double dt) {
   for (auto& circ : obstacles_.circles) {
-    circ.center.x += circ.velocity.x * (t - prev_t);
-    circ.center.y += circ.velocity.y * (t - prev_t);
+    circ.center.x += circ.velocity.x * dt;
+    circ.center.y += circ.velocity.y * dt;
   }
-
-  prev_t = t;
 }
 
 void VirtualObstaclePublisher::fusionExample(double t) {
@@ -191,8 +191,7 @@ void VirtualObstaclePublisher::fissionExample(double t) {
 }
 
 void VirtualObstaclePublisher::reset() {
-  obstacles_.circles.clear();
-  tic_ = ros::Time::now();
+  t_ = 0.0;
   p_reset_ = false;
   nh_local_.setParam("reset", false);
 }

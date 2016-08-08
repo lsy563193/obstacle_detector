@@ -35,26 +35,25 @@
 
 #include "../include/virtual_obstacle_publisher_panel.h"
 
-namespace obstacle_detector
-{
+using namespace obstacle_detector;
+using namespace std;
 
 VirtualObstaclePublisherPanel::VirtualObstaclePublisherPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("virtual_obstacle_publisher") {
   params_cli_ = nh_local_.serviceClient<std_srvs::Empty>("params");
   getParams();
 
   activate_checkbox_ = new QCheckBox("On/Off");
-  obstacles_list_    = new QListWidget(this);
-  add_button_        = new QPushButton("Add");
-  reset_button_      = new QPushButton("Reset");
+  obstacles_list_    = new QListWidget();
+  add_button_        = new QPushButton("Add obstacle");
+  remove_button_     = new QPushButton("Remove selected");
+  reset_button_      = new QPushButton("Reset time");
   x_input_           = new QLineEdit("0.0");
   y_input_           = new QLineEdit("0.0");
   r_input_           = new QLineEdit("0.0");
   vx_input_          = new QLineEdit("0.0");
   vy_input_          = new QLineEdit("0.0");
 
-  obstacles_list_->setSelectionMode(QAbstractItemView::NoSelection);
-  new QListWidgetItem("x: ", obstacles_list_);
-  new QListWidgetItem("z: ", obstacles_list_);
+  obstacles_list_->setSelectionMode(QAbstractItemView::MultiSelection);
 
   QFrame* lines[3];
   for (auto& line : lines) {
@@ -91,11 +90,12 @@ VirtualObstaclePublisherPanel::VirtualObstaclePublisherPanel(QWidget* parent) : 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
+  layout->addWidget(obstacles_list_);
+  layout->addWidget(remove_button_);
+  layout->addWidget(lines[1]);
   layout->addLayout(xyr_layout);
   layout->addLayout(vxvy_layout);
   layout->addWidget(add_button_, Qt::AlignCenter);
-  layout->addWidget(lines[1]);
-  layout->addWidget(obstacles_list_);
   layout->addWidget(lines[2]);
   layout->addWidget(reset_button_, Qt::AlignCenter);
   layout->setAlignment(layout, Qt::AlignCenter);
@@ -103,7 +103,8 @@ VirtualObstaclePublisherPanel::VirtualObstaclePublisherPanel(QWidget* parent) : 
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
   connect(add_button_, SIGNAL(clicked()), this, SLOT(addObstacle()));
-  connect(reset_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(remove_button_, SIGNAL(clicked()), this, SLOT(removeObstacles()));
+  connect(reset_button_, SIGNAL(clicked()), this, SLOT(reset()));
 
   evaluateParams();
 }
@@ -128,6 +129,40 @@ void VirtualObstaclePublisherPanel::addObstacle() {
   setParams();
   evaluateParams();
   notifyParamsUpdate();
+}
+
+void VirtualObstaclePublisherPanel::removeObstacles() {
+  QModelIndexList indexes = obstacles_list_->selectionModel()->selectedIndexes();
+
+  vector<int> index_list;
+  for (QModelIndex index : indexes)
+    index_list.push_back(index.row());
+
+  sort(index_list.begin(), index_list.end(), greater<int>());
+
+  for (int idx : index_list) {
+    p_x_vector_.erase(p_x_vector_.begin() + idx);
+    p_y_vector_.erase(p_y_vector_.begin() + idx);
+    p_r_vector_.erase(p_r_vector_.begin() + idx);
+
+    p_vx_vector_.erase(p_vx_vector_.begin() + idx);
+    p_vy_vector_.erase(p_vy_vector_.begin() + idx);
+
+    delete obstacles_list_items_[idx];
+    obstacles_list_items_.erase(obstacles_list_items_.begin() + idx);
+  }
+
+  setParams();
+  evaluateParams();
+  notifyParamsUpdate();
+}
+
+void VirtualObstaclePublisherPanel::reset() {
+  p_reset_ = true;
+
+  processInputs();
+
+  p_reset_ = false;
 }
 
 void VirtualObstaclePublisherPanel::verifyInputs() {
@@ -177,6 +212,7 @@ void VirtualObstaclePublisherPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
 
   add_button_->setEnabled(p_active_);
+  remove_button_->setEnabled(p_active_);
   reset_button_->setEnabled(p_active_);
 
   x_input_->setEnabled(p_active_);
@@ -186,17 +222,28 @@ void VirtualObstaclePublisherPanel::evaluateParams() {
   vx_input_->setEnabled(p_active_);
   vy_input_->setEnabled(p_active_);
 
+  obstacles_list_->setEnabled(p_active_);
+
   if (p_x_vector_.size() < p_y_vector_.size() || p_x_vector_.size() < p_r_vector_.size() ||
       p_x_vector_.size() < p_vx_vector_.size() || p_x_vector_.size() < p_vy_vector_.size())
     return;
 
+  for (QListWidgetItem* item : obstacles_list_items_)
+    delete item;
+
+  obstacles_list_items_.clear();
+  obstacles_list_->clear();
+
   for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
-    new QListWidgetItem("x: " + QString::number(p_x_vector_[idx]) + " m " +
-                        "y: " + QString::number(p_y_vector_[idx]) + " m " +
-                        "r: " + QString::number(p_r_vector_[idx]) + " m " +
-                        "v<sub>x</sub>:" + QString::number(p_vx_vector_[idx]) + " m/s " +
-                        "v<sub>y</sub>:" + QString::number(p_vx_vector_[idx]) + " m/s "
-                        , obstacles_list_);
+    QListWidgetItem* item = new QListWidgetItem;
+    item->setText(QString::number(idx + 1) + ". " +
+                  "[x: " + QString::number(p_x_vector_[idx]) + "m] " +
+                  "[y: " + QString::number(p_y_vector_[idx]) + "m] " +
+                  "[r: " + QString::number(p_r_vector_[idx]) + "m] " +
+                  "[vx: " + QString::number(p_vx_vector_[idx]) + "m/s] " +
+                  "[vy: " + QString::number(p_vy_vector_[idx]) + "m/s]");
+    obstacles_list_items_.push_back(item);
+    obstacles_list_->insertItem(idx, item);
   }
 }
 
@@ -205,6 +252,7 @@ void VirtualObstaclePublisherPanel::notifyParamsUpdate() {
   if (!params_cli_.call(empty)) {
     p_active_ = false;
     setParams();
+    evaluateParams();
     notifyParamsUpdate();
   }
 }
@@ -216,8 +264,6 @@ void VirtualObstaclePublisherPanel::save(rviz::Config config) const {
 void VirtualObstaclePublisherPanel::load(const rviz::Config& config) {
   rviz::Panel::load(config);
 }
-
-} // end namespace obstacle_detector
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(obstacle_detector::VirtualObstaclePublisherPanel, rviz::Panel)
