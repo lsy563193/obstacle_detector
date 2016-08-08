@@ -1,6 +1,13 @@
 <!-- Runs obstacle tracker with a virtual obstacle publisher. -->
 <launch>
-  <node pkg="obstacle_detector" type="virtual_obstacle_publisher" name="virtual_obstacle_publisher"/>
+  <node pkg="obstacle_detector" type="virtual_obstacle_publisher" name="virtual_obstacle_publisher">
+    <param name="active"           value="true"/>
+    <param name="reset"            value="false"/>
+    <param name="fusion_example"   value="false"/>
+    <param name="fission_example"  value="true"/>
+    <param name="loop_rate"        value="10.0"/>
+    <param name="parent_frame"     value="base"/>
+  </node>
   
   <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
 
@@ -14,9 +21,10 @@
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
     <param name="fade_counter_size"       value="200"/>
-    <param name="min_correspondence_cost" value="0.5"/>
+    <param name="track_labels"            value="false"/>
+    <param name="min_correspondence_cost" value="0.3"/>
     <param name="measurement_variance"    value="1.0"/>
-    <param name="process_variance"        value="0.01"/>    
+    <param name="process_variance"        value="0.01"/>  
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">

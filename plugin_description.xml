@@ -1,0 +1,9 @@
+<library path="lib/libobstacle_detector_gui">
+  <class name="Virtual Obstacle Publisher"
+         type="obstacle_detector::VirtualObstaclePublisherPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      Panel used for activating and setting parameters of virtual obstacle publisher.
+    </description>
+  </class>
+</library>
