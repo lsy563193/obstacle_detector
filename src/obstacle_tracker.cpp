@@ -42,8 +42,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
     for (auto untracked_obstacle : untracked_obstacles_)
       tracked_obstacles_msg_.circles.push_back(untracked_obstacle);
 
-    if (!tracked_obstacles_msg_.circles.empty())
-      tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
+    tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
 
     rate.sleep();
   }
