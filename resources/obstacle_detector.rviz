@@ -143,7 +143,6 @@ Visualization Manager:
       Marker Topic: /obstacles_markers
       Name: RawObstacles
       Namespaces:
-        circles: true
         segments: true
       Queue Size: 100
       Value: true

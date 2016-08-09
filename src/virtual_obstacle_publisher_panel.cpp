@@ -119,16 +119,18 @@ void VirtualObstaclePublisherPanel::processInputs() {
 void VirtualObstaclePublisherPanel::addObstacle() {
   verifyInputs();
 
-  p_x_vector_.push_back(x_);
-  p_y_vector_.push_back(y_);
-  p_r_vector_.push_back(r_);
+  if (r_ > 0.0) {
+    p_x_vector_.push_back(x_);
+    p_y_vector_.push_back(y_);
+    p_r_vector_.push_back(r_);
 
-  p_vx_vector_.push_back(vx_);
-  p_vy_vector_.push_back(vy_);
+    p_vx_vector_.push_back(vx_);
+    p_vy_vector_.push_back(vy_);
 
-  setParams();
-  evaluateParams();
-  notifyParamsUpdate();
+    setParams();
+    evaluateParams();
+    notifyParamsUpdate();
+  }
 }
 
 void VirtualObstaclePublisherPanel::removeObstacles() {
