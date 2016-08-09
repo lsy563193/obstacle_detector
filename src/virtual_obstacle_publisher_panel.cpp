@@ -255,7 +255,6 @@ void VirtualObstaclePublisherPanel::notifyParamsUpdate() {
     p_active_ = false;
     setParams();
     evaluateParams();
-    notifyParamsUpdate();
   }
 }
 
