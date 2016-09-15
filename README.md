@@ -60,11 +60,13 @@ The following set of local parameters is dedicated to the algorithm itself:
 * `~max_circle_radius` (double, default: 0.200) - if a circle would have greater radius than this value, skip it, 
 * `~radius_enlargement` (double, default: 0.020) - enlarge the circles radius by this value.
 
-<p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/1482514/16087483/63733baa-3323-11e6-8a72-f9e17b6691d5.gif" alt="Visual example of obstacle detector output"/>
-  <br/>
-  Fig. 3. Visual example of obstacles detection.
-</p>
+![Fig. 3. Visual example of obstacles detection.](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png "Fig. 3. Visual example of obstacles detection.")
+
+[//]: <> (<p align="center">)
+[//]: <> (  <img src="https://cloud.githubusercontent.com/assets/1482514/16087483/63733baa-3323-11e6-8a72-f9e17b6691d5.gif" alt="Visual example of obstacle detector output"/>)
+[//]: <> (  <br/>)
+[//]: <> (  Fig. 3. Visual example of obstacles detection.)
+[//]: <> (</p>)
 
 #### 1.3. The obstacle_tracker node
 This node tracks and filters the circular obstacles with the use of Kalman filter. It subscribes to messages of custom type `obstacle_detector/Obstacles` from topic `obstacles` and publishes messages of the same type under topic `tracked_obstacles`. The tracking algorithm is applied only to the circular obstacles, hence the segments list of the published message is always empty. In fact, published messages contain both tracked and untracked circular obstacles. One can distinguish them by checking the `bool tracked` field of the `obstacle_detector/CircleObstacle` message type. 
@@ -76,11 +78,13 @@ The node works in a synchronous manner with the rate of 100 Hz. If detected obst
 * `~measurement_variance` (double, default 1.0) - variance of measured obstacles values (parameter of Kalman Filter),
 * `~process_variance` (double, default 1.0) - variance of obstacles motion process (parameter of Kalman Filter).
 
-<p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/1482514/16087421/32d1f52c-3323-11e6-86bb-c1ac851d1b77.gif" alt="Visual example of obstacle detector output"/>
-  <br/>
-  Fig. 4. Visual example of obstacle tracking.
-</p>
+![Fig. 4. Visual example of obstacle tracking.](https://cloud.githubusercontent.com/assets/1482514/16087421/32d1f52c-3323-11e6-86bb-c1ac851d1b77.gif "Fig. 4. Visual example of obstacle tracking.")
+
+[//]: <> (<p align="center">)
+[//]: <> (  <img src="https://cloud.githubusercontent.com/assets/1482514/16087421/32d1f52c-3323-11e6-86bb-c1ac851d1b77.gif" alt="Visual example of obstacle detector output"/>)
+[//]: <> (  <br/>)
+[//]: <> (  Fig. 4. Visual example of obstacle tracking.)
+[//]: <> (</p>)
 
 #### 1.4. The obstacle_visualizer node
 The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few local parameters to customize the markers:
@@ -110,20 +114,20 @@ The auxiliary node which publishes a set of virtual obstacles of type `obstacles
 The package provides three custom messages types. All of their numerical values are provided in SI units.
 
 * `CircleObstacle`
-  * `geometry_msgs/Point center`
-  * `geometry_msgs/Vector3 velocity`
-  * `float64 radius`
-  * `int32 num_points`
-  * `int32 obstacle_id`
-  * `bool tracked` 
+    * `geometry_msgs/Point center`
+    * `geometry_msgs/Vector3 velocity`
+    * `float64 radius`
+    * `int32 num_points`
+    * `int32 obstacle_id`
+    * `bool tracked` 
 * `SegmentObstacle`
-  * `geometry_msgs/Point first_point`
-  * `geometry_msgs/Point last_point`
-  * `int32 num_points`
+    * `geometry_msgs/Point first_point`
+    * `geometry_msgs/Point last_point`
+    * `int32 num_points`
 * `Obstacles`
-  * `Header header`
-  * `obstacle_detector/SegmentObstacle[] segments`
-  * `obstacle_detector/CircleObstacle[] circles`
+    * `Header header`
+    * `obstacle_detector/SegmentObstacle[] segments`
+    * `obstacle_detector/CircleObstacle[] circles`
 
 ### 3. The launch files
 
