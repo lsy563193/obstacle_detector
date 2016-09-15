@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(obstacle_detector)
 
 set(CMAKE_CXX_FLAGS "-std=c++0x -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall") # or type -DCMAKE_BUILD_TYPE=Debug
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall") # or type -DCMAKE_BUILD_TYPE=Release
 
 find_package(catkin REQUIRED COMPONENTS roscpp rviz std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
 find_package(Armadillo REQUIRED)
@@ -44,7 +46,7 @@ add_executable(obstacle_recorder src/obstacle_recorder.cpp include/obstacle_reco
 target_link_libraries(obstacle_recorder ${catkin_LIBRARIES})
 add_dependencies(obstacle_recorder ${PROJECT_NAME}_gencpp)
 
-add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h)
+add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h include/math_utilities.h)
 target_link_libraries(scans_merger ${catkin_LIBRARIES})
 add_dependencies(scans_merger ${${PROJECT_NAME}_EXPORTED_TARGETS})
 

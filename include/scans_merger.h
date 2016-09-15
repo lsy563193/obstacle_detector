@@ -53,32 +53,42 @@ public:
 private:
   void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan);
   void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan);
+
+  void publishScan();
   void publishPCL();
+  void publishAll();
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::Subscriber front_scan_sub_;
   ros::Subscriber rear_scan_sub_;
-  ros::Publisher  pcl_pub_;
+
+  ros::Publisher scan_pub_;
+  ros::Publisher pcl_pub_;
 
   tf::TransformListener front_tf_;
   tf::TransformListener rear_tf_;
 
-  sensor_msgs::PointCloud pcl_msg_;
-
   bool front_scan_received_;
   bool rear_scan_received_;
+  bool front_scan_error_;
+  bool rear_scan_error_;
 
-  int unreceived_front_scans_;
-  int unreceived_rear_scans_;
+  std::vector<float> ranges_;
+  std::vector<geometry_msgs::Point32> points_;
 
   // Parameters
-  std::string p_base_frame_;        // TF frame id for output PCL message
+  std::string p_frame_id_;        // TF frame id for output PCL message
 
-  bool p_omit_overlapping_scans_;   // Omit the points which project onto area of the other scanner
+  bool p_publish_scan_;
+  bool p_publish_pcl_;
 
+  int p_ranges_num_;                // Number of ranges per scan
+
+  double p_min_scanner_range_;      // Restrictions on laser scanner range
   double p_max_scanner_range_;      // Restrictions on laser scanner range
+
   double p_max_x_range_;            // Restrictions on points coordinates
   double p_min_x_range_;
   double p_max_y_range_;
