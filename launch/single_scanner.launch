@@ -42,14 +42,20 @@
   -->
   
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
-    <param name="base_frame"             value="scanner"/>
-    <param name="omit_overlapping_scans" value="false"/>
+    <param name="frame_id"          value="scanner"/>
 
-    <param name="max_scanner_range"    value="10.0"/>
-    <param name="max_x_range"          value="2.0"/>
-    <param name="min_x_range"          value="0.0"/>
-    <param name="max_y_range"          value="1.5"/>
-    <param name="min_y_range"          value="-1.5"/>
+    <param name="publish_scan"      value="true"/>
+    <param name="publish_pcl"       value="true"/>
+
+    <param name="ranges_num"        value="1000"/>
+
+    <param name="max_scanner_range" value="10.0"/>
+    <param name="min_scanner_range" value="0.03"/>
+
+    <param name="max_x_range"       value="5.0"/>
+    <param name="min_x_range"       value="-5.0"/>
+    <param name="max_y_range"       value="5.0"/>
+    <param name="min_y_range"       value="-5.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">

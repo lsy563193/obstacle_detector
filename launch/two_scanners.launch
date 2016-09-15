@@ -66,14 +66,20 @@
   <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_rear_scanner" output="screen" args="-0.025 0 0 3.14159265 0 0 scanner_base rear_scanner 10"/>
 
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
-    <param name="base_frame"             value="scanner_base"/>
-    <param name="omit_overlapping_scans" value="false"/>
+    <param name="frame_id"          value="scanner_base"/>
 
-    <param name="max_scanner_range"    value="10.0"/>
-    <param name="max_x_range"          value="0.0"/>
-    <param name="min_x_range"          value="-2.0"/>
-    <param name="max_y_range"          value="1.0"/>
-    <param name="min_y_range"          value="-1.0"/>
+    <param name="publish_scan"      value="true"/>
+    <param name="publish_pcl"       value="true"/>
+
+    <param name="ranges_num"        value="1000"/>
+
+    <param name="max_scanner_range" value="10.0"/>
+    <param name="min_scanner_range" value="0.05"/>
+
+    <param name="max_x_range"       value="10.0"/>
+    <param name="min_x_range"       value="-10.0"/>
+    <param name="max_y_range"       value="10.0"/>
+    <param name="min_y_range"       value="-10.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">

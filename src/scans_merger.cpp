@@ -36,13 +36,22 @@
 #include "../include/scans_merger.h"
 
 using namespace obstacle_detector;
+using namespace std;
 
 ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
-  nh_local_.param<std::string>("base_frame", p_base_frame_, "scanner_base");
+  nh_local_.param<std::string>("frame_id", p_frame_id_, "scanner_base");
 
-  nh_local_.param<bool>("omit_overlapping_scans", p_omit_overlapping_scans_, true);
+  nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
+  nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
 
+  nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
+
+  nh_local_.param<double>("min_scanner_range", p_min_scanner_range_, 0.05);
   nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 10.0);
+
+  cout << p_min_scanner_range_ << endl;
+  cout << p_max_scanner_range_ << endl;
+
   nh_local_.param<double>("max_x_range", p_max_x_range_,  10.0);
   nh_local_.param<double>("min_x_range", p_min_x_range_, -10.0);
   nh_local_.param<double>("max_y_range", p_max_y_range_,  10.0);
@@ -50,95 +59,152 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
 
   front_scan_sub_ = nh_.subscribe("front_scan", 10, &ScansMerger::frontScanCallback, this);
   rear_scan_sub_ = nh_.subscribe("rear_scan", 10, &ScansMerger::rearScanCallback, this);
+
+  scan_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
   pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
+
+  ranges_.assign(p_ranges_num_, 1000.0f);
 
   front_scan_received_ = false;
   rear_scan_received_ = false;
 
-  unreceived_front_scans_ = 0;
-  unreceived_rear_scans_ = 0;
+  front_scan_error_ = false;
+  rear_scan_error_ = false;
 
   ROS_INFO("Scans Merger [OK]");
   ros::spin();
 }
 
 void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan) {
+  geometry_msgs::Point32 local_point, base_point;
+  tf::StampedTransform transform;
+
+  if (front_scan_received_)
+    points_.clear();
+
   try {
-    geometry_msgs::Point32 local_point, base_point;
-    tf::StampedTransform transform;
-    front_tf_.lookupTransform(p_base_frame_, front_scan->header.frame_id, ros::Time(0), transform);
-
-    float phi = front_scan->angle_min;
-    for (const float r : front_scan->ranges) {
-      if (r > front_scan->range_min && r < front_scan->range_max && r <= p_max_scanner_range_) {
-        local_point.x = r * cos(phi);
-        local_point.y = r * sin(phi);
-
-        base_point = transformPoint(local_point, transform);
-
-        if (!(p_omit_overlapping_scans_ && base_point.x < 0.0) && checkPointInLimits(base_point, p_min_x_range_, p_max_x_range_, p_min_y_range_, p_max_y_range_))
-          pcl_msg_.points.push_back(base_point);
-      }
-      phi += front_scan->angle_increment;
-    }
-
-    front_scan_received_ = true;
-
-    if (rear_scan_received_ || unreceived_rear_scans_ > 0) {
-      publishPCL();
-
-      unreceived_front_scans_ = 0;
-    }
-    else unreceived_rear_scans_++;
+    front_tf_.lookupTransform(p_frame_id_, front_scan->header.frame_id, ros::Time(0), transform);
   }
   catch (tf::TransformException ex) {
     ROS_ERROR("%s",ex.what());
+    return;
   }
+
+  float phi = front_scan->angle_min;
+  for (const float r : front_scan->ranges) {
+    if (r > front_scan->range_min && r < front_scan->range_max) {
+      local_point.x = r * cos(phi);
+      local_point.y = r * sin(phi);
+
+      base_point = transformPoint(local_point, transform);
+
+      if (checkPointInLimits(base_point, p_min_x_range_, p_max_x_range_, p_min_y_range_, p_max_y_range_))
+        points_.push_back(base_point);
+    }
+    phi += front_scan->angle_increment;
+  }
+
+  front_scan_received_ = true;
+  front_scan_error_ = false;
+
+  if (rear_scan_received_ || rear_scan_error_)
+    publishAll();
+  else
+    rear_scan_error_ = true;
 }
 
 void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan) {
+  geometry_msgs::Point32 local_point, base_point;
+  tf::StampedTransform transform;
+
+  if (rear_scan_received_)
+    points_.clear();
+
   try {
-    geometry_msgs::Point32 local_point, base_point;
-    tf::StampedTransform transform;
-    rear_tf_.lookupTransform(p_base_frame_, rear_scan->header.frame_id, ros::Time(0), transform);
-
-    float phi = rear_scan->angle_min;
-    for (const float r : rear_scan->ranges) {
-      if (r > rear_scan->range_min && r < rear_scan->range_max && r <= p_max_scanner_range_) {
-        local_point.x = r * cos(phi);
-        local_point.y = r * sin(phi);
-
-        base_point = transformPoint(local_point, transform);
-
-        if (!(p_omit_overlapping_scans_ && base_point.x > 0.0) && checkPointInLimits(base_point, p_min_x_range_, p_max_x_range_, p_min_y_range_, p_max_y_range_))
-          pcl_msg_.points.push_back(base_point);
-      }
-      phi += rear_scan->angle_increment;
-    }
-
-    rear_scan_received_ = true;
-
-    if (front_scan_received_ || unreceived_front_scans_ > 0) {
-      publishPCL();
-
-      unreceived_rear_scans_ = 0;
-    }
-    else unreceived_front_scans_++;
+    rear_tf_.lookupTransform(p_frame_id_, rear_scan->header.frame_id, ros::Time(0), transform);
   }
   catch (tf::TransformException ex) {
     ROS_ERROR("%s",ex.what());
+    return;
   }
+
+  float phi = rear_scan->angle_min;
+  for (const float r : rear_scan->ranges) {
+    if (r > rear_scan->range_min && r < rear_scan->range_max) {
+      local_point.x = r * cos(phi);
+      local_point.y = r * sin(phi);
+
+      base_point = transformPoint(local_point, transform);
+
+      if (checkPointInLimits(base_point, p_min_x_range_, p_max_x_range_, p_min_y_range_, p_max_y_range_))
+        points_.push_back(base_point);
+    }
+    phi += rear_scan->angle_increment;
+  }
+
+  rear_scan_received_ = true;
+  rear_scan_error_ = false;
+
+  if (front_scan_received_ || front_scan_error_)
+    publishAll();
+  else
+    front_scan_error_ = true;
+}
+
+void ScansMerger::publishScan() {
+  sensor_msgs::LaserScan laser_scan;
+
+  laser_scan.header.frame_id = p_frame_id_;
+  laser_scan.header.stamp = ros::Time::now();
+  laser_scan.angle_min = -M_PI;
+  laser_scan.angle_max = M_PI;
+  laser_scan.angle_increment = 2.0 * M_PI / p_ranges_num_;
+  laser_scan.time_increment = 0.0;
+  laser_scan.scan_time = 0.1;
+  laser_scan.range_min = p_min_scanner_range_;
+  laser_scan.range_max = p_max_scanner_range_;
+
+  for (auto& point : points_) {
+    float angle = atan2(point.y, point.x);
+    float range = sqrt(pow(point.x, 2.0) + pow(point.y, 2.0));
+
+    int idx = static_cast<int>(p_ranges_num_ * (angle + M_PI)/(2.0 * M_PI));
+
+    if (ranges_[idx] > range)
+      ranges_[idx] = range;
+  }
+
+  for (int jdx = 0; jdx < ranges_.size(); ++jdx)
+    if (ranges_[jdx] < p_min_scanner_range_ || ranges_[jdx] > p_max_scanner_range_)
+      ranges_[jdx] = nan("");
+
+  laser_scan.ranges = ranges_;
+
+  scan_pub_.publish(laser_scan);
 }
 
 void ScansMerger::publishPCL() {
-  pcl_msg_.header.frame_id = p_base_frame_;
-  pcl_msg_.header.stamp = ros::Time::now();
-  pcl_pub_.publish(pcl_msg_);
+  sensor_msgs::PointCloud pcl;
 
-  pcl_msg_.points.clear();
+  pcl.header.frame_id = p_frame_id_;
+  pcl.header.stamp = ros::Time::now();
+  pcl.points = points_;
+
+  pcl_pub_.publish(pcl);
+}
+
+void ScansMerger::publishAll() {
+  if (p_publish_scan_)
+    publishScan();
+
+  if (p_publish_pcl_)
+    publishPCL();
 
   front_scan_received_ = false;
   rear_scan_received_ = false;
+
+  points_.clear();
+  ranges_.assign(p_ranges_num_, 1000.0f);
 }
 
 int main(int argc, char **argv) {
