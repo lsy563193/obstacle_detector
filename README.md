@@ -1,11 +1,13 @@
 # The obstacle_detector package 
 
-The obstacle_detector package provides utilities to detect and track obstacles from a 2D laser scan or an ordered point cloud. Detected obstacles come in a form of segments or circles. Detection of obstacles is based solely on the geometric information of the points from a single scan. The tracking process solves the correspondence problem between two consecutive obstacle sets and uses Kalman filter to supersample and refine obstacles parameters. The package requires [Armadillo C++](http://arma.sourceforge.net) library for compilation and runtime.
+The obstacle_detector package provides utilities to detect and track obstacles from a 2D laser scan or an angular ordered point cloud. Detected obstacles come in a form of segments or circles. Detection of obstacles is based solely on the geometric information of the points from a single scan. The tracking process solves the correspondence problem between two consecutive obstacle sets and uses Kalman filter to supersample and refine obstacles parameters. The package requires [Armadillo C++](http://arma.sourceforge.net) library for compilation and runtime.
 
-![Fig. 1. Visual example of obstacle detector output](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png "Fig. 1. Visual example of obstacle detector output")
+&nbsp;
+
+![Fig. 1. Visual example of obstacle detector output.](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png "Fig. 1. Visual example of obstacle detector output.")
 
 [//]: <> (<p align="center">)
-[//]: <> (  <img src="https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png" alt="Visual example of obstacle detector output"/>)
+[//]: <> (  <img src="https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png" alt="Visual example of obstacle detector output."/>)
 [//]: <> (  <br/>)
 [//]: <> (  Fig. 1. Visual example of obstacle detector output.)
 [//]: <> (</p>)
@@ -29,11 +31,15 @@ This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `
 * `~max_y_range` (double, default: 10.0) - as above,
 * `~min_y_range` (double, default: -10.0) - as above.
 
-<p align="center">
-  <img src="https://cloud.githubusercontent.com/assets/1482514/16087445/4af50edc-3323-11e6-88c7-c7ee12b6d63b.gif" alt="Visual example of obstacle detector output"/>
-  <br/>
-  Fig. 2. Visual example of scans merging with coordinates restrictions.
-</p>
+&nbsp;
+
+![Fig. 2. Visual example of scans merging with coordinates restrictions.](https://cloud.githubusercontent.com/assets/1482514/16087445/4af50edc-3323-11e6-88c7-c7ee12b6d63b.gif "Fig. 1. Visual example of scans merging with coordinates restrictions.")
+
+[//]: <> (<p align="center">)
+[//]: <> (  <img src="https://cloud.githubusercontent.com/assets/1482514/16087445/4af50edc-3323-11e6-88c7-c7ee12b6d63b.gif" alt="Visual example of obstacle detector output"/>)
+[//]: <> (  <br/>)
+[//]: <> (  Fig. 2. Visual example of scans merging with coordinates restrictions.)
+[//]: <> (</p>)
 
 #### 1.2. The obstacle_detector node 
 This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the polar nature of laser scanners. The node is configurable with the following set of local parameters:
