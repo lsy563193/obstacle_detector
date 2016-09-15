@@ -16,21 +16,25 @@ The obstacle_detector package provides utilities to detect and track obstacles f
 
 The package provides separate nodes to perform separate tasks. In general solution the data is processed in a following manner:
 
-`two laser scans -> scans merger -> merged scan or pcl -> obstacle detector -> obstacles -> obstacle tracker -> refined obstacles`
+`two laser scans` -> `scans merger` -> `merged scan or pcl` -> `obstacle detector` -> `obstacles` -> `obstacle tracker` -> `refined obstacles`
 
 The nodes are configurable with the use of ROS parameter server. Any numerical parameter required by the nodes must be provided in SI unit.
 
 ### 1.1. The scans_merger node
-This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses the following set of local parameters:
+This node converts two messages of type `sensor_msgs/LaserScan` from topics `front_scan` and `rear_scan` into a single laser scan of the same type or a point cloud of type `sensor_msgs/PointCloud`, published under topic `pcl`. The scanners are assumed to be mounted in the same plane, _back-to-back_ (rotated 180 deg) with some separation betweend them. Both transformation from `base` frame to `front_scanner` frame and from `base` frame to `rear_scanner` frame must be provided. The node uses the following set of local parameters:
 
-* `~base_frame` (string, default: base) - name of the relative coordinate frame used as the origin of the produced point cloud (use world frame for conversion of points to the global coordinate frame),
-* `~omit_overlapping_scans` (bool, default: true) - if some of the points provided by both scans exist on the same angular area, omit them,
-* `~max_scanner_range` (double, default: 10.0) - restriction on laser scanner range,
+* `~frame_id` (string, default: scanners_base) - name of the relative coordinate frame used as the origin of the produced laser scan or point cloud,
+* `~publish_scan` (bool, default: true) - publish the merged laser scan message,
+* `~publish_pcl` (bool, default: true) - publish the merged point cloud message,
+* `~ranges_num` (int, default: 1000) - number of ranges contained in laser scan message,
+* `~min_scanner_range` (double, default: 0.05) - minimal allowable range value for produced laser scan message,
+* `~max_scanner_range` (double, default: 10.0) - maximal allowable range value for produced laser scan message,
 * `~max_x_range` (double, default: 10.0) - limitation for points coordinates (points with coordinates behind these limitations will be discarded),
 * `~min_x_range` (double, default: -10.0) - as above,
 * `~max_y_range` (double, default: 10.0) - as above,
 * `~min_y_range` (double, default: -10.0) - as above.
 
+-----------------------
 ![Fig. 2. Visual example of scans merging with coordinates restrictions.](https://cloud.githubusercontent.com/assets/1482514/16087445/4af50edc-3323-11e6-88c7-c7ee12b6d63b.gif "Fig. 1. Visual example of scans merging with coordinates restrictions.")
 
 [//]: <> (<p align="center">)
@@ -38,6 +42,7 @@ This node converts two laser scans of type `sensor_msgs/LaserScan` from topics `
 [//]: <> (  <br/>)
 [//]: <> (  Fig. 2. Visual example of scans merging with coordinates restrictions.)
 [//]: <> (</p>)
+-----------------------
 
 ### 1.2. The obstacle_detector node 
 This node converts messages of type `sensor_msgs/LaserScan` from topic `scan` or messages of type `sensor_msgs/PointCloud` from topic `pcl` into obstacles which are published as messages of custom type `obstacles_detector/Obstacles` under topic `obstacles`. The point cloud message must be ordered in the angular fashion, because the algorithm exploits the polar nature of laser scanners. The node is configurable with the following set of local parameters:
@@ -58,6 +63,7 @@ The following set of local parameters is dedicated to the algorithm itself:
 * `~max_circle_radius` (double, default: 0.200) - if a circle would have greater radius than this value, skip it, 
 * `~radius_enlargement` (double, default: 0.020) - enlarge the circles radius by this value.
 
+-----------------------
 ![Fig. 3. Visual example of obstacles detection.](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png "Fig. 3. Visual example of obstacles detection.")
 
 [//]: <> (<p align="center">)
@@ -65,6 +71,7 @@ The following set of local parameters is dedicated to the algorithm itself:
 [//]: <> (  <br/>)
 [//]: <> (  Fig. 3. Visual example of obstacles detection.)
 [//]: <> (</p>)
+-----------------------
 
 ### 1.3. The obstacle_tracker node
 This node tracks and filters the circular obstacles with the use of Kalman filter. It subscribes to messages of custom type `obstacle_detector/Obstacles` from topic `obstacles` and publishes messages of the same type under topic `tracked_obstacles`. The tracking algorithm is applied only to the circular obstacles, hence the segments list of the published message is always empty. In fact, published messages contain both tracked and untracked circular obstacles. One can distinguish them by checking the `bool tracked` field of the `obstacle_detector/CircleObstacle` message type. 
@@ -76,6 +83,7 @@ The node works in a synchronous manner with the rate of 100 Hz. If detected obst
 * `~measurement_variance` (double, default 1.0) - variance of measured obstacles values (parameter of Kalman Filter),
 * `~process_variance` (double, default 1.0) - variance of obstacles motion process (parameter of Kalman Filter).
 
+-----------------------
 ![Fig. 4. Visual example of obstacle tracking.](https://cloud.githubusercontent.com/assets/1482514/16087421/32d1f52c-3323-11e6-86bb-c1ac851d1b77.gif "Fig. 4. Visual example of obstacle tracking.")
 
 [//]: <> (<p align="center">)
@@ -83,6 +91,7 @@ The node works in a synchronous manner with the rate of 100 Hz. If detected obst
 [//]: <> (  <br/>)
 [//]: <> (  Fig. 4. Visual example of obstacle tracking.)
 [//]: <> (</p>)
+-----------------------
 
 ### 1.4. The obstacle_visualizer node
 The auxiliary node which converts messages of type `obstacles_detector/Obstacles` from topic `obstacles` into Rviz markers of type `visualization_msgs/MarkerArray`, published under topic `obstacles_markers`. The node uses few local parameters to customize the markers:
