@@ -2,9 +2,7 @@
 
 The obstacle_detector package provides utilities to detect and track obstacles from a 2D laser scan or an ordered point cloud. Detected obstacles come in a form of segments or circles. Detection of obstacles is based solely on the geometric information of the points from a single scan. The tracking process solves the correspondence problem between two consecutive obstacle sets and uses Kalman filter to supersample and refine obstacles parameters. The package requires [Armadillo C++](http://arma.sourceforge.net) library for compilation and runtime.
 
-| ![Visual example of obstacle detector output](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png)
-| :-----:
-| Fig. 1. Visual example of obstacle detector output
+![Fig. 1. Visual example of obstacle detector output](https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png "Fig. 1. Visual example of obstacle detector output")
 
 <p align="center">
   <img src="https://cloud.githubusercontent.com/assets/1482514/15776148/2fc8f610-2986-11e6-88ed-6c6142e87465.png" alt="Visual example of obstacle detector output"/>
