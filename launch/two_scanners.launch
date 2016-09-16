@@ -69,7 +69,7 @@
     <param name="frame_id"          value="scanner_base"/>
 
     <param name="publish_scan"      value="true"/>
-    <param name="publish_pcl"       value="true"/>
+    <param name="publish_pcl"       value="false"/>
 
     <param name="ranges_num"        value="1000"/>
 
@@ -83,13 +83,13 @@
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
-    <param name="world_frame"          value="world"/>
+    <param name="frame_id"             value="world"/>
 
-    <param name="use_scan"             value="false"/>
-    <param name="use_pcl"              value="true"/>
+    <param name="use_scan"             value="true"/>
+    <param name="use_pcl"              value="false"/>
     <param name="use_split_and_merge"  value="false"/>
-    <param name="discard_converted_segments" value="false"/>
-    <param name="transform_to_world"   value="true"/>
+    <param name="discard_converted_segments" value="true"/>
+    <param name="transform_coordinates"      value="true"/>
 
     <param name="min_group_points"     value="5"/>
     <param name="max_group_distance"   value="0.060"/>    

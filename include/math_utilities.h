@@ -42,30 +42,23 @@
 namespace obstacle_detector
 {
 
-geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, const tf::Transform& transform) {
+geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, double x, double y, double theta) {
   geometry_msgs::Point p;
 
-  tf::Vector3 origin = transform.getOrigin();
-  double theta = tf::getYaw(transform.getRotation());
-
-  p.x = point.x * cos(theta) - point.y * sin(theta) + origin.x();
-  p.y = point.x * sin(theta) + point.y * cos(theta) + origin.y();
+  p.x = point.x * cos(theta) - point.y * sin(theta) + x;
+  p.y = point.x * sin(theta) + point.y * cos(theta) + y;
 
   return p;
 }
 
-geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& point, const tf::Transform& transform) {
+geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& point, double x, double y, double theta) {
   geometry_msgs::Point32 p;
 
-  tf::Vector3 origin = transform.getOrigin();
-  double theta = tf::getYaw(transform.getRotation());
-
-  p.x = point.x * cos(theta) - point.y * sin(theta) + origin.x();
-  p.y = point.x * sin(theta) + point.y * cos(theta) + origin.y();
+  p.x = point.x * cos(theta) - point.y * sin(theta) + x;
+  p.y = point.x * sin(theta) + point.y * cos(theta) + y;
 
   return p;
 }
-
 
 bool checkPointInLimits(const geometry_msgs::Point32& p, double x_min, double x_max, double y_min, double y_max) {
   if ((p.x > x_max) || (p.x < x_min) || (p.y > y_max) || (p.y < y_min))

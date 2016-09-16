@@ -79,7 +79,7 @@ private:
   ros::Subscriber pcl_sub_;
   ros::Publisher  obstacles_pub_;
 
-  std::string frame_id_;    // Name of TF frame for obstacles message
+  std::string base_frame_id_;       // Name of frame from input messages
   tf::TransformListener tf_listener_;
 
   std::vector<Point> initial_points_;
@@ -87,13 +87,13 @@ private:
   std::list<Circle>  circles_;
 
   // Parameters
-  std::string p_world_frame_;     // ID of the world coordinate frame
+  std::string p_frame_id_;        // Name of final frame for obstacles if transformed
 
   bool p_use_scan_;               // Use data from scans
   bool p_use_pcl_;                // Use data from point clouds
   bool p_use_split_and_merge_;    // If false, iterative closest point is used instead of split and merge
   bool p_discard_converted_segments_; // Do not publish segments from which the circles were obtained
-  bool p_transform_to_world_;     // Transform obstacle coordinates to world frame
+  bool p_transform_coordinates_;     // Transform obstacle coordinates to world frame
 
   int    p_min_group_points_;     // Miminal number of points in a set to process it further
   double p_distance_proportion_;  // Proportion of allowable distances to the range of a point (based on scan angle increment)

@@ -208,15 +208,15 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
           c2 = meanCircObstacle(new_obstacles->circles[j], tracked_obstacles_[row_min_indices[j]].getObstacle());
 
           if (p_track_labels_) {
-            string name = tracked_obstacles_[row_min_indices[i]].getObstacle().obstacle_id.data;
+            string name = tracked_obstacles_[row_min_indices[i]].getObstacle().obstacle_id;
 
             if (name.find("-") != string::npos) {
-              c1.obstacle_id.data = name.substr(0, name.find("-"));
-              c2.obstacle_id.data = name.substr(name.find("-")+1);
+              c1.obstacle_id = name.substr(0, name.find("-"));
+              c2.obstacle_id = name.substr(name.find("-")+1);
             }
             else {
-              c1.obstacle_id.data = string("");
-              c2.obstacle_id.data = string("");
+              c1.obstacle_id = string("");
+              c2.obstacle_id = string("");
             }
           }
 
@@ -266,7 +266,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         if (i < T && j < T) {
           c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), tracked_obstacles_[j].getObstacle());
           if (p_track_labels_)
-            c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-" + tracked_obstacles_[j].getObstacle().obstacle_id.data;
+            c.obstacle_id = tracked_obstacles_[i].getObstacle().obstacle_id + "-" + tracked_obstacles_[j].getObstacle().obstacle_id;
 
           erase_indices.push_back(i);
           erase_indices.push_back(j);
@@ -274,14 +274,14 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         else if (i < T && j >= T) {
           c = meanCircObstacle(tracked_obstacles_[i].getObstacle(), untracked_obstacles_[j - T]);
           if (p_track_labels_)
-            c.obstacle_id.data = tracked_obstacles_[i].getObstacle().obstacle_id.data + "-OX";
+            c.obstacle_id = tracked_obstacles_[i].getObstacle().obstacle_id + "-OX";
 
           erase_indices.push_back(i);
         }
         else if (i >= T && j < T) {
           c = meanCircObstacle(untracked_obstacles_[i - T], tracked_obstacles_[j].getObstacle());
           if (p_track_labels_)
-            c.obstacle_id.data = tracked_obstacles_[j].getObstacle().obstacle_id.data + "-OX";
+            c.obstacle_id = tracked_obstacles_[j].getObstacle().obstacle_id + "-OX";
 
           erase_indices.push_back(j);
         }

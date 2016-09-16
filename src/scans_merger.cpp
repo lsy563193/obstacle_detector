@@ -39,18 +39,16 @@ using namespace obstacle_detector;
 using namespace std;
 
 ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
-  nh_local_.param<std::string>("frame_id", p_frame_id_, "scanner_base");
 
   nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
   nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
+
+  nh_local_.param<std::string>("frame_id", p_frame_id_, "scanner_base");
 
   nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
 
   nh_local_.param<double>("min_scanner_range", p_min_scanner_range_, 0.05);
   nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 10.0);
-
-  cout << p_min_scanner_range_ << endl;
-  cout << p_max_scanner_range_ << endl;
 
   nh_local_.param<double>("max_x_range", p_max_x_range_,  10.0);
   nh_local_.param<double>("min_x_range", p_min_x_range_, -10.0);
@@ -62,8 +60,6 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
 
   scan_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
   pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
-
-  ranges_.assign(p_ranges_num_, 1000.0f);
 
   front_scan_received_ = false;
   rear_scan_received_ = false;
@@ -90,13 +86,16 @@ void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& fron
     return;
   }
 
+  tf::Vector3 origin = transform.getOrigin();
+  double theta = tf::getYaw(transform.getRotation());
+
   float phi = front_scan->angle_min;
   for (const float r : front_scan->ranges) {
     if (r > front_scan->range_min && r < front_scan->range_max) {
       local_point.x = r * cos(phi);
       local_point.y = r * sin(phi);
 
-      base_point = transformPoint(local_point, transform);
+      base_point = transformPoint(local_point, origin.x(), origin.y(), theta);
 
       if (checkPointInLimits(base_point, p_min_x_range_, p_max_x_range_, p_min_y_range_, p_max_y_range_))
         points_.push_back(base_point);
@@ -128,13 +127,16 @@ void ScansMerger::rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_
     return;
   }
 
+  tf::Vector3 origin = transform.getOrigin();
+  double theta = tf::getYaw(transform.getRotation());
+
   float phi = rear_scan->angle_min;
   for (const float r : rear_scan->ranges) {
     if (r > rear_scan->range_min && r < rear_scan->range_max) {
       local_point.x = r * cos(phi);
       local_point.y = r * sin(phi);
 
-      base_point = transformPoint(local_point, transform);
+      base_point = transformPoint(local_point, origin.x(), origin.y(), theta);
 
       if (checkPointInLimits(base_point, p_min_x_range_, p_max_x_range_, p_min_y_range_, p_max_y_range_))
         points_.push_back(base_point);
@@ -163,6 +165,8 @@ void ScansMerger::publishScan() {
   laser_scan.scan_time = 0.1;
   laser_scan.range_min = p_min_scanner_range_;
   laser_scan.range_max = p_max_scanner_range_;
+
+  ranges_.assign(p_ranges_num_, 1000.0f);
 
   for (auto& point : points_) {
     float angle = atan2(point.y, point.x);
@@ -204,7 +208,6 @@ void ScansMerger::publishAll() {
   rear_scan_received_ = false;
 
   points_.clear();
-  ranges_.assign(p_ranges_num_, 1000.0f);
 }
 
 int main(int argc, char **argv) {

@@ -39,13 +39,13 @@ using namespace std;
 using namespace obstacle_detector;
 
 ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
-  nh_local_.param<string>("world_frame", p_world_frame_, "world");
+  nh_local_.param<string>("frame_id", p_frame_id_, "world");
 
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
-  nh_local_.param<bool>("transform_to_world", p_transform_to_world_, true);
+  nh_local_.param<bool>("transform_coordinates", p_transform_coordinates_, true);
 
   nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
@@ -70,7 +70,7 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
   initial_points_.clear();
-  frame_id_ = scan->header.frame_id;
+  base_frame_id_ = scan->header.frame_id;
 
   double phi = scan->angle_min;
 
@@ -86,7 +86,7 @@ void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan
 
 void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl) {
   initial_points_.clear();
-  frame_id_ = pcl->header.frame_id;
+  base_frame_id_ = pcl->header.frame_id;
 
   for (const geometry_msgs::Point32& point : pcl->points)
     initial_points_.push_back(Point(point.x, point.y));
@@ -341,33 +341,37 @@ void ObstacleDetector::publishObstacles() {
     circle.velocity.y = 0.0;
     circle.radius = c.radius();
 
-    circle.obstacle_id.data = string("");
+    circle.obstacle_id = string("");
     circle.tracked = false;
 
     obstacles.circles.push_back(circle);
   }
 
-  if (p_transform_to_world_) {
+  if (p_transform_coordinates_) {
+    tf::StampedTransform transform;
+
     try {
-      tf::StampedTransform transform;
-      tf_listener_.lookupTransform(p_world_frame_, frame_id_, ros::Time(0), transform);
-
-      for (auto& s : obstacles.segments) {
-        s.first_point = transformPoint(s.first_point, transform);
-        s.last_point = transformPoint(s.last_point, transform);
-      }
-
-      for (auto& c : obstacles.circles)
-        c.center = transformPoint(c.center, transform);
-
-      obstacles.header.frame_id = p_world_frame_;
+      tf_listener_.lookupTransform(p_frame_id_, base_frame_id_, ros::Time(0), transform);
     }
     catch (tf::TransformException ex) {
       ROS_ERROR("%s",ex.what());
     }
+
+    tf::Vector3 origin = transform.getOrigin();
+    double theta = tf::getYaw(transform.getRotation());
+
+    for (auto& s : obstacles.segments) {
+      s.first_point = transformPoint(s.first_point, origin.x(), origin.y(), theta);
+      s.last_point = transformPoint(s.last_point, origin.x(), origin.y(), theta);
+    }
+
+    for (auto& c : obstacles.circles)
+      c.center = transformPoint(c.center, origin.x(), origin.y(), theta);
+
+    obstacles.header.frame_id = p_frame_id_;
   }
   else
-    obstacles.header.frame_id = frame_id_;
+    obstacles.header.frame_id = base_frame_id_;
 
   obstacles_pub_.publish(obstacles);
 }

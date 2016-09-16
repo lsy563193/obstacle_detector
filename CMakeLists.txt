@@ -29,6 +29,10 @@ qt4_wrap_cpp(MOC_FILES
 include_directories(include /usr/include/OGRE ${catkin_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
+add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h include/math_utilities.h)
+target_link_libraries(scans_merger ${catkin_LIBRARIES})
+add_dependencies(scans_merger ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
 add_executable(obstacle_detector src/obstacle_detector.cpp include/obstacle_detector.h include/math_utilities.h
                include/figures/point.h include/figures/segment.h include/figures/circle.h include/figures/figure_fitting.h)
 target_link_libraries(obstacle_detector ${catkin_LIBRARIES} ${ARMADILLO_LIBRARIES})
@@ -45,10 +49,6 @@ add_dependencies(obstacle_visualizer ${PROJECT_NAME}_gencpp)
 add_executable(obstacle_recorder src/obstacle_recorder.cpp include/obstacle_recorder.h)
 target_link_libraries(obstacle_recorder ${catkin_LIBRARIES})
 add_dependencies(obstacle_recorder ${PROJECT_NAME}_gencpp)
-
-add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h include/math_utilities.h)
-target_link_libraries(scans_merger ${catkin_LIBRARIES})
-add_dependencies(scans_merger ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 add_executable(static_scan_publisher src/static_scan_publisher.cpp)
 target_link_libraries(static_scan_publisher ${catkin_LIBRARIES})
