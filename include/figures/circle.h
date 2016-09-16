@@ -35,10 +35,6 @@
 
 #pragma once
 
-#include <list>
-#include <cmath>
-#include <cassert>
-
 #include "point.h"
 #include "segment.h"
 
@@ -48,8 +44,8 @@ namespace obstacle_detector
 class Circle
 {
 public:
-  Circle(const Point& p = Point(), const double r = 0.0) : center_(p), radius_(r) {
-    //assert(radius_ >= 0.0);
+  Circle(const Point& p, const double r) : center(p), radius(r) {
+    assert(radius > 0.0);
   }
 
   /*
@@ -58,27 +54,18 @@ public:
    * on this triangle.
    */
   Circle(const Segment& s) {
-    radius_ = 0.5773502 * s.length();  // sqrt(3)/3 * length
-    center_ = (s.first_point() + s.last_point() - radius_ * s.normal()) / 2.0;
+    radius = 0.5773502 * s.length();  // sqrt(3)/3 * length
+    center = (s.first_point + s.last_point - radius * s.normal()) / 2.0;
   }
 
-  void setRadius(double r) { radius_ = r; }
-  void setCenter(double x, double y) { center_.x = x; center_.y = y; }
-
-  Point center() const { return center_; }
-  double radius() const { return radius_; }
-  double distanceTo(const Point& p) { return (p - center_).length() - radius_; }
-
-  std::list<Point>& point_set() { return point_set_; }
-  int num_points() const { return point_set_.size(); }
+  double distanceTo(const Point& p) { return (p - center).length() - radius; }
 
   friend std::ostream& operator<<(std::ostream& out, const Circle& c)
-  { out << "C: " << c.center_ << ", R: " << c.radius_; return out; }
+  { out << "C: " << c.center << ", R: " << c.radius; return out; }
 
-private:
-  Point center_;
-  double radius_;
-  std::list<Point> point_set_;
+  Point center;
+  double radius;
+  MyPointSet point_set;
 };
 
 //Circle(const Point& p1, const Point& p2, const Point& p3) {

@@ -38,14 +38,10 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <list>
 
 namespace obstacle_detector
 {
-
-double signum(double x) { return (x < 0.0) ? -1.0 : 1.0; }
-double abs(double x) { return (x < 0.0) ? -x : x; }
-double max(double x, double y) { return (x > y) ? x : y; }
-const double pi = 3.14159265;
 
 class Point
 {
@@ -57,7 +53,7 @@ public:
   double length()        const { return sqrt(pow(x, 2.0) + pow(y, 2.0)); }
   double lengthSquared() const { return pow(x, 2.0) + pow(y, 2.0); }
   double angle()         const { return atan2(y, x); }
-  double angleDeg()      const { return 180.0f * atan2(y, x) / pi; }
+  double angleDeg()      const { return 180.0 * atan2(y, x) / M_PI; }
   double dot(const Point& p)   const { return x * p.x + y * p.y; }
   double cross(const Point& p) const { return x * p.y - y * p.x; }
 
@@ -102,6 +98,17 @@ public:
 
   double x;
   double y;
+};
+
+typedef std::list<Point>::iterator PointIterator;
+
+class MyPointSet
+{
+public:
+  MyPointSet() { num_points = 0; }
+
+  PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
+  int num_points;
 };
 
 } // namespace obstacle_detector

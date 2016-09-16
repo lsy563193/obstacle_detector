@@ -69,14 +69,13 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 }
 
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
-  initial_points_.clear();
   base_frame_id_ = scan->header.frame_id;
 
   double phi = scan->angle_min;
 
   for (const float r : scan->ranges) {
     if (r >= scan->range_min && r <= scan->range_max)
-      initial_points_.push_back(Point::fromPoolarCoords(r, phi));
+      input_points_.push_back(Point::fromPoolarCoords(r, phi));
 
     phi += scan->angle_increment;
   }
@@ -85,11 +84,10 @@ void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan
 }
 
 void ObstacleDetector::pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl) {
-  initial_points_.clear();
   base_frame_id_ = pcl->header.frame_id;
 
   for (const geometry_msgs::Point32& point : pcl->points)
-    initial_points_.push_back(Point(point.x, point.y));
+    input_points_.push_back(Point(point.x, point.y));
 
   processPoints();
 }
@@ -99,57 +97,66 @@ void ObstacleDetector::processPoints() {
   circles_.clear();
 
   groupPointsAndDetectSegments();
-  mergeSegments();
+//  mergeSegments();
 
-  detectCircles();
-  mergeCircles();
+//  detectCircles();
+//  mergeCircles();
 
   publishObstacles();
+
+  input_points_.clear();
 }
 
 void ObstacleDetector::groupPointsAndDetectSegments() {
-  list<Point> point_set;
+  MyPointSet point_set;
+  point_set.num_points = 0;
 
-  for (const Point& point : initial_points_) {
-    if (point_set.size() != 0) {
-      double r = point.length();
+  for (PointIterator point = input_points_.begin(); point != input_points_.end(); ++point) {
+    if (point_set.num_points != 0) {
+      double r = (*point).length();
 
-      if ((point - point_set.back()).lengthSquared() > pow(p_max_group_distance_ + r * p_distance_proportion_, 2.0)) {
+      if ((*point - *point_set.end).lengthSquared() > pow(p_max_group_distance_ + r * p_distance_proportion_, 2.0)) {
         detectSegments(point_set);
-        point_set.clear();
+        point_set.num_points = -1;
       }
+      else
+        point_set.end = point;
     }
-    point_set.push_back(point);
+    else {
+      point_set.begin = point;
+      point_set.end = point;
+    }
+
+    point_set.num_points++;
   }
 
   detectSegments(point_set); // Check the last point set too!
 }
 
-void ObstacleDetector::detectSegments(list<Point>& point_set) {
-  if (point_set.size() < p_min_group_points_)
+void ObstacleDetector::detectSegments(MyPointSet& point_set) {
+  if (point_set.num_points < p_min_group_points_)
     return;
 
-  Segment segment(Point(0.0, 0.0), Point(1.0, 0.0));
+  Segment segment(*point_set.begin, *point_set.end);  // Use Iterative End Point Fit
+
   if (p_use_split_and_merge_)
     segment = fitSegment(point_set);
-  else // Use Iterative End Point Fit
-    segment = Segment(point_set.front(), point_set.back());
 
-  list<Point>::iterator set_divider;
+  PointIterator set_divider;
   double max_distance = 0.0;
   double distance     = 0.0;
 
-  int split_index = -1;
-  int point_index = 1;
+  int split_index = -1; // Index of splitting point
+  int point_index = 1;  // Index of current point in the set (counting from 1)
 
-  // Seek the point of division
-  for (auto point_itr = point_set.begin(); point_itr != point_set.end(); ++point_itr) {
-    if ((distance = segment.distanceTo(*point_itr)) >= max_distance) {
-      double r = (*point_itr).length();
+  // Seek the point of division (omit first and last point)
+  for (PointIterator point = point_set.begin++; point != point_set.end; ++point) {
+    if ((distance = segment.distanceTo(*point)) >= max_distance) {
+      double r = (*point).length();
 
       if (distance > p_max_split_distance_ + r * p_distance_proportion_) {
         max_distance = distance;
-        set_divider = point_itr;
+        set_divider = point;
         split_index = point_index;
       }
     }
@@ -158,12 +165,17 @@ void ObstacleDetector::detectSegments(list<Point>& point_set) {
   }
 
   // Split the set only if the sub-groups are not 'small'
-  if (max_distance > 0.0 && split_index > p_min_group_points_ && split_index < point_set.size() - p_min_group_points_) {
-    point_set.insert(set_divider, *set_divider);  // Clone the dividing point for each group
+  if (max_distance > 0.0 && split_index > p_min_group_points_ && split_index < point_set.num_points - p_min_group_points_) {
+    input_points_.insert(set_divider, *set_divider);  // Clone the dividing point for each group
 
-    list<Point> subset1, subset2;
-    subset1.splice(subset1.begin(), point_set, point_set.begin(), set_divider);
-    subset2.splice(subset2.begin(), point_set, set_divider, point_set.end());
+    MyPointSet subset1, subset2;
+    subset1.begin = point_set.begin;
+    subset1.end = set_divider;
+    subset1.num_points = split_index;
+
+    subset2.begin = ++set_divider;
+    subset2.end = point_set.end;
+    subset2.num_points = point_set.num_points - split_index;
 
     detectSegments(subset1);
     detectSegments(subset2);
@@ -171,150 +183,154 @@ void ObstacleDetector::detectSegments(list<Point>& point_set) {
     if (!p_use_split_and_merge_)
       segment = fitSegment(point_set);
 
+    segment.point_set = point_set;
     segments_.push_back(segment);
-    segments_.back().point_set().assign(point_set.begin(), point_set.end());
   }
 }
 
 void ObstacleDetector::mergeSegments() {
-  bool merged = false;
-  for (auto i = segments_.begin(); i != segments_.end(); ++i) {
-    if (merged) {
-      i--;
-      merged = false;
-    }
+//  bool merged = false;
+//  for (auto i = segments_.begin(); i != segments_.end(); ++i) {
+//    if (merged) {
+//      i--;
+//      merged = false;
+//    }
 
-    auto j = i;
-    j++;
-    for (j; j != segments_.end(); ++j) {
-      if (compareAndMergeSegments(*i, *j)) {  // If merged - a new segment appeared at the end of the list
-        auto temp_ptr = i;
-        i = segments_.insert(i, segments_.back()); // Copy new segment in place; i now points to new segment
-        segments_.pop_back();       // Remove the new segment from the back of the list
-        segments_.erase(temp_ptr);  // Remove the first merged segment
-        segments_.erase(j);         // Remove the second merged segment
+//    auto j = i;
+//    j++;
+//    for (j; j != segments_.end(); ++j) {
+//      if (compareAndMergeSegments(*i, *j)) {  // If merged - a new segment appeared at the end of the list
+//        auto temp_ptr = i;
+//        i = segments_.insert(i, segments_.back()); // Copy new segment in place; i now points to new segment
+//        segments_.pop_back();       // Remove the new segment from the back of the list
+//        segments_.erase(temp_ptr);  // Remove the first merged segment
+//        segments_.erase(j);         // Remove the second merged segment
 
-        merged = true;
-        break;
-      }
-    }
-  }
+//        merged = true;
+//        break;
+//      }
+//    }
+//  }
 }
 
 bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
-  if (&s1 == &s2)
-    return false;
+//  if (&s1 == &s2)
+//    return false;
 
-  // Segments must be provided counter-clockwise
-  if (s1.first_point().cross(s2.first_point()) < 0.0)
-    return compareAndMergeSegments(s2, s1);
-/*
-    Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
-    Point a = s1.last_point() - s1.first_point();
-    Point b = s2_middle_point - s1.first_point();
+//  // Segments must be provided counter-clockwise
+//  if (s1.first_point.cross(s2.first_point) < 0.0)
+//    return compareAndMergeSegments(s2, s1);
+///*
+//    Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
+//    Point a = s1.last_point() - s1.first_point();
+//    Point b = s2_middle_point - s1.first_point();
 
-    float t = a.dot(b) / a.lengthSquared();
-    Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
+//    float t = a.dot(b) / a.lengthSquared();
+//    Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
 
-    || // Small separation ----  ----
-    || // Full or partial occlusion ---====
-      a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0)
-      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0)
-      (s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s2.last_point() - s1.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s2.first_point() - s1.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
-  */
-  if ((s1.last_point() - s2.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
-  {
-    list<Point> merged_points;
-    merged_points.insert(merged_points.begin(), s1.point_set().begin(), s1.point_set().end());
-    merged_points.insert(merged_points.end(), s2.point_set().begin(), s2.point_set().end());
+//    || // Small separation ----  ----
+//    || // Full or partial occlusion ---====
+//      a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0)
+//      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0)
+//      (s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
+//      (s2.last_point() - s1.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
+//      (s2.first_point() - s1.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
+//  */
+//  if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
+//    list<Point> merged_points;
+//    merged_points.insert(merged_points.begin(), s1.point_set.begin, s1.point_set.end);
+//    merged_points.insert(merged_points.end(), s2.point_set.begin, s2.point_set.end);
 
-    Segment s = fitSegment(merged_points);
+//    PointSet merged_points_set;
+//    merged_points_set.begin = merged_points.begin();
+//    merged_points_set.end = merged_points.end();
+//    merged_points_set.num_points = merged_points.size();
 
-    if (s.distanceTo(s1.first_point()) < p_max_merge_spread_ &&
-        s.distanceTo(s1.last_point())  < p_max_merge_spread_ &&
-        s.distanceTo(s2.first_point()) < p_max_merge_spread_ &&
-        s.distanceTo(s2.last_point())  < p_max_merge_spread_) {
-      segments_.push_back(s);
-      segments_.back().point_set().assign(merged_points.begin(), merged_points.end());
-      return true;
-    }
-  }
+//    Segment s = fitSegment(merged_points_set);
 
-  return false;
+//    if (s.distanceTo(s1.first_point) < p_max_merge_spread_ &&
+//        s.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
+//        s.distanceTo(s2.first_point) < p_max_merge_spread_ &&
+//        s.distanceTo(s2.last_point)  < p_max_merge_spread_) {
+//      segments_.push_back(s);
+//      segments_.back().point_set().assign(merged_points.begin(), merged_points.end());
+//      return true;
+//    }
+//  }
+
+//  return false;
 }
 
 void ObstacleDetector::detectCircles() {
-  for (auto itr = segments_.begin(); itr != segments_.end(); ++itr) {
-    Circle c(*itr);
-    c.setRadius(c.radius() + p_radius_enlargement_);
+//  for (auto itr = segments_.begin(); itr != segments_.end(); ++itr) {
+//    Circle c(*itr);
+//    c.setRadius(c.radius() + p_radius_enlargement_);
 
-    if (c.radius() < p_max_circle_radius_) {
-      c.point_set().assign(itr->point_set().begin(), itr->point_set().end());
-      circles_.push_back(c);
+//    if (c.radius() < p_max_circle_radius_) {
+//      c.point_set().assign(itr->point_set().begin(), itr->point_set().end());
+//      circles_.push_back(c);
 
-      if (p_discard_converted_segments_) {
-        itr = segments_.erase(itr);
-        --itr;
-      }
-    }
-  }
+//      if (p_discard_converted_segments_) {
+//        itr = segments_.erase(itr);
+//        --itr;
+//      }
+//    }
+//  }
 }
 
 void ObstacleDetector::mergeCircles() {
-  bool merged = false;
-  for (auto i = circles_.begin(); i != circles_.end(); ++i) {
-    if (merged) {
-      i--;
-      merged = false;
-    }
+//  bool merged = false;
+//  for (auto i = circles_.begin(); i != circles_.end(); ++i) {
+//    if (merged) {
+//      i--;
+//      merged = false;
+//    }
 
-    auto j = i;
-    j++;
-    for (j; j != circles_.end(); ++j) {
-      if (compareAndMergeCircles(*i, *j)) {      // If merged - a new circle appeared at the end of the list
-        auto temp_ptr = i;
-        i = circles_.insert(i, circles_.back()); // i now points to new circle
-        circles_.pop_back();
-        circles_.erase(temp_ptr);
-        circles_.erase(j);
+//    auto j = i;
+//    j++;
+//    for (j; j != circles_.end(); ++j) {
+//      if (compareAndMergeCircles(*i, *j)) {      // If merged - a new circle appeared at the end of the list
+//        auto temp_ptr = i;
+//        i = circles_.insert(i, circles_.back()); // i now points to new circle
+//        circles_.pop_back();
+//        circles_.erase(temp_ptr);
+//        circles_.erase(j);
 
-        merged = true;
-        break;
-      }
-    }
-  }
+//        merged = true;
+//        break;
+//      }
+//    }
+//  }
 }
 
 bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
-  // If circle c1 is fully inside c2 - merge and leave as c2
-  if (c1.radius() + (c2.center() - c1.center()).length() <= c2.radius()) {
-    circles_.push_back(c2);
-    return true;
-  }
+//  // If circle c1 is fully inside c2 - merge and leave as c2
+//  if (c1.radius() + (c2.center() - c1.center()).length() <= c2.radius()) {
+//    circles_.push_back(c2);
+//    return true;
+//  }
 
-  // If circle c2 is fully inside c1 - merge and leave as c1
-  if (c2.radius() + (c2.center() - c1.center()).length() <= c1.radius()) {
-    circles_.push_back(c1);
-    return true;
-  }
+//  // If circle c2 is fully inside c1 - merge and leave as c1
+//  if (c2.radius() + (c2.center() - c1.center()).length() <= c1.radius()) {
+//    circles_.push_back(c1);
+//    return true;
+//  }
 
-  // If circles intersect and are 'small' - merge
-  if (c1.radius() + c2.radius() >= (c2.center() - c1.center()).length()) {
-    Segment s(c1.center(), c2.center());
-    Circle c(s);
-    c.setRadius(c.radius() + max(c1.radius(), c2.radius()));
+//  // If circles intersect and are 'small' - merge
+//  if (c1.radius() + c2.radius() >= (c2.center() - c1.center()).length()) {
+//    Segment s(c1.center(), c2.center());
+//    Circle c(s);
+//    c.setRadius(c.radius() + max(c1.radius(), c2.radius()));
 
-    if (c.radius() < p_max_circle_radius_) {
-      c.point_set().assign(c1.point_set().begin(), c1.point_set().end());
-      c.point_set().insert(c.point_set().end(), c2.point_set().begin(), c2.point_set().end());
-      circles_.push_back(c);
-      return true;
-    }
-  }
+//    if (c.radius() < p_max_circle_radius_) {
+//      c.point_set().assign(c1.point_set().begin(), c1.point_set().end());
+//      c.point_set().insert(c.point_set().end(), c2.point_set().begin(), c2.point_set().end());
+//      circles_.push_back(c);
+//      return true;
+//    }
+//  }
 
-  return false;
+//  return false;
 }
 
 void ObstacleDetector::publishObstacles() {
@@ -324,10 +340,10 @@ void ObstacleDetector::publishObstacles() {
   for (const Segment& s : segments_) {
     obstacle_detector::SegmentObstacle segment;
 
-    segment.first_point.x = s.first_point().x;
-    segment.first_point.y = s.first_point().y;
-    segment.last_point.x = s.last_point().x;
-    segment.last_point.y = s.last_point().y;
+    segment.first_point.x = s.first_point.x;
+    segment.first_point.y = s.first_point.y;
+    segment.last_point.x = s.last_point.x;
+    segment.last_point.y = s.last_point.y;
 
     obstacles.segments.push_back(segment);
   }
@@ -335,11 +351,11 @@ void ObstacleDetector::publishObstacles() {
   for (const Circle& c : circles_) {
     obstacle_detector::CircleObstacle circle;
 
-    circle.center.x = c.center().x;
-    circle.center.y = c.center().y;
+    circle.center.x = c.center.x;
+    circle.center.y = c.center.y;
     circle.velocity.x = 0.0;
     circle.velocity.y = 0.0;
-    circle.radius = c.radius();
+    circle.radius = c.radius;
 
     circle.obstacle_id = string("");
     circle.tracked = false;

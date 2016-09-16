@@ -42,6 +42,11 @@
 namespace obstacle_detector
 {
 
+double signum(double x) { return (x < 0.0) ? -1.0 : 1.0; }
+double abs(double x) { return (x < 0.0) ? -x : x; }
+double max(double x, double y) { return (x > y) ? x : y; }
+const double pi = 3.14159265;
+
 geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, double x, double y, double theta) {
   geometry_msgs::Point p;
 

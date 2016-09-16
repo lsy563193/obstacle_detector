@@ -62,7 +62,7 @@ private:
   void processPoints();
 
   void groupPointsAndDetectSegments();
-  void detectSegments(std::list<Point>& point_set);
+  void detectSegments(MyPointSet& point_set);
   void mergeSegments();
   bool compareAndMergeSegments(Segment& s1, Segment& s2);
 
@@ -82,7 +82,7 @@ private:
   std::string base_frame_id_;       // Name of frame from input messages
   tf::TransformListener tf_listener_;
 
-  std::vector<Point> initial_points_;
+  std::list<Point> input_points_;
   std::list<Segment> segments_;
   std::list<Circle>  circles_;
 

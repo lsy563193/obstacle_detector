@@ -35,11 +35,6 @@
 
 #pragma once
 
-#include <list>
-#include <cmath>
-#include <cassert>
-#include <iostream>
-
 #include "point.h"
 
 namespace obstacle_detector
@@ -48,40 +43,32 @@ namespace obstacle_detector
 class Segment
 {
 public:
-  Segment(const Point& p1 = Point(), const Point& p2 = Point()) {
-    //assert(p1 != p2);
-    // Swap if not counter-clockwise.
+  Segment(const Point& p1, const Point& p2) {
+    assert(p1 != p2);
+
+    // Swap if not counter-clockwise
     if (p1.cross(p2) > 0.0)
-      p1_ = p1, p2_ = p2;
+      first_point = p1, last_point = p2;
     else
-      p1_ = p2, p2_ = p1;
+      first_point = p2, last_point = p1;
   }
 
-  void setFirstPoint(double x, double y) { p1_.x = x; p1_.y = y; }
-  void setLastPoint(double x, double y) { p2_.x = x; p2_.y = y; }
-
-  double length() const { return (p2_ - p1_).length(); }
-  double lengthSquared() const { return (p2_ - p1_).lengthSquared(); }
-  Point normal() const { return (p2_ - p1_).perpendicular().normalize(); }
-  Point first_point() const { return p1_; }
-  Point last_point() const { return p2_; }
+  double length() const { return (last_point - first_point).length(); }
+  double lengthSquared() const { return (last_point - first_point).lengthSquared(); }
+  Point normal() const { return (last_point - first_point).perpendicular().normalize(); }
   Point projection(const Point& p) const {
-    Point a = p2_ - p1_;
-    Point b = p - p1_;
-    return p1_ + a.dot(b) * a / a.lengthSquared();
+    Point a = last_point - first_point;
+    Point b = p - first_point;
+    return first_point + a.dot(b) * a / a.lengthSquared();
   }
   double distanceTo(const Point& p) const { return (p - projection(p)).length(); }
 
-  std::list<Point>& point_set() { return point_set_; }
-  int num_points() const { return point_set_.size(); }
-
   friend std::ostream& operator<<(std::ostream& out, const Segment& s)
-  { out << "p1: " << s.p1_ << ", p2: " << s.p2_; return out; }
+  { out << "p1: " << s.first_point << ", p2: " << s.last_point; return out; }
 
-private:
-  Point p1_;
-  Point p2_;
-  std::list<Point> point_set_;
+  Point first_point;
+  Point last_point;
+  MyPointSet point_set;
 };
 
 } // namespace obstacle_detector

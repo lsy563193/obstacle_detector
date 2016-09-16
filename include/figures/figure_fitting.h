@@ -55,19 +55,19 @@ namespace obstacle_detector
  *    Ax + By = -C
  * and the A, B, C parameters are normalized.
  */
-Segment fitSegment(const std::list<Point>& point_set) {
-  int N = point_set.size();
+Segment fitSegment(const MyPointSet& point_set) {
+  int N = point_set.num_points;
   assert(N >= 2);
 
   arma::mat input  = arma::mat(N, 2).zeros();  // [x_i, y_i]
   arma::vec output = arma::vec(N).ones();      // [-C]
   arma::vec params = arma::vec(2).zeros();     // [A ; B]
 
-  int i = 0;
-  for (const Point& point : point_set) {
-    input(i, 0) = point.x;
-    input(i, 1) = point.y;
-    ++i;
+  PointIterator point = point_set.begin;
+  for (int i = 0; i < N; ++i) {
+    input(i, 0) = point->x;
+    input(i, 1) = point->y;
+    ++point;
   }
 
   // Find A and B coefficients from linear regression (assuming C = -1.0)
@@ -79,8 +79,8 @@ Segment fitSegment(const std::list<Point>& point_set) {
   C = -1.0;
 
   // Find end points
-  Point p1 = point_set.front();
-  Point p2 = point_set.back();
+  Point p1 = *point_set.begin;
+  Point p2 = *point_set.end;
 
   double D = (A * A + B * B);
 
