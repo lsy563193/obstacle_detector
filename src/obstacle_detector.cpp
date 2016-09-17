@@ -211,37 +211,41 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2, Segment
   if (s1.first_point.cross(s2.first_point) < 0.0)
     return compareAndMergeSegments(s2, s1, merged_s);
 
-  /*
-    Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
-    Point a = s1.last_point() - s1.first_point();
-    Point b = s2_middle_point - s1.first_point();
+  // 1. Check spread about line from regression of sum of points
+  vector<PointSet> point_sets;
+  point_sets.insert(point_sets.end(), s1.point_sets.begin(), s1.point_sets.end());
+  point_sets.insert(point_sets.end(), s2.point_sets.begin(), s2.point_sets.end());
 
-    float t = a.dot(b) / a.lengthSquared();
-    Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
+  Segment segment = fitSegment(point_sets);
 
-    || // Small separation ----  ----
-    || // Full or partial occlusion ---====
-      a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0)
-      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0)
-      (s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s2.last_point() - s1.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-      (s2.first_point() - s1.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
-  */
+  if (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
+      segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
+      segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
+      segment.distanceTo(s2.last_point)  < p_max_merge_spread_) {
 
-  if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
+    // 2. Check if the segments are close to each other
+//    // 2.1. Simply check if extreme points are close to each other
+//    if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
+//      merged_s = segment;
+//      return true;
+//    }
 
-    vector<PointSet> point_sets;
-    point_sets.insert(point_sets.end(), s1.point_sets.begin(), s1.point_sets.end());
-    point_sets.insert(point_sets.end(), s2.point_sets.begin(), s2.point_sets.end());
+    // 2.2. Check if any point of s1 is close to any point of s2
+    for (PointSet ps1 : s1.point_sets) {
+      PointIterator ps1_end = ps1.end; ps1_end++;
 
-    Segment segment = fitSegment(point_sets);
+      for (PointSet ps2 : s2.point_sets) {
+        PointIterator ps2_end = ps2.end; ps2_end++;
 
-    if (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
-        segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
-        segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
-        segment.distanceTo(s2.last_point)  < p_max_merge_spread_) {
-      merged_s = segment;
-      return true;
+        for (PointIterator p1 = ps1.begin; p1 != ps1_end; ++p1) {
+          for (PointIterator p2 = ps2.begin; p2 != ps2_end; ++p2) {
+            if ((*p1 - *p2).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
+              merged_s = segment;
+              return true;
+            }
+          }
+        }
+      }
     }
   }
 
