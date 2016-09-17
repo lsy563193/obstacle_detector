@@ -64,7 +64,7 @@ private:
   void groupPointsAndDetectSegments();
   void detectSegments(PointSet& point_set);
   void mergeSegments();
-  bool compareAndMergeSegments(Segment& s1, Segment& s2);
+  bool compareAndMergeSegments(Segment& s1, Segment& s2, Segment& merged_s);
 
   void detectCircles();
   void mergeCircles();

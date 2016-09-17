@@ -80,21 +80,83 @@ Segment fitSegment(const PointSet& point_set) {
   Point p1 = *point_set.begin;
   Point p2 = *point_set.end;
 
+  Segment segment(p1, p2);
+  segment.point_sets.push_back(point_set);
+
   double D = (A * A + B * B);
 
-  if (D > 0.0) {  // Project end points on the line
-    Point projected_p1;
+  // Project end points on the line
+  if (D > 0.0) {
+    Point projected_p1, projected_p2;
+
     projected_p1.x = ( B * B * p1.x - A * B * p1.y - A * C) / D;
     projected_p1.y = (-A * B * p1.x + A * A * p1.y - B * C) / D;
 
-    Point projected_p2;
     projected_p2.x = ( B * B * p2.x - A * B * p2.y - A * C) / D;
     projected_p2.y = (-A * B * p2.x + A * A * p2.y - B * C) / D;
 
-    return Segment(projected_p1, projected_p2);
+    segment.first_point = projected_p1;
+    segment.last_point = projected_p2;
   }
 
-   return Segment(p1, p2);
+   return segment;
+}
+
+Segment fitSegment(const std::vector<PointSet>& point_sets) {
+  int N = 0;
+  for (PointSet ps : point_sets)
+    N += ps.num_points;
+
+  assert(N >= 2);
+
+  arma::mat input  = arma::mat(N, 2).zeros();  // [x_i, y_i]
+  arma::vec output = arma::vec(N).ones();      // [-C]
+  arma::vec params = arma::vec(2).zeros();     // [A ; B]
+
+  int n = 0;
+  for (PointSet ps : point_sets) {
+    PointIterator point = ps.begin;
+    for (int i = 0; i < ps.num_points; ++i) {
+      input(i + n, 0) = point->x;
+      input(i + n, 1) = point->y;
+      std::advance(point, 1);
+    }
+
+    n += ps.num_points;
+  }
+
+  // Find A and B coefficients from linear regression (assuming C = -1.0)
+  params = arma::pinv(input) * output;
+
+  double A, B, C;
+  A = params(0);
+  B = params(1);
+  C = -1.0;
+
+  // Find end points
+  Point p1 = *point_sets.front().begin;
+  Point p2 = *point_sets.back().end;
+
+  Segment segment(p1, p2);
+  segment.point_sets = point_sets;
+
+  double D = (A * A + B * B);
+
+  // Project end points on the line
+  if (D > 0.0) {
+    Point projected_p1, projected_p2;
+
+    projected_p1.x = ( B * B * p1.x - A * B * p1.y - A * C) / D;
+    projected_p1.y = (-A * B * p1.x + A * A * p1.y - B * C) / D;
+
+    projected_p2.x = ( B * B * p2.x - A * B * p2.y - A * C) / D;
+    projected_p2.y = (-A * B * p2.x + A * A * p2.y - B * C) / D;
+
+    segment.first_point = projected_p1;
+    segment.last_point = projected_p2;
+  }
+
+   return segment;
 }
 
 /*

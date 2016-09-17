@@ -44,6 +44,7 @@ namespace obstacle_detector
 class Segment
 {
 public:
+  Segment() {}
   Segment(const Point& p1, const Point& p2) {
     assert(p1 != p2);
 

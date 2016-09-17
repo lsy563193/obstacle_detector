@@ -97,7 +97,7 @@ void ObstacleDetector::processPoints() {
   circles_.clear();
 
   groupPointsAndDetectSegments();
-//  mergeSegments();
+  mergeSegments();
 
 //  detectCircles();
 //  mergeCircles();
@@ -137,7 +137,7 @@ void ObstacleDetector::detectSegments(PointSet& point_set) {
   if (point_set.num_points < p_min_group_points_)
     return;
 
-  Segment segment = Segment(*point_set.begin, *point_set.end);  // Use Iterative End Point Fit
+  Segment segment(*point_set.begin, *point_set.end);  // Use Iterative End Point Fit
 
   if (p_use_split_and_merge_)
     segment = fitSegment(point_set);
@@ -183,82 +183,69 @@ void ObstacleDetector::detectSegments(PointSet& point_set) {
     if (!p_use_split_and_merge_)
       segment = fitSegment(point_set);
 
-    segment.point_sets.push_back(point_set);
     segments_.push_back(segment);
   }
 }
 
 void ObstacleDetector::mergeSegments() {
-//  bool merged = false;
-//  for (auto i = segments_.begin(); i != segments_.end(); ++i) {
-//    if (merged) {
-//      i--;
-//      merged = false;
-//    }
+  for (auto i = segments_.begin(); i != segments_.end(); ++i) {
+    for (auto j = i; j != segments_.end(); ++j) {
+      Segment merged_segment;
 
-//    auto j = i;
-//    j++;
-//    for (j; j != segments_.end(); ++j) {
-//      if (compareAndMergeSegments(*i, *j)) {  // If merged - a new segment appeared at the end of the list
-//        auto temp_ptr = i;
-//        i = segments_.insert(i, segments_.back()); // Copy new segment in place; i now points to new segment
-//        segments_.pop_back();       // Remove the new segment from the back of the list
-//        segments_.erase(temp_ptr);  // Remove the first merged segment
-//        segments_.erase(j);         // Remove the second merged segment
-
-//        merged = true;
-//        break;
-//      }
-//    }
-//  }
+      if (compareAndMergeSegments(*i, *j, merged_segment)) {
+        auto temp_itr = segments_.insert(i, merged_segment);
+        segments_.erase(i);
+        segments_.erase(j);
+        i = --temp_itr;
+        break;
+      }
+    }
+  }
 }
 
-bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2) {
-//  if (&s1 == &s2)
-//    return false;
+bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2, Segment& merged_s) {
+  if (&s1 == &s2)
+    return false;
 
-//  // Segments must be provided counter-clockwise
-//  if (s1.first_point.cross(s2.first_point) < 0.0)
-//    return compareAndMergeSegments(s2, s1);
-///*
-//    Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
-//    Point a = s1.last_point() - s1.first_point();
-//    Point b = s2_middle_point - s1.first_point();
+  // Segments must be provided counter-clockwise
+  if (s1.first_point.cross(s2.first_point) < 0.0)
+    return compareAndMergeSegments(s2, s1, merged_s);
 
-//    float t = a.dot(b) / a.lengthSquared();
-//    Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
+  /*
+    Point s2_middle_point = (s2.first_point() + s2.last_point()) / 2.0;
+    Point a = s1.last_point() - s1.first_point();
+    Point b = s2_middle_point - s1.first_point();
 
-//    || // Small separation ----  ----
-//    || // Full or partial occlusion ---====
-//      a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0)
-//      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0)
-//      (s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-//      (s2.last_point() - s1.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
-//      (s2.first_point() - s1.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
-//  */
-//  if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
-//    list<Point> merged_points;
-//    merged_points.insert(merged_points.begin(), s1.point_set.begin, s1.point_set.end);
-//    merged_points.insert(merged_points.end(), s2.point_set.begin, s2.point_set.end);
+    float t = a.dot(b) / a.lengthSquared();
+    Point projection = s1.first_point() + t * a;    // Projection of s2 middle point onto s1
 
-//    PointSet merged_points_set;
-//    merged_points_set.begin = merged_points.begin();
-//    merged_points_set.end = merged_points.end();
-//    merged_points_set.num_points = merged_points.size();
+    || // Small separation ----  ----
+    || // Full or partial occlusion ---====
+      a.dot(s2.first_point() - s1.first_point()) * (-a).dot(s2.last_point() - s1.last_point()) < 0.0)
+      (s1.first_point().cross(s2.first_point()) * s1.last_point().cross(s2.last_point()) < 0.0)
+      (s2_middle_point - projection).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
+      (s2.last_point() - s1.last_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0) ||
+      (s2.first_point() - s1.first_point()).lengthSquared() < pow(p_max_merge_separation_, 2.0))
+  */
 
-//    Segment s = fitSegment(merged_points_set);
+  if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
 
-//    if (s.distanceTo(s1.first_point) < p_max_merge_spread_ &&
-//        s.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
-//        s.distanceTo(s2.first_point) < p_max_merge_spread_ &&
-//        s.distanceTo(s2.last_point)  < p_max_merge_spread_) {
-//      segments_.push_back(s);
-//      segments_.back().point_set().assign(merged_points.begin(), merged_points.end());
-//      return true;
-//    }
-//  }
+    vector<PointSet> point_sets;
+    point_sets.insert(point_sets.end(), s1.point_sets.begin(), s1.point_sets.end());
+    point_sets.insert(point_sets.end(), s2.point_sets.begin(), s2.point_sets.end());
 
-//  return false;
+    Segment segment = fitSegment(point_sets);
+
+    if (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
+        segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
+        segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
+        segment.distanceTo(s2.last_point)  < p_max_merge_spread_) {
+      merged_s = segment;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void ObstacleDetector::detectCircles() {
