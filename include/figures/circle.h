@@ -44,6 +44,7 @@ namespace obstacle_detector
 class Circle
 {
 public:
+  Circle() {}
   Circle(const Point& p, const double r) : center(p), radius(r) {
     assert(radius > 0.0);
   }
@@ -56,6 +57,7 @@ public:
   Circle(const Segment& s) {
     radius = 0.5773502 * s.length();  // sqrt(3)/3 * length
     center = (s.first_point + s.last_point - radius * s.normal()) / 2.0;
+    point_sets = s.point_sets;
   }
 
   double distanceTo(const Point& p) { return (p - center).length() - radius; }

@@ -9,8 +9,8 @@
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
     <param name="frame_id"          value="scanner"/>
 
-    <param name="publish_scan"      value="true"/>
-    <param name="publish_pcl"       value="false"/>
+    <param name="publish_scan"      value="false"/>
+    <param name="publish_pcl"       value="true"/>
 
     <param name="ranges_num"        value="1000"/>
 
@@ -26,8 +26,8 @@
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
     <param name="frame_id"             value="world"/>
 
-    <param name="use_scan"             value="true"/>
-    <param name="use_pcl"              value="false"/>
+    <param name="use_scan"             value="false"/>
+    <param name="use_pcl"              value="true"/>
     <param name="use_split_and_merge"  value="false"/>
     <param name="discard_converted_segments" value="true"/>
     <param name="transform_coordinates"      value="false"/>

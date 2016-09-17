@@ -99,7 +99,7 @@ void ObstacleDetector::processPoints() {
   groupPointsAndDetectSegments();
   mergeSegments();
 
-//  detectCircles();
+  detectCircles();
 //  mergeCircles();
 
   publishObstacles();
@@ -253,75 +253,66 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2, Segment
 }
 
 void ObstacleDetector::detectCircles() {
-//  for (auto itr = segments_.begin(); itr != segments_.end(); ++itr) {
-//    Circle c(*itr);
-//    c.setRadius(c.radius() + p_radius_enlargement_);
+  for (auto segment = segments_.begin(); segment != segments_.end(); ++segment) {
+    Circle circle(*segment);
+    circle.radius += p_radius_enlargement_;
 
-//    if (c.radius() < p_max_circle_radius_) {
-//      c.point_set().assign(itr->point_set().begin(), itr->point_set().end());
-//      circles_.push_back(c);
+    if (circle.radius < p_max_circle_radius_) {
+      circles_.push_back(circle);
 
-//      if (p_discard_converted_segments_) {
-//        itr = segments_.erase(itr);
-//        --itr;
-//      }
-//    }
-//  }
+      if (p_discard_converted_segments_) {
+        segment = segments_.erase(segment);
+        --segment;
+      }
+    }
+  }
 }
 
 void ObstacleDetector::mergeCircles() {
-//  bool merged = false;
-//  for (auto i = circles_.begin(); i != circles_.end(); ++i) {
-//    if (merged) {
-//      i--;
-//      merged = false;
-//    }
+  for (auto i = circles_.begin(); i != circles_.end(); ++i) {
+    for (auto j = i; j != circles_.end(); ++j) {
+      Circle merged_circle;
 
-//    auto j = i;
-//    j++;
-//    for (j; j != circles_.end(); ++j) {
-//      if (compareAndMergeCircles(*i, *j)) {      // If merged - a new circle appeared at the end of the list
-//        auto temp_ptr = i;
-//        i = circles_.insert(i, circles_.back()); // i now points to new circle
-//        circles_.pop_back();
-//        circles_.erase(temp_ptr);
-//        circles_.erase(j);
-
-//        merged = true;
-//        break;
-//      }
-//    }
-//  }
+      if (compareAndMergeCircles(*i, *j, merged_circle)) {
+        auto temp_itr = circles_.insert(i, merged_circle);
+        circles_.erase(i);
+        circles_.erase(j);
+        i = --temp_itr;
+        break;
+      }
+    }
+  }
 }
 
-bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2) {
-//  // If circle c1 is fully inside c2 - merge and leave as c2
-//  if (c1.radius() + (c2.center() - c1.center()).length() <= c2.radius()) {
-//    circles_.push_back(c2);
-//    return true;
-//  }
+bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2, Circle& merged_c) {
+  // If circle c1 is fully inside c2 - merge and leave as c2
+  if (c1.radius + (c2.center - c1.center).length() <= c2.radius) {
+    merged_c = c2;
+    return true;
+  }
 
-//  // If circle c2 is fully inside c1 - merge and leave as c1
-//  if (c2.radius() + (c2.center() - c1.center()).length() <= c1.radius()) {
-//    circles_.push_back(c1);
-//    return true;
-//  }
+  // If circle c2 is fully inside c1 - merge and leave as c1
+  if (c2.radius + (c2.center - c1.center).length() <= c1.radius) {
+    merged_c = c1;
+    return true;
+  }
 
-//  // If circles intersect and are 'small' - merge
-//  if (c1.radius() + c2.radius() >= (c2.center() - c1.center()).length()) {
-//    Segment s(c1.center(), c2.center());
-//    Circle c(s);
-//    c.setRadius(c.radius() + max(c1.radius(), c2.radius()));
+  // If circles intersect and are 'small' - merge
+  if (c1.radius + c2.radius >= (c2.center - c1.center).length()) {
+    Segment segment(c1.center, c2.center);
+    segment.point_sets.insert(segment.point_sets.end(), c1.point_sets.begin(), c1.point_sets.end());
+    segment.point_sets.insert(segment.point_sets.end(), c2.point_sets.begin(), c2.point_sets.end());
 
-//    if (c.radius() < p_max_circle_radius_) {
-//      c.point_set().assign(c1.point_set().begin(), c1.point_set().end());
-//      c.point_set().insert(c.point_set().end(), c2.point_set().begin(), c2.point_set().end());
-//      circles_.push_back(c);
-//      return true;
-//    }
-//  }
+    Circle circle(segment);
+    circle.radius += max(c1.radius, c2.radius);
 
-//  return false;
+    if (circle.radius < p_max_circle_radius_) {
+      merged_c = circle;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void ObstacleDetector::publishObstacles() {

@@ -68,7 +68,7 @@ private:
 
   void detectCircles();
   void mergeCircles();
-  bool compareAndMergeCircles(Circle& c1, Circle& c2);
+  bool compareAndMergeCircles(Circle& c1, Circle& c2, Circle& merged_c);
 
   void publishObstacles();
 
