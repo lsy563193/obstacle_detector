@@ -51,11 +51,11 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 
   nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
   nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);
-  nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.100);
-  nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.100);
+  nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.070);
+  nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.150);
   nh_local_.param<double>("max_merge_spread", p_max_merge_spread_, 0.070);
-  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.200);
-  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.020);
+  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.300);
+  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.030);
 
   if (p_use_scan_)
     scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
@@ -100,7 +100,7 @@ void ObstacleDetector::processPoints() {
   mergeSegments();
 
   detectCircles();
-//  mergeCircles();
+  mergeCircles();
 
   publishObstacles();
 
@@ -277,7 +277,7 @@ void ObstacleDetector::mergeCircles() {
         auto temp_itr = circles_.insert(i, merged_circle);
         circles_.erase(i);
         circles_.erase(j);
-        i = --temp_itr;
+//        i = --temp_itr;
         break;
       }
     }
@@ -285,14 +285,17 @@ void ObstacleDetector::mergeCircles() {
 }
 
 bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2, Circle& merged_c) {
+  if (&c1 == &c2)
+    return false;
+
   // If circle c1 is fully inside c2 - merge and leave as c2
-  if (c1.radius + (c2.center - c1.center).length() <= c2.radius) {
+  if (c2.radius - c1.radius >= (c2.center - c1.center).length()) {
     merged_c = c2;
     return true;
   }
 
   // If circle c2 is fully inside c1 - merge and leave as c1
-  if (c2.radius + (c2.center - c1.center).length() <= c1.radius) {
+  if (c1.radius - c2.radius >= (c2.center - c1.center).length()) {
     merged_c = c1;
     return true;
   }

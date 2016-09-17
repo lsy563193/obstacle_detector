@@ -17,10 +17,10 @@
     <param name="max_scanner_range" value="10.0"/>
     <param name="min_scanner_range" value="0.03"/>
 
-    <param name="max_x_range"       value="5.0"/>
-    <param name="min_x_range"       value="-5.0"/>
-    <param name="max_y_range"       value="5.0"/>
-    <param name="min_y_range"       value="-5.0"/>
+    <param name="max_x_range"       value="10.0"/>
+    <param name="min_x_range"       value="-10.0"/>
+    <param name="max_y_range"       value="10.0"/>
+    <param name="min_y_range"       value="-10.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
@@ -33,7 +33,7 @@
     <param name="transform_coordinates"      value="true"/>
 
     <param name="min_group_points"     value="5"/>
-    <param name="max_group_distance"   value="0.060"/>    
+    <param name="max_group_distance"   value="0.100"/>    
     <param name="distance_proportion"  value="0.006136"/>
     <param name="max_split_distance"   value="0.070"/>
 
@@ -71,6 +71,6 @@
     <remap from="obstacles_markers" to="tracked_obstacles_markers"/>
   </node>
 
-<!--  <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/> -->
+  <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/>
 </launch>
 

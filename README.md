@@ -59,9 +59,9 @@ The input points are firstly grouped into subsets. The algorithm extracts segmen
 
 The node is configurable with the following set of local parameters:
 
-* `~frame_id` (string, default: world) - name of coordinate frame used as origin for produced obstacles (used only if transform_coordinates flag is set to true),
+* `~frame_id` (string, default: world) - name of coordinate frame used as origin for produced obstacles (used only if `transform_coordinates` flag is set to true),
 * `~use_scan` (bool, default: true) - use laser scan messages,
-* `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl are chosen, scan will have priority),
+* `~use_pcl` (bool, default: false) - use point cloud messages (if both scan and pcl are chosen, scans will have priority),
 * `~discard_converted_segments` (bool, default: true) - do not publish segments, from which the circles were spawned,
 * `~transform_coordinates` (bool, default: true) - transform the coordinates of obstacles to a frame described with `frame_id` parameter.
 
