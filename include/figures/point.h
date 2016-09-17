@@ -102,10 +102,10 @@ public:
 
 typedef std::list<Point>::iterator PointIterator;
 
-class MyPointSet
+class PointSet
 {
 public:
-  MyPointSet() { num_points = 0; }
+  PointSet() { num_points = 0; }
 
   PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
   int num_points;

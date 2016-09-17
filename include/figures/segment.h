@@ -35,6 +35,7 @@
 
 #pragma once
 
+#include <vector>
 #include "point.h"
 
 namespace obstacle_detector
@@ -68,7 +69,7 @@ public:
 
   Point first_point;
   Point last_point;
-  MyPointSet point_set;
+  std::vector<PointSet> point_sets;
 };
 
 } // namespace obstacle_detector

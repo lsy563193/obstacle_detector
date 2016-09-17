@@ -65,7 +65,7 @@ public:
 
   Point center;
   double radius;
-  MyPointSet point_set;
+  std::vector<PointSet> point_sets;
 };
 
 //Circle(const Point& p1, const Point& p2, const Point& p3) {

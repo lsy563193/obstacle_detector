@@ -17,10 +17,10 @@
     <param name="max_scanner_range" value="10.0"/>
     <param name="min_scanner_range" value="0.03"/>
 
-    <param name="max_x_range"       value="5.0"/>
-    <param name="min_x_range"       value="-5.0"/>
-    <param name="max_y_range"       value="5.0"/>
-    <param name="min_y_range"       value="-5.0"/>
+    <param name="max_x_range"       value="10.0"/>
+    <param name="min_x_range"       value="-10.0"/>
+    <param name="max_y_range"       value="10.0"/>
+    <param name="min_y_range"       value="-10.0"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
@@ -30,10 +30,10 @@
     <param name="use_pcl"              value="false"/>
     <param name="use_split_and_merge"  value="false"/>
     <param name="discard_converted_segments" value="true"/>
-    <param name="transform_coordinates"      value="true"/>
+    <param name="transform_coordinates"      value="false"/>
 
     <param name="min_group_points"     value="5"/>
-    <param name="max_group_distance"   value="0.060"/>    
+    <param name="max_group_distance"   value="0.160"/>    
     <param name="distance_proportion"  value="0.006136"/>
     <param name="max_split_distance"   value="0.070"/>
 
@@ -50,27 +50,6 @@
     <param name="alpha"                   value="0.7"/>
     <param name="z_layer"                 value="0.5"/>
   </node>
-
-  <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
-    <param name="fade_counter_size"       value="100"/>
-    <param name="min_correspondence_cost" value="0.3"/>
-    <param name="pose_measure_variance"   value="1.0"/>
-    <param name="radius_measure_variance" value="1.0"/>
-    <param name="pose_process_variance"   value="0.0001"/>    
-    <param name="radius_process_variance" value="0.0001"/>
-  </node>
-
-  <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">
-    <param name="tracked_circles_color"   value="3"/>
-    <param name="untracked_circles_color" value="2"/>
-    <param name="segments_color"          value="6"/>
-    <param name="alpha"                   value="0.7"/>
-    <param name="z_layer"                 value="1.0"/>
-
-    <remap from="obstacles" to="tracked_obstacles"/>
-    <remap from="obstacles_markers" to="tracked_obstacles_markers"/>
-  </node>
-
-<!--  <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/> -->
+<!-- -->
 </launch>
 

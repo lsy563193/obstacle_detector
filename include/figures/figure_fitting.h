@@ -38,8 +38,6 @@
 #define ARMA_DONT_USE_CXX11
 
 #include <armadillo>
-#include <cassert>
-#include <list>
 
 #include "point.h"
 #include "segment.h"
@@ -55,7 +53,7 @@ namespace obstacle_detector
  *    Ax + By = -C
  * and the A, B, C parameters are normalized.
  */
-Segment fitSegment(const MyPointSet& point_set) {
+Segment fitSegment(const PointSet& point_set) {
   int N = point_set.num_points;
   assert(N >= 2);
 
@@ -67,7 +65,7 @@ Segment fitSegment(const MyPointSet& point_set) {
   for (int i = 0; i < N; ++i) {
     input(i, 0) = point->x;
     input(i, 1) = point->y;
-    ++point;
+    std::advance(point, 1);
   }
 
   // Find A and B coefficients from linear regression (assuming C = -1.0)

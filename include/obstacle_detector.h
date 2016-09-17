@@ -62,7 +62,7 @@ private:
   void processPoints();
 
   void groupPointsAndDetectSegments();
-  void detectSegments(MyPointSet& point_set);
+  void detectSegments(PointSet& point_set);
   void mergeSegments();
   bool compareAndMergeSegments(Segment& s1, Segment& s2);
 

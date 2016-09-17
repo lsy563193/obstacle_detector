@@ -108,8 +108,7 @@ void ObstacleDetector::processPoints() {
 }
 
 void ObstacleDetector::groupPointsAndDetectSegments() {
-  MyPointSet point_set;
-  point_set.num_points = 0;
+  PointSet point_set;
 
   for (PointIterator point = input_points_.begin(); point != input_points_.end(); ++point) {
     if (point_set.num_points != 0) {
@@ -118,6 +117,7 @@ void ObstacleDetector::groupPointsAndDetectSegments() {
       if ((*point - *point_set.end).lengthSquared() > pow(p_max_group_distance_ + r * p_distance_proportion_, 2.0)) {
         detectSegments(point_set);
         point_set.num_points = -1;
+        advance(point, -1);
       }
       else
         point_set.end = point;
@@ -133,11 +133,11 @@ void ObstacleDetector::groupPointsAndDetectSegments() {
   detectSegments(point_set); // Check the last point set too!
 }
 
-void ObstacleDetector::detectSegments(MyPointSet& point_set) {
+void ObstacleDetector::detectSegments(PointSet& point_set) {
   if (point_set.num_points < p_min_group_points_)
     return;
 
-  Segment segment(*point_set.begin, *point_set.end);  // Use Iterative End Point Fit
+  Segment segment = Segment(*point_set.begin, *point_set.end);  // Use Iterative End Point Fit
 
   if (p_use_split_and_merge_)
     segment = fitSegment(point_set);
@@ -146,11 +146,13 @@ void ObstacleDetector::detectSegments(MyPointSet& point_set) {
   double max_distance = 0.0;
   double distance     = 0.0;
 
-  int split_index = -1; // Index of splitting point
-  int point_index = 1;  // Index of current point in the set (counting from 1)
+  int split_index = 0; // Natural index of splitting point (counting from 1)
+  int point_index = 0; // Natural index of current point in the set
 
-  // Seek the point of division (omit first and last point)
-  for (PointIterator point = point_set.begin++; point != point_set.end; ++point) {
+  // Seek the point of division
+  for (PointIterator point = point_set.begin; point != point_set.end; ++point) {
+    ++point_index;
+
     if ((distance = segment.distanceTo(*point)) >= max_distance) {
       double r = (*point).length();
 
@@ -160,15 +162,13 @@ void ObstacleDetector::detectSegments(MyPointSet& point_set) {
         split_index = point_index;
       }
     }
-
-    point_index++;
   }
 
   // Split the set only if the sub-groups are not 'small'
   if (max_distance > 0.0 && split_index > p_min_group_points_ && split_index < point_set.num_points - p_min_group_points_) {
-    input_points_.insert(set_divider, *set_divider);  // Clone the dividing point for each group
+    set_divider = input_points_.insert(set_divider, *set_divider);  // Clone the dividing point for each group
 
-    MyPointSet subset1, subset2;
+    PointSet subset1, subset2;
     subset1.begin = point_set.begin;
     subset1.end = set_divider;
     subset1.num_points = split_index;
@@ -183,7 +183,7 @@ void ObstacleDetector::detectSegments(MyPointSet& point_set) {
     if (!p_use_split_and_merge_)
       segment = fitSegment(point_set);
 
-    segment.point_set = point_set;
+    segment.point_sets.push_back(point_set);
     segments_.push_back(segment);
   }
 }
