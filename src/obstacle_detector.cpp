@@ -96,7 +96,7 @@ void ObstacleDetector::processPoints() {
   segments_.clear();
   circles_.clear();
 
-  groupPointsAndDetectSegments();
+  groupPoints();  // Grouping points simultaneously detects segments
   mergeSegments();
 
   detectCircles();
@@ -107,7 +107,7 @@ void ObstacleDetector::processPoints() {
   input_points_.clear();
 }
 
-void ObstacleDetector::groupPointsAndDetectSegments() {
+void ObstacleDetector::groupPoints() {
   PointSet point_set;
 
   for (PointIterator point = input_points_.begin(); point != input_points_.end(); ++point) {
@@ -133,7 +133,7 @@ void ObstacleDetector::groupPointsAndDetectSegments() {
   detectSegments(point_set); // Check the last point set too!
 }
 
-void ObstacleDetector::detectSegments(PointSet& point_set) {
+void ObstacleDetector::detectSegments(const PointSet& point_set) {
   if (point_set.num_points < p_min_group_points_)
     return;
 
@@ -192,7 +192,7 @@ void ObstacleDetector::mergeSegments() {
     for (auto j = i; j != segments_.end(); ++j) {
       Segment merged_segment;
 
-      if (compareAndMergeSegments(*i, *j, merged_segment)) {
+      if (compareSegments(*i, *j, merged_segment)) {
         auto temp_itr = segments_.insert(i, merged_segment);
         segments_.erase(i);
         segments_.erase(j);
@@ -203,13 +203,13 @@ void ObstacleDetector::mergeSegments() {
   }
 }
 
-bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2, Segment& merged_s) {
+bool ObstacleDetector::compareSegments(const Segment& s1, const Segment& s2, Segment& merged_segment) {
   if (&s1 == &s2)
     return false;
 
   // Segments must be provided counter-clockwise
   if (s1.first_point.cross(s2.first_point) < 0.0)
-    return compareAndMergeSegments(s2, s1, merged_s);
+    return compareSegments(s2, s1, merged_segment);
 
   // 1. Check spread about line from regression of sum of points
   vector<PointSet> point_sets;
@@ -224,28 +224,41 @@ bool ObstacleDetector::compareAndMergeSegments(Segment& s1, Segment& s2, Segment
       segment.distanceTo(s2.last_point)  < p_max_merge_spread_) {
 
     // 2. Check if the segments are close to each other
+    // TODO: Choose proper method by tests
+    // TODO: Reverse order of conditions checking so if first (simple) fails,
+    //       there is no need to compute regression
+
 //    // 2.1. Simply check if extreme points are close to each other
 //    if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
-//      merged_s = segment;
+//      merged_segment = segment;
 //      return true;
 //    }
 
-    // 2.2. Check if any point of s1 is close to any point of s2
-    for (PointSet ps1 : s1.point_sets) {
-      PointIterator ps1_end = ps1.end; ps1_end++;
+//    // 2.2. Check if any point of s1 is close to any point of s2
+//    for (PointSet ps1 : s1.point_sets) {
+//      PointIterator ps1_end = ps1.end; ps1_end++;
 
-      for (PointSet ps2 : s2.point_sets) {
-        PointIterator ps2_end = ps2.end; ps2_end++;
+//      for (PointSet ps2 : s2.point_sets) {
+//        PointIterator ps2_end = ps2.end; ps2_end++;
 
-        for (PointIterator p1 = ps1.begin; p1 != ps1_end; ++p1) {
-          for (PointIterator p2 = ps2.begin; p2 != ps2_end; ++p2) {
-            if ((*p1 - *p2).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
-              merged_s = segment;
-              return true;
-            }
-          }
-        }
-      }
+//        for (PointIterator p1 = ps1.begin; p1 != ps1_end; ++p1) {
+//          for (PointIterator p2 = ps2.begin; p2 != ps2_end; ++p2) {
+//            if ((*p1 - *p2).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
+//              merged_segment = segment;
+//              return true;
+//            }
+//          }
+//        }
+//      }
+//    }
+
+    // 2.3 Check extreme points of s1 and s2 for true distance between s2 and s1 resp.
+    if (s1.trueDistanceTo(s2.first_point) < p_max_merge_separation_ ||
+        s1.trueDistanceTo(s2.last_point)  < p_max_merge_separation_ ||
+        s2.trueDistanceTo(s1.first_point) < p_max_merge_separation_ ||
+        s2.trueDistanceTo(s1.last_point)  < p_max_merge_separation_) {
+      merged_segment = segment;
+      return true;
     }
   }
 
@@ -273,30 +286,30 @@ void ObstacleDetector::mergeCircles() {
     for (auto j = i; j != circles_.end(); ++j) {
       Circle merged_circle;
 
-      if (compareAndMergeCircles(*i, *j, merged_circle)) {
+      if (compareCircles(*i, *j, merged_circle)) {
         auto temp_itr = circles_.insert(i, merged_circle);
         circles_.erase(i);
         circles_.erase(j);
-//        i = --temp_itr;
+        i = --temp_itr;
         break;
       }
     }
   }
 }
 
-bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2, Circle& merged_c) {
+bool ObstacleDetector::compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle) {
   if (&c1 == &c2)
     return false;
 
   // If circle c1 is fully inside c2 - merge and leave as c2
   if (c2.radius - c1.radius >= (c2.center - c1.center).length()) {
-    merged_c = c2;
+    merged_circle = c2;
     return true;
   }
 
   // If circle c2 is fully inside c1 - merge and leave as c1
   if (c1.radius - c2.radius >= (c2.center - c1.center).length()) {
-    merged_c = c1;
+    merged_circle = c1;
     return true;
   }
 
@@ -310,7 +323,7 @@ bool ObstacleDetector::compareAndMergeCircles(Circle& c1, Circle& c2, Circle& me
     circle.radius += max(c1.radius, c2.radius);
 
     if (circle.radius < p_max_circle_radius_) {
-      merged_c = circle;
+      merged_circle = circle;
       return true;
     }
   }

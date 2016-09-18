@@ -47,6 +47,7 @@ namespace obstacle_detector
 {
 
 class TrackedObstacle {
+  // TODO: Divide KF into 3
 public:
   TrackedObstacle(const CircleObstacle& init_obstacle, int fade_counter_size) : kf_(0, 3, 6) {
     obstacle_ = init_obstacle;

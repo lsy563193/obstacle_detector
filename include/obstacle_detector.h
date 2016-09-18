@@ -61,14 +61,14 @@ private:
 
   void processPoints();
 
-  void groupPointsAndDetectSegments();
-  void detectSegments(PointSet& point_set);
+  void groupPoints();
+  void detectSegments(const PointSet& point_set);
   void mergeSegments();
-  bool compareAndMergeSegments(Segment& s1, Segment& s2, Segment& merged_s);
+  bool compareSegments(const Segment& s1, const Segment& s2, Segment& merged_segment);
 
   void detectCircles();
   void mergeCircles();
-  bool compareAndMergeCircles(Circle& c1, Circle& c2, Circle& merged_c);
+  bool compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle);
 
   void publishObstacles();
 

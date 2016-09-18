@@ -51,6 +51,11 @@ private:
   double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
   CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2);
 
+  void fuseObstacles(const std::vector<CircleObstacle> old_obstacles, const CircleObstacle new_obstacle, CircleObstacle& fused_obstacle);
+  void fissureObstacle(const CircleObstacle old_obstacle, const std::vector<CircleObstacle> new_obstacles, std::vector<CircleObstacle>& fissured_obstacles);
+
+  void publishObstacles();
+
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 

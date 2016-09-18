@@ -55,18 +55,49 @@ public:
       first_point = p2, last_point = p1;
   }
 
-  double length() const { return (last_point - first_point).length(); }
-  double lengthSquared() const { return (last_point - first_point).lengthSquared(); }
-  Point normal() const { return (last_point - first_point).perpendicular().normalize(); }
+  double length() const {
+    return (last_point - first_point).length();
+  }
+
+  double lengthSquared() const {
+    return (last_point - first_point).lengthSquared();
+  }
+
+  Point normal() const {
+    return (last_point - first_point).perpendicular().normalize();
+  }
+
   Point projection(const Point& p) const {
     Point a = last_point - first_point;
     Point b = p - first_point;
     return first_point + a.dot(b) * a / a.lengthSquared();
   }
-  double distanceTo(const Point& p) const { return (p - projection(p)).length(); }
 
-  friend std::ostream& operator<<(std::ostream& out, const Segment& s)
-  { out << "p1: " << s.first_point << ", p2: " << s.last_point; return out; }
+  double distanceTo(const Point& p) const {
+    return (p - projection(p)).length();
+  }
+
+  double trueDistanceTo(const Point& p) const {
+    Point a = last_point - first_point;
+    Point b = p - first_point;
+    Point c = p - last_point;
+
+    double t = a.dot(b) / a.lengthSquared();
+
+    if (t < 0.0)
+      return b.length();
+    else if (t > 1.0)
+      return c.length();
+
+    Point projection = first_point + t * a;
+    return (p - projection).length();
+  }
+
+
+  friend std::ostream& operator<<(std::ostream& out, const Segment& s) {
+    out << "p1: " << s.first_point << ", p2: " << s.last_point;
+    return out;
+  }
 
   Point first_point;
   Point last_point;

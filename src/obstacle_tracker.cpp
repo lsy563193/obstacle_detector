@@ -4,7 +4,7 @@ using namespace obstacle_detector;
 using namespace arma;
 using namespace std;
 
-#define TRACKER_TESTING1
+#define TRACKER_TESTING
 
 int TrackedObstacle::obstacle_number_ = 0;
 const double TrackedObstacle::TP_ = 0.01;
@@ -33,16 +33,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
         tracked_obstacles_.erase(tracked_obstacles_.begin() + i--);
     }
 
-    tracked_obstacles_msg_.header.stamp = ros::Time::now();
-    tracked_obstacles_msg_.circles.clear();
-
-    for (auto tracked_obstacle : tracked_obstacles_)
-      tracked_obstacles_msg_.circles.push_back(tracked_obstacle.getObstacle());
-
-    for (auto untracked_obstacle : untracked_obstacles_)
-      tracked_obstacles_msg_.circles.push_back(untracked_obstacle);
-
-    tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
+    publishObstacles();
 
     rate.sleep();
   }
@@ -54,6 +45,7 @@ double ObstacleTracker::obstacleCostFunction(const CircleObstacle& new_obstacle,
 }
 
 CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
+  // TODO: Remove this function
   CircleObstacle c;
 
   c.center.x = (c1.center.x + c2.center.x) / 2.0;
@@ -67,6 +59,8 @@ CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const
 }
 
 void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
+  // TODO: Add general possibility of fusion or fission of more than 2 obstacles
+  // TODO: Reconsider the way the obstacles are merged when fused or fissured (use KF variances)
   tracked_obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
 
   int N = new_obstacles->circles.size();
@@ -355,6 +349,19 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   // Remove old untracked obstacles and save new ones
   untracked_obstacles_.clear();
   untracked_obstacles_.assign(new_untracked_obstacles.begin(), new_untracked_obstacles.end());
+}
+
+void ObstacleTracker::publishObstacles() {
+  tracked_obstacles_msg_.header.stamp = ros::Time::now();
+  tracked_obstacles_msg_.circles.clear();
+
+  for (auto tracked_obstacle : tracked_obstacles_)
+    tracked_obstacles_msg_.circles.push_back(tracked_obstacle.getObstacle());
+
+  for (auto untracked_obstacle : untracked_obstacles_)
+    tracked_obstacles_msg_.circles.push_back(untracked_obstacle);
+
+  tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
 }
 
 int main(int argc, char** argv) {
