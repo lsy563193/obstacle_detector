@@ -211,52 +211,24 @@ bool ObstacleDetector::compareSegments(const Segment& s1, const Segment& s2, Seg
   if (s1.first_point.cross(s2.first_point) < 0.0)
     return compareSegments(s2, s1, merged_segment);
 
-  // 1. Check spread about line from regression of sum of points
-  vector<PointSet> point_sets;
-  point_sets.insert(point_sets.end(), s1.point_sets.begin(), s1.point_sets.end());
-  point_sets.insert(point_sets.end(), s2.point_sets.begin(), s2.point_sets.end());
+  // 1. Check if the segments are close to each other
+  if (s1.trueDistanceTo(s2.first_point) < p_max_merge_separation_ ||
+      s1.trueDistanceTo(s2.last_point)  < p_max_merge_separation_ ||
+      s2.trueDistanceTo(s1.first_point) < p_max_merge_separation_ ||
+      s2.trueDistanceTo(s1.last_point)  < p_max_merge_separation_)
+  {
+    // 2. Check spread about line from regression of sum of points
+    vector<PointSet> point_sets;
+    point_sets.insert(point_sets.end(), s1.point_sets.begin(), s1.point_sets.end());
+    point_sets.insert(point_sets.end(), s2.point_sets.begin(), s2.point_sets.end());
 
-  Segment segment = fitSegment(point_sets);
+    Segment segment = fitSegment(point_sets);
 
-  if (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
-      segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
-      segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
-      segment.distanceTo(s2.last_point)  < p_max_merge_spread_) {
-
-    // 2. Check if the segments are close to each other
-    // TODO: Choose proper method by tests
-    // TODO: Reverse order of conditions checking so if first (simple) fails,
-    //       there is no need to compute regression
-
-//    // 2.1. Simply check if extreme points are close to each other
-//    if ((s1.last_point - s2.first_point).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
-//      merged_segment = segment;
-//      return true;
-//    }
-
-//    // 2.2. Check if any point of s1 is close to any point of s2
-//    for (PointSet ps1 : s1.point_sets) {
-//      PointIterator ps1_end = ps1.end; ps1_end++;
-
-//      for (PointSet ps2 : s2.point_sets) {
-//        PointIterator ps2_end = ps2.end; ps2_end++;
-
-//        for (PointIterator p1 = ps1.begin; p1 != ps1_end; ++p1) {
-//          for (PointIterator p2 = ps2.begin; p2 != ps2_end; ++p2) {
-//            if ((*p1 - *p2).lengthSquared() < pow(p_max_merge_separation_, 2.0)) {
-//              merged_segment = segment;
-//              return true;
-//            }
-//          }
-//        }
-//      }
-//    }
-
-    // 2.3 Check extreme points of s1 and s2 for true distance between s2 and s1 resp.
-    if (s1.trueDistanceTo(s2.first_point) < p_max_merge_separation_ ||
-        s1.trueDistanceTo(s2.last_point)  < p_max_merge_separation_ ||
-        s2.trueDistanceTo(s1.first_point) < p_max_merge_separation_ ||
-        s2.trueDistanceTo(s1.last_point)  < p_max_merge_separation_) {
+    if (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
+        segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
+        segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
+        segment.distanceTo(s2.last_point)  < p_max_merge_spread_)
+    {
       merged_segment = segment;
       return true;
     }

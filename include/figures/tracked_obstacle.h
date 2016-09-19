@@ -47,76 +47,85 @@ namespace obstacle_detector
 {
 
 class TrackedObstacle {
-  // TODO: Divide KF into 3
 public:
-  TrackedObstacle(const CircleObstacle& init_obstacle, int fade_counter_size) : kf_(0, 3, 6) {
+  TrackedObstacle(const CircleObstacle& init_obstacle) : kf_x_(0, 1, 2), kf_y_(0, 1, 2), kf_r_(0, 1, 2) {
     obstacle_ = init_obstacle;
     obstacle_.tracked = true;
+    fade_counter_ = fade_counter_size_;
 
     if (obstacle_.obstacle_id == "" || obstacle_.obstacle_id == "-")
       obstacle_.obstacle_id = "O" + std::to_string(++obstacle_number_);
 
-    fade_counter_size_ = fade_counter_size;
+    // Initialize Kalman filter structures
+    kf_x_.A(0, 1) = sampling_time_;
+    kf_x_.C(0, 0) = 1.0;
+    kf_x_.R(0, 0) = measurement_variance_;
+    kf_x_.Q(0, 0) = process_variance_;
+    kf_x_.Q(1, 1) = process_rate_variance_;
+    kf_x_.q_pred(0) = obstacle_.center.x;
+    kf_x_.q_pred(1) = obstacle_.velocity.x;
+    kf_x_.q_est(0) = obstacle_.center.x;
+    kf_x_.q_est(1) = obstacle_.velocity.x;
 
-    // Initialize Kalman Filter structures
-    kf_.A(0, 1) = TP_;
-    kf_.A(2, 3) = TP_;
-    kf_.A(4, 5) = TP_;
+    kf_y_.A(0, 1) = sampling_time_;
+    kf_y_.C(0, 0) = 1.0;
+    kf_y_.R(0, 0) = measurement_variance_;
+    kf_y_.Q(0, 0) = process_variance_;
+    kf_y_.Q(1, 1) = process_rate_variance_;
+    kf_y_.q_pred(0) = obstacle_.center.y;
+    kf_y_.q_pred(1) = obstacle_.velocity.y;
+    kf_y_.q_est(0) = obstacle_.center.y;
+    kf_y_.q_est(1) = obstacle_.velocity.y;
 
-    kf_.C(0, 0) = 1.0;
-    kf_.C(1, 2) = 1.0;
-    kf_.C(2, 4) = 1.0;
-
-    kf_.q_pred(0) = obstacle_.center.x;
-    kf_.q_pred(1) = obstacle_.velocity.x;
-    kf_.q_pred(2) = obstacle_.center.y;
-    kf_.q_pred(3) = obstacle_.velocity.y;
-    kf_.q_pred(4) = obstacle_.radius;
-
-    kf_.q_est(0) = obstacle_.center.x;
-    kf_.q_est(1) = obstacle_.velocity.x;
-    kf_.q_est(2) = obstacle_.center.y;
-    kf_.q_est(3) = obstacle_.velocity.y;
-    kf_.q_est(4) = obstacle_.radius;
+    kf_r_.A(0, 1) = sampling_time_;
+    kf_r_.C(0, 0) = 1.0;
+    kf_r_.R(0, 0) = measurement_variance_;
+    kf_r_.Q(0, 0) = process_variance_;
+    kf_r_.Q(1, 1) = process_rate_variance_;
+    kf_r_.q_pred(0) = obstacle_.radius;
+    kf_r_.q_est(0) = obstacle_.radius;
   }
 
   ~TrackedObstacle() {
 //    obstacle_number_--;
   }
 
-  void setCovariances(double process_var, double measurement_var) {
-    kf_.R(0, 0) = measurement_var;
-    kf_.R(1, 1) = measurement_var;
-    kf_.R(2, 2) = measurement_var;
-
-    kf_.Q(0, 0) = process_var;
-    kf_.Q(1, 1) = process_var * 10.0;
-    kf_.Q(2, 2) = process_var;
-    kf_.Q(3, 3) = process_var * 10.0;
-    kf_.Q(4, 4) = process_var;
-    kf_.Q(5, 5) = process_var * 10.0;
-  }
-
   void updateMeasurement(const CircleObstacle& new_obstacle) {
-    kf_.y(0) = new_obstacle.center.x;
-    kf_.y(1) = new_obstacle.center.y;
-    kf_.y(2) = new_obstacle.radius;
+    kf_x_.y(0) = new_obstacle.center.x;
+    kf_y_.y(0) = new_obstacle.center.y;
+    kf_r_.y(0) = new_obstacle.radius;
 
     fade_counter_ = fade_counter_size_;
   }
 
   void updateTracking() {
-    kf_.updateState();
+    kf_x_.updateState();
+    kf_y_.updateState();
+    kf_r_.updateState();
 
-    obstacle_.center.x = kf_.q_est(0);
-    obstacle_.center.y = kf_.q_est(2);
+    obstacle_.center.x = kf_x_.q_est(0);
+    obstacle_.center.y = kf_y_.q_est(0);
 
-    obstacle_.velocity.x = kf_.q_est(1);
-    obstacle_.velocity.y = kf_.q_est(3);
+    obstacle_.velocity.x = kf_x_.q_est(1);
+    obstacle_.velocity.y = kf_y_.q_est(1);
 
-    obstacle_.radius = kf_.q_est(4);
+    obstacle_.radius = kf_r_.q_est(0);
 
     fade_counter_--;
+  }
+
+  static void setSamplingTime(double tp) {
+    sampling_time_ = tp;
+  }
+
+  static void setCounterSize(int size) {
+    fade_counter_size_ = size;
+  }
+
+  static void setCovariances(double process_var, double process_rate_var, double measurement_var) {
+    process_variance_ = process_var;
+    process_rate_variance_ = process_rate_var;
+    measurement_variance_ = measurement_var;
   }
 
   void setFused() { fused_ = true; }
@@ -126,15 +135,20 @@ public:
   bool hasFaded() const { return ((fade_counter_ <= 0) ? true : false); }
 
 private:
-  KalmanFilter kf_;
   CircleObstacle obstacle_;
+  KalmanFilter kf_x_;
+  KalmanFilter kf_y_;
+  KalmanFilter kf_r_;
 
   static int obstacle_number_;
-  static const double TP_;      // Sampling time in sec.
+  static int fade_counter_size_;
 
-  int fade_counter_size_;
-  int fade_counter_;            // If the fade counter reaches 0, remove the obstacle from the list
+  static double sampling_time_;
+  static double process_variance_;
+  static double process_rate_variance_;
+  static double measurement_variance_;
 
+  int fade_counter_;
   bool fused_;
   bool fissed_;
 };
