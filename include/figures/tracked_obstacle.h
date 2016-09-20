@@ -128,10 +128,12 @@ public:
     measurement_variance_ = measurement_var;
   }
 
-  void setFused() { fused_ = true; }
-  void setFissed() { fissed_ = true; }
+  const CircleObstacle& getObstacle() const { return obstacle_; }
 
-  CircleObstacle getObstacle() const { return obstacle_; }
+  const KalmanFilter& getKFx() const { return kf_x_; }
+  const KalmanFilter& getKFy() const { return kf_y_; }
+  const KalmanFilter& getKFr() const { return kf_r_; }
+
   bool hasFaded() const { return ((fade_counter_ <= 0) ? true : false); }
 
 private:

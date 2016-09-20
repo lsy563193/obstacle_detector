@@ -55,12 +55,6 @@ private:
   void calculateRowMinIndices(const arma::mat& cost_matrix, std::vector<int>& row_min_indices);
   void calculateColMinIndices(const arma::mat& cost_matrix, std::vector<int>& col_min_indices);
 
-  void checkFusion();
-  void checkFission();
-
-  void fuseObstacles(const std::vector<CircleObstacle> old_obstacles, const CircleObstacle new_obstacle, CircleObstacle& fused_obstacle);
-  void fissureObstacle(const CircleObstacle old_obstacle, const std::vector<CircleObstacle> new_obstacles, std::vector<CircleObstacle>& fissured_obstacles);
-
   void updateObstacles();
   void publishObstacles();
 
