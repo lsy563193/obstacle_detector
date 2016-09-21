@@ -4,13 +4,11 @@
     <param name="active"           value="true"/>
     <param name="reset"            value="false"/>
     <param name="fusion_example"   value="false"/>
-    <param name="fission_example"  value="false"/>
+    <param name="fission_example"  value="true"/>
     <param name="loop_rate"        value="10.0"/>
-    <param name="parent_frame"     value="world"/>
+    <param name="frame_id"         value="world"/>
   </node>
   
-  <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 100"/>
-
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="7"/>
     <param name="untracked_circles_color" value="7"/>
@@ -20,11 +18,13 @@
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
-    <param name="fade_counter_size"       value="200"/>
     <param name="track_labels"            value="false"/>
+    <param name="loop_rate"               value="100.0"/>
+    <param name="tracking_duration"       value="2.0"/>
     <param name="min_correspondence_cost" value="0.3"/>
+    <param name="process_variance"        value="0.001"/>  
+    <param name="process_rate_variance"   value="0.01"/>  
     <param name="measurement_variance"    value="1.0"/>
-    <param name="process_variance"        value="0.01"/>  
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">

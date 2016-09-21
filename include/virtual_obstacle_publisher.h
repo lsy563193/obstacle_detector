@@ -80,7 +80,7 @@ private:
   std::vector<double> p_vx_vector_;
   std::vector<double> p_vy_vector_;
 
-  std::string p_parent_frame_;
+  std::string p_frame_id_;
 };
 
 } // namespace obstacle_detector

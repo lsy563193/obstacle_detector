@@ -38,6 +38,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
 
 void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
   // TODO: Reconsider the way the obstacles are merged when fused or fissured (use KF variances)
+  // TODO: Prepare new labels tracking
   tracked_obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
 
   int N = new_obstacles->circles.size();

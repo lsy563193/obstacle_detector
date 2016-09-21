@@ -88,7 +88,7 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
   nh_local_.getParam("vx_vector", p_vx_vector_);
   nh_local_.getParam("vy_vector", p_vy_vector_);
 
-  nh_local_.getParam("parent_frame", p_parent_frame_);
+  nh_local_.getParam("frame_id", p_frame_id_);
 
   if (p_active_)
     obstacle_pub_ = nh_.advertise<Obstacles>("obstacles", 10);
@@ -98,11 +98,11 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
   if (p_reset_)
     reset();
 
-  if (p_x_vector_.size() < p_y_vector_.size() || p_x_vector_.size() < p_r_vector_.size() ||
-      p_x_vector_.size() < p_vx_vector_.size() || p_x_vector_.size() < p_vy_vector_.size())
+  if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
+      p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
     return false;
 
-  obstacles_.header.frame_id = p_parent_frame_;
+  obstacles_.header.frame_id = p_frame_id_;
   obstacles_.circles.clear();
 
   for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
