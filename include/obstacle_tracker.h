@@ -49,8 +49,6 @@ private:
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
   double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
-  CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2);
-
   void calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
   void calculateRowMinIndices(const arma::mat& cost_matrix, std::vector<int>& row_min_indices);
   void calculateColMinIndices(const arma::mat& cost_matrix, std::vector<int>& col_min_indices);

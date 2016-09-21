@@ -3,8 +3,8 @@
   <node pkg="obstacle_detector" type="virtual_obstacle_publisher" name="virtual_obstacle_publisher">
     <param name="active"           value="true"/>
     <param name="reset"            value="false"/>
-    <param name="fusion_example"   value="false"/>
-    <param name="fission_example"  value="true"/>
+    <param name="fusion_example"   value="true"/>
+    <param name="fission_example"  value="false"/>
     <param name="loop_rate"        value="10.0"/>
     <param name="frame_id"         value="world"/>
   </node>

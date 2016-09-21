@@ -68,7 +68,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   // Check for fusion (only tracked obstacles)
   for (int i = 0; i < T-1; ++i) {
     if (find(used_old_obstacles.begin(), used_old_obstacles.end(), i) != used_old_obstacles.end() || // i-th old obstacle was already used
-        find(used_new_obstacles.begin(), used_new_obstacles.end(), col_min_indices[i]) != used_new_obstacles.end() || // Obstacle to which i-th old obstacle correspond was already used
+        find(used_new_obstacles.begin(), used_new_obstacles.end(), col_min_indices[i]) != used_new_obstacles.end() || // Obstacle to which i-th old obstacle corresponds was already used
         col_min_indices[i] < 0) // There is no corresponding obstacle
       continue;
 
@@ -84,7 +84,6 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
 
     if (fusion_indices.size() > 1) {
-      // HERE WE DO THE FUSION FROM ALL
       CircleObstacle c;
       double sum_var_x = 0.0;
       double sum_var_y = 0.0;
@@ -92,7 +91,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       double sum_var_vy = 0.0;
       double sum_var_r = 0.0;
 
-      for (int idx = 0; idx < fusion_indices.size(); ++ idx) {
+      for (int idx = 0; idx < fusion_indices.size(); ++idx) {
         c.center.x += tracked_obstacles_[idx].getObstacle().center.x / tracked_obstacles_[idx].getKFx().P(0,0);
         c.center.y += tracked_obstacles_[idx].getObstacle().center.y / tracked_obstacles_[idx].getKFy().P(0,0);
 
@@ -108,6 +107,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         sum_var_vy += 1.0 / tracked_obstacles_[idx].getKFy().P(1,1);
 
         sum_var_r += 1.0 / tracked_obstacles_[idx].getKFr().P(0,0);
+
+        c.obstacle_id += tracked_obstacles_[idx].getObstacle().obstacle_id + "-";
       }
 
       c.center.x /= sum_var_x;
@@ -117,6 +118,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       c.velocity.y /= sum_var_vy;
 
       c.radius /= sum_var_r;
+
+      c.obstacle_id.pop_back();
 
       TrackedObstacle to(c);
 
@@ -134,9 +137,9 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
   // Check for fission (only tracked obstacles)
   for (int i = 0; i < N-1; ++i) {
     if (find(used_new_obstacles.begin(), used_new_obstacles.end(), i) != used_new_obstacles.end() ||  // i-th new obstacle was already used
-        find(used_old_obstacles.begin(), used_old_obstacles.end(), row_min_indices[i]) != used_old_obstacles.end() || // Obstacle to which i-th new obstacle correspond was already used
+        find(used_old_obstacles.begin(), used_old_obstacles.end(), row_min_indices[i]) != used_old_obstacles.end() || // Obstacle to which i-th new obstacle corresponds was already used
         row_min_indices[i] < 0 ||     // There is no corresponding obstacle
-        row_min_indices[i] >= T)      // Obstacle to which i-th new obstacle correspond is untracked
+        row_min_indices[i] >= T)      // Obstacle to which i-th new obstacle corresponds is untracked
       continue;
 
     vector<int> fission_indices;
@@ -155,6 +158,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       for (int idx : fission_indices) {
         TrackedObstacle to = tracked_obstacles_[row_min_indices[idx]];
         to.updateMeasurement(new_obstacles->circles[idx]);
+
         new_tracked_obstacles.push_back(to);
       }
 
@@ -288,20 +292,6 @@ void ObstacleTracker::calculateColMinIndices(const arma::mat& cost_matrix, std::
       }
     }
   }
-}
-
-CircleObstacle ObstacleTracker::meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2) {
-  // TODO: Remove this function
-  CircleObstacle c;
-
-  c.center.x = (c1.center.x + c2.center.x) / 2.0;
-  c.center.y = (c1.center.y + c2.center.y) / 2.0;
-  c.velocity.x = (c1.velocity.x + c2.velocity.x) / 2.0;
-  c.velocity.y = (c1.velocity.y + c2.velocity.y) / 2.0;
-  c.radius = (c1.radius + c2.radius) / 2.0;
-  c.tracked = c1.tracked || c2.tracked;
-
-  return c;
 }
 
 void ObstacleTracker::updateObstacles() {

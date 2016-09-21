@@ -87,7 +87,7 @@ public:
   }
 
   ~TrackedObstacle() {
-//    obstacle_number_--;
+    free_names_.push_back(obstacle_.obstacle_id);
   }
 
   void updateMeasurement(const CircleObstacle& new_obstacle) {
@@ -112,6 +112,10 @@ public:
     obstacle_.radius = kf_r_.q_est(0);
 
     fade_counter_--;
+  }
+
+  void setId(const std::string id) {
+    obstacle_.obstacle_id = id;
   }
 
   static void setSamplingTime(double tp) {
@@ -143,6 +147,7 @@ private:
   KalmanFilter kf_r_;
 
   static int obstacle_number_;
+  static std::list<std::string> free_names_;
   static int fade_counter_size_;
 
   static double sampling_time_;
@@ -151,8 +156,6 @@ private:
   static double measurement_variance_;
 
   int fade_counter_;
-  bool fused_;
-  bool fissed_;
 };
 
 }
