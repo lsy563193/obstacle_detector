@@ -111,11 +111,12 @@
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
-    <param name="fade_counter_size"       value="200"/>
-    <param name="track_labels"            value="false"/>
+    <param name="loop_rate"               value="100.0"/>
+    <param name="tracking_duration"       value="2.0"/>
     <param name="min_correspondence_cost" value="0.3"/>
+    <param name="process_variance"        value="0.001"/>  
+    <param name="process_rate_variance"   value="0.01"/>  
     <param name="measurement_variance"    value="1.0"/>
-    <param name="process_variance"        value="0.01"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">

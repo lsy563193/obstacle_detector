@@ -36,7 +36,7 @@
 #pragma once
 
 #include <ros/ros.h>
-#include "figures/tracked_obstacle.h"
+#include "tracked_obstacle.h"
 
 namespace obstacle_detector
 {
@@ -60,9 +60,9 @@ private:
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
-  ros::Publisher tracked_obstacles_pub_;
+  ros::Publisher obstacles_pub_;
 
-  Obstacles tracked_obstacles_msg_;
+  Obstacles obstacles_msg_;
 
   std::vector<TrackedObstacle> tracked_obstacles_;
   std::vector<CircleObstacle> untracked_obstacles_;

@@ -40,54 +40,58 @@
 #include <armadillo>
 #include <obstacle_detector/Obstacles.h>
 
-#include "../kalman.h"
-#include "point.h"
+#include "kalman.h"
+#include "figures/point.h"
 
 namespace obstacle_detector
 {
 
 class TrackedObstacle {
 public:
-  TrackedObstacle(const CircleObstacle& init_obstacle) : kf_x_(0, 1, 2), kf_y_(0, 1, 2), kf_r_(0, 1, 2) {
-    obstacle_ = init_obstacle;
+  TrackedObstacle(const CircleObstacle& obstacle) : kf_x_(0, 1, 2), kf_y_(0, 1, 2), kf_r_(0, 1, 2) {
+    obstacle_ = obstacle;
     obstacle_.tracked = true;
-    fade_counter_ = fade_counter_size_;
+    fade_counter_ = p_fade_counter_size_;
 
-    if (obstacle_.obstacle_id == "" || obstacle_.obstacle_id == "-")
-      obstacle_.obstacle_id = "O" + std::to_string(++obstacle_number_);
+    initKF();
 
-    // Initialize Kalman filter structures
-    kf_x_.A(0, 1) = sampling_time_;
-    kf_x_.C(0, 0) = 1.0;
-    kf_x_.R(0, 0) = measurement_variance_;
-    kf_x_.Q(0, 0) = process_variance_;
-    kf_x_.Q(1, 1) = process_rate_variance_;
-    kf_x_.q_pred(0) = obstacle_.center.x;
-    kf_x_.q_pred(1) = obstacle_.velocity.x;
-    kf_x_.q_est(0) = obstacle_.center.x;
-    kf_x_.q_est(1) = obstacle_.velocity.x;
-
-    kf_y_.A(0, 1) = sampling_time_;
-    kf_y_.C(0, 0) = 1.0;
-    kf_y_.R(0, 0) = measurement_variance_;
-    kf_y_.Q(0, 0) = process_variance_;
-    kf_y_.Q(1, 1) = process_rate_variance_;
-    kf_y_.q_pred(0) = obstacle_.center.y;
-    kf_y_.q_pred(1) = obstacle_.velocity.y;
-    kf_y_.q_est(0) = obstacle_.center.y;
-    kf_y_.q_est(1) = obstacle_.velocity.y;
-
-    kf_r_.A(0, 1) = sampling_time_;
-    kf_r_.C(0, 0) = 1.0;
-    kf_r_.R(0, 0) = measurement_variance_;
-    kf_r_.Q(0, 0) = process_variance_;
-    kf_r_.Q(1, 1) = process_rate_variance_;
-    kf_r_.q_pred(0) = obstacle_.radius;
-    kf_r_.q_est(0) = obstacle_.radius;
+    if (obstacle.obstacle_id == "")
+      assignNewId();
   }
 
-  ~TrackedObstacle() {
-    free_names_.push_back(obstacle_.obstacle_id);
+  ~TrackedObstacle() {}
+
+  void initKF() {
+    kf_x_.A(0, 1) = p_sampling_time_;
+    kf_y_.A(0, 1) = p_sampling_time_;
+    kf_r_.A(0, 1) = p_sampling_time_;
+
+    kf_x_.C(0, 0) = 1.0;
+    kf_y_.C(0, 0) = 1.0;
+    kf_r_.C(0, 0) = 1.0;
+
+    kf_x_.R(0, 0) = p_measurement_variance_;
+    kf_y_.R(0, 0) = p_measurement_variance_;
+    kf_r_.R(0, 0) = p_measurement_variance_;
+
+    kf_x_.Q(0, 0) = p_process_variance_;
+    kf_x_.Q(1, 1) = p_process_rate_variance_;
+    kf_y_.Q(0, 0) = p_process_variance_;
+    kf_y_.Q(1, 1) = p_process_rate_variance_;
+    kf_r_.Q(0, 0) = p_process_variance_;
+    kf_r_.Q(1, 1) = p_process_rate_variance_;
+
+    kf_x_.q_pred(0) = obstacle_.center.x;
+    kf_x_.q_pred(1) = obstacle_.velocity.x;
+    kf_y_.q_pred(0) = obstacle_.center.y;
+    kf_y_.q_pred(1) = obstacle_.velocity.y;
+    kf_r_.q_pred(0) = obstacle_.radius;
+
+    kf_x_.q_est(0) = obstacle_.center.x;
+    kf_x_.q_est(1) = obstacle_.velocity.x;
+    kf_y_.q_est(0) = obstacle_.center.y;
+    kf_y_.q_est(1) = obstacle_.velocity.y;
+    kf_r_.q_est(0) = obstacle_.radius;
   }
 
   void updateMeasurement(const CircleObstacle& new_obstacle) {
@@ -95,7 +99,7 @@ public:
     kf_y_.y(0) = new_obstacle.center.y;
     kf_r_.y(0) = new_obstacle.radius;
 
-    fade_counter_ = fade_counter_size_;
+    fade_counter_ = p_fade_counter_size_;
   }
 
   void updateTracking() {
@@ -114,48 +118,73 @@ public:
     fade_counter_--;
   }
 
+  void assignNewId() {
+    if (s_free_ids_.size() > 0) {
+      obstacle_.obstacle_id = s_free_ids_.back();
+      s_free_ids_.pop_back();
+    }
+    else
+      obstacle_.obstacle_id = "O" + std::to_string(s_id_size_++);
+  }
+
+  void releaseId() {
+    std::string name;
+    size_t pos;
+
+    pos = obstacle_.obstacle_id.find("O", 0);
+    while (pos != std::string::npos) {
+      name = obstacle_.obstacle_id.substr(pos, 2);
+      s_free_ids_.push_back(name);
+      pos = obstacle_.obstacle_id.find("O", pos + 1);
+    }
+
+    obstacle_.obstacle_id = "";
+  }
+
   void setId(const std::string id) {
     obstacle_.obstacle_id = id;
   }
 
+  void clearId() {
+    obstacle_.obstacle_id = "";
+  }
+
   static void setSamplingTime(double tp) {
-    sampling_time_ = tp;
+    p_sampling_time_ = tp;
   }
 
   static void setCounterSize(int size) {
-    fade_counter_size_ = size;
+    p_fade_counter_size_ = size;
   }
 
   static void setCovariances(double process_var, double process_rate_var, double measurement_var) {
-    process_variance_ = process_var;
-    process_rate_variance_ = process_rate_var;
-    measurement_variance_ = measurement_var;
+    p_process_variance_ = process_var;
+    p_process_rate_variance_ = process_rate_var;
+    p_measurement_variance_ = measurement_var;
   }
 
+  bool hasFaded() const { return ((fade_counter_ <= 0) ? true : false); }
   const CircleObstacle& getObstacle() const { return obstacle_; }
-
   const KalmanFilter& getKFx() const { return kf_x_; }
   const KalmanFilter& getKFy() const { return kf_y_; }
   const KalmanFilter& getKFr() const { return kf_r_; }
-
-  bool hasFaded() const { return ((fade_counter_ <= 0) ? true : false); }
 
 private:
   CircleObstacle obstacle_;
   KalmanFilter kf_x_;
   KalmanFilter kf_y_;
   KalmanFilter kf_r_;
-
-  static int obstacle_number_;
-  static std::list<std::string> free_names_;
-  static int fade_counter_size_;
-
-  static double sampling_time_;
-  static double process_variance_;
-  static double process_rate_variance_;
-  static double measurement_variance_;
-
   int fade_counter_;
+
+  static int s_id_size_;  // Largest id
+  static std::list<std::string> s_free_ids_; // Available ids that were released
+
+  // Parameters
+  static int p_fade_counter_size_;
+  static double p_sampling_time_;
+  static double p_process_variance_;
+  static double p_process_rate_variance_;
+  static double p_measurement_variance_;
 };
 
 }

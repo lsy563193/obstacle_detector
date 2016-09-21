@@ -1,5 +1,8 @@
 #include "../include/obstacle_tracker.h"
 
+#include <list>
+#include <string>
+
 using namespace obstacle_detector;
 using namespace arma;
 using namespace std;
@@ -18,7 +21,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   TrackedObstacle::setCovariances(p_process_variance_, p_process_rate_variance_, p_measurement_variance_);
 
   obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
-  tracked_obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
+  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
 
   ROS_INFO("Obstacle Tracker [Waiting for first message]");
   ros::topic::waitForMessage<obstacle_detector::Obstacles>("obstacles");
@@ -38,8 +41,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
 
 void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
   // TODO: Reconsider the way the obstacles are merged when fused or fissured (use KF variances)
-  // TODO: Prepare new labels tracking
-  tracked_obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
+  obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
 
   int N = new_obstacles->circles.size();
   int T = tracked_obstacles_.size();
@@ -85,47 +87,39 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
     if (fusion_indices.size() > 1) {
       CircleObstacle c;
-      double sum_var_x = 0.0;
-      double sum_var_y = 0.0;
+      double sum_var_x  = 0.0;
+      double sum_var_y  = 0.0;
       double sum_var_vx = 0.0;
       double sum_var_vy = 0.0;
-      double sum_var_r = 0.0;
+      double sum_var_r  = 0.0;
 
-      for (int idx = 0; idx < fusion_indices.size(); ++idx) {
+      for (int idx : fusion_indices) {
         c.center.x += tracked_obstacles_[idx].getObstacle().center.x / tracked_obstacles_[idx].getKFx().P(0,0);
         c.center.y += tracked_obstacles_[idx].getObstacle().center.y / tracked_obstacles_[idx].getKFy().P(0,0);
-
         c.velocity.x += tracked_obstacles_[idx].getObstacle().velocity.x / tracked_obstacles_[idx].getKFx().P(1,1);
         c.velocity.y += tracked_obstacles_[idx].getObstacle().velocity.y / tracked_obstacles_[idx].getKFy().P(1,1);
-
         c.radius += tracked_obstacles_[idx].getObstacle().radius / tracked_obstacles_[idx].getKFr().P(0,0);
 
         sum_var_x += 1.0 / tracked_obstacles_[idx].getKFx().P(0,0);
         sum_var_y += 1.0 / tracked_obstacles_[idx].getKFy().P(0,0);
-
         sum_var_vx += 1.0 / tracked_obstacles_[idx].getKFx().P(1,1);
         sum_var_vy += 1.0 / tracked_obstacles_[idx].getKFy().P(1,1);
-
         sum_var_r += 1.0 / tracked_obstacles_[idx].getKFr().P(0,0);
 
         c.obstacle_id += tracked_obstacles_[idx].getObstacle().obstacle_id + "-";
+        tracked_obstacles_[idx].clearId();
       }
 
       c.center.x /= sum_var_x;
       c.center.y /= sum_var_y;
-
       c.velocity.x /= sum_var_vx;
       c.velocity.y /= sum_var_vy;
-
       c.radius /= sum_var_r;
 
-      c.obstacle_id.pop_back();
+      c.obstacle_id.pop_back(); // Remove last "-"
 
       TrackedObstacle to(c);
-
       to.updateMeasurement(new_obstacles->circles[col_min_indices[i]]);
-
-      // Add new (fused) obstacle to the waiting list
       new_tracked_obstacles.push_back(to);
 
       // Mark used old and new obstacles
@@ -154,11 +148,13 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
 
     if (fission_indices.size() > 1) {
+      tracked_obstacles_[row_min_indices[i]].releaseId();
+
       // For each new obstacle taking part in fission create a tracked obstacle from the original old one and update it with the new one
       for (int idx : fission_indices) {
         TrackedObstacle to = tracked_obstacles_[row_min_indices[idx]];
+        to.assignNewId();
         to.updateMeasurement(new_obstacles->circles[idx]);
-
         new_tracked_obstacles.push_back(to);
       }
 
@@ -181,10 +177,12 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         tracked_obstacles_[row_min_indices[n]].updateMeasurement(new_obstacles->circles[n]);
       }
       else if (row_min_indices[n] >= T) {
-        TrackedObstacle to = TrackedObstacle(untracked_obstacles_[row_min_indices[n] - T]);
+        TrackedObstacle to(untracked_obstacles_[row_min_indices[n] - T]);
         to.updateMeasurement(new_obstacles->circles[n]);
         new_tracked_obstacles.push_back(to);
       }
+
+      used_new_obstacles.push_back(n);
     }
   }
 
@@ -298,22 +296,24 @@ void ObstacleTracker::updateObstacles() {
   for (int i = 0; i < tracked_obstacles_.size(); ++i) {
     if (!tracked_obstacles_[i].hasFaded())
       tracked_obstacles_[i].updateTracking();
-    else
+    else {
+      tracked_obstacles_[i].releaseId();
       tracked_obstacles_.erase(tracked_obstacles_.begin() + i--);
+    }
   }
 }
 
 void ObstacleTracker::publishObstacles() {
-  tracked_obstacles_msg_.header.stamp = ros::Time::now();
-  tracked_obstacles_msg_.circles.clear();
+  obstacles_msg_.header.stamp = ros::Time::now();
+  obstacles_msg_.circles.clear();
 
   for (auto tracked_obstacle : tracked_obstacles_)
-    tracked_obstacles_msg_.circles.push_back(tracked_obstacle.getObstacle());
+    obstacles_msg_.circles.push_back(tracked_obstacle.getObstacle());
 
   for (auto untracked_obstacle : untracked_obstacles_)
-    tracked_obstacles_msg_.circles.push_back(untracked_obstacle);
+    obstacles_msg_.circles.push_back(untracked_obstacle);
 
-  tracked_obstacles_pub_.publish(tracked_obstacles_msg_);
+  obstacles_pub_.publish(obstacles_msg_);
 }
 
 int main(int argc, char** argv) {
@@ -323,9 +323,10 @@ int main(int argc, char** argv) {
 }
 
 // Ugly initialization of static members of tracked obstacles...
-int    TrackedObstacle::obstacle_number_       = 0;
-int    TrackedObstacle::fade_counter_size_     = 0;
-double TrackedObstacle::sampling_time_         = 100.0;
-double TrackedObstacle::process_variance_      = 0.0;
-double TrackedObstacle::process_rate_variance_ = 0.0;
-double TrackedObstacle::measurement_variance_  = 0.0;
+int    TrackedObstacle::s_id_size_               = 1;
+int    TrackedObstacle::p_fade_counter_size_     = 0;
+double TrackedObstacle::p_sampling_time_         = 100.0;
+double TrackedObstacle::p_process_variance_      = 0.0;
+double TrackedObstacle::p_process_rate_variance_ = 0.0;
+double TrackedObstacle::p_measurement_variance_  = 0.0;
+list<string> TrackedObstacle::s_free_ids_ = {};
