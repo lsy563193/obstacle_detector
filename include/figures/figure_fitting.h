@@ -35,7 +35,7 @@
 
 #pragma once
 
-#define ARMA_DONT_USE_CXX11
+//#define ARMA_DONT_USE_CXX11
 
 #include <armadillo>
 

@@ -3,7 +3,7 @@ project(obstacle_detector)
 
 set(CMAKE_CXX_FLAGS "-std=c++0x -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall") # or type -DCMAKE_BUILD_TYPE=Debug
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall") # or type -DCMAKE_BUILD_TYPE=Release
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall") # or type -DCMAKE_BUILD_TYPE=Release
 
 find_package(catkin REQUIRED COMPONENTS roscpp rviz std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
 find_package(Armadillo REQUIRED)
