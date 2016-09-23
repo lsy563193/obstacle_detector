@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(obstacle_detector)
 
-set(CMAKE_CXX_FLAGS "-std=c++0x -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
+set(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall") # or type -DCMAKE_BUILD_TYPE=Debug
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall") # or type -DCMAKE_BUILD_TYPE=Release
 

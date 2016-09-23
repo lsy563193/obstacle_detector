@@ -54,9 +54,6 @@ public:
     fade_counter_ = p_fade_counter_size_;
 
     initKF();
-
-    if (obstacle.obstacle_id == "")
-      assignNewId();
   }
 
   ~TrackedObstacle() {}
@@ -118,34 +115,31 @@ public:
     fade_counter_--;
   }
 
-  void assignNewId() {
-    if (s_free_ids_.size() > 0) {
-      obstacle_.obstacle_id = s_free_ids_.back();
-      s_free_ids_.pop_back();
+  void assignId() {
+    if (obstacle_.obstacle_id == "") {
+      if (s_free_ids_.size() > 0) {
+        id_list.push_back(s_free_ids_.back());
+        s_free_ids_.pop_back();
+      }
+      else
+        id_list.push_back("O" + std::to_string(s_id_size_++));
+
+      obstacle_.obstacle_id = id_list.back();
     }
-    else
-      obstacle_.obstacle_id = "O" + std::to_string(s_id_size_++);
+    else {
+      size_t pos = obstacle_.obstacle_id.find("O", 0);
+      while (pos != std::string::npos) {
+//        if (find(id_list.begin(), id_list.end(), obstacle_.obstacle_id.substr(pos, 2)) == id_list.end()) {
+          id_list.push_back(obstacle_.obstacle_id.substr(pos, 2));
+          pos = obstacle_.obstacle_id.find("O", pos + 1);
+//        }
+      }
+    }
   }
 
   void releaseId() {
-    std::string name;
-    size_t pos;
-
-    pos = obstacle_.obstacle_id.find("O", 0);
-    while (pos != std::string::npos) {
-      name = obstacle_.obstacle_id.substr(pos, 2);
-      s_free_ids_.push_back(name);
-      pos = obstacle_.obstacle_id.find("O", pos + 1);
-    }
-
-    obstacle_.obstacle_id = "";
-  }
-
-  void setId(const std::string id) {
-    obstacle_.obstacle_id = id;
-  }
-
-  void clearId() {
+    s_free_ids_.insert(s_free_ids_.end(), id_list.begin(), id_list.end());
+    id_list.clear();
     obstacle_.obstacle_id = "";
   }
 
@@ -174,6 +168,7 @@ private:
   KalmanFilter kf_x_;
   KalmanFilter kf_y_;
   KalmanFilter kf_r_;
+  std::list<std::string> id_list;
   int fade_counter_;
 
   static int s_id_size_;  // Largest id

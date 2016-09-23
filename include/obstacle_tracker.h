@@ -68,8 +68,6 @@ private:
   std::vector<CircleObstacle> untracked_obstacles_;
 
   // Parameters
-  bool p_track_labels_;
-
   double p_tracking_duration_;
   double p_loop_rate_;
   double p_min_correspondence_cost_;

@@ -101,7 +101,7 @@
     <param name="max_circle_radius"    value="0.300"/>
     <param name="radius_enlargement"   value="0.030"/>
   </node>
-<!--  
+
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="7"/>
     <param name="untracked_circles_color" value="7"/>
@@ -141,6 +141,6 @@
   </node>
 
   <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/>
--->
+<!--  -->
 </launch>
 

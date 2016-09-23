@@ -54,6 +54,9 @@ namespace obstacle_detector
  * and the A, B, C parameters are normalized.
  */
 Segment fitSegment(const PointSet& point_set) {
+  static int num_calls = 0;
+  num_calls++;
+
   int N = point_set.num_points;
   assert(N >= 2);
 
@@ -103,6 +106,9 @@ Segment fitSegment(const PointSet& point_set) {
 }
 
 Segment fitSegment(const std::vector<PointSet>& point_sets) {
+  static int num_calls = 0;
+  num_calls++;
+
   int N = 0;
   for (PointSet ps : point_sets)
     N += ps.num_points;

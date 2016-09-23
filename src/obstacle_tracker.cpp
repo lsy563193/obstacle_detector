@@ -8,7 +8,6 @@ using namespace arma;
 using namespace std;
 
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
-  nh_local_.param<bool>("track_labels", p_track_labels_, true);
   nh_local_.param<double>("loop_rate", p_loop_rate_, 100.0);
   nh_local_.param<double>("tracking_duration", p_tracking_duration_, 2.0);
   nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
@@ -107,7 +106,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         sum_var_r += 1.0 / tracked_obstacles_[idx].getKFr().P(0,0);
 
         c.obstacle_id += tracked_obstacles_[idx].getObstacle().obstacle_id + "-";
-        tracked_obstacles_[idx].clearId();
+        tracked_obstacles_[idx].releaseId();
       }
 
       c.center.x /= sum_var_x;
@@ -119,6 +118,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       c.obstacle_id.pop_back(); // Remove last "-"
 
       TrackedObstacle to(c);
+      to.assignId();
       to.updateMeasurement(new_obstacles->circles[col_min_indices[i]]);
       new_tracked_obstacles.push_back(to);
 
@@ -153,7 +153,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       // For each new obstacle taking part in fission create a tracked obstacle from the original old one and update it with the new one
       for (int idx : fission_indices) {
         TrackedObstacle to = tracked_obstacles_[row_min_indices[idx]];
-        to.assignNewId();
+        to.assignId();
         to.updateMeasurement(new_obstacles->circles[idx]);
         new_tracked_obstacles.push_back(to);
       }
@@ -178,6 +178,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       }
       else if (row_min_indices[n] >= T) {
         TrackedObstacle to(untracked_obstacles_[row_min_indices[n] - T]);
+        to.assignId();
         to.updateMeasurement(new_obstacles->circles[n]);
         new_tracked_obstacles.push_back(to);
       }
