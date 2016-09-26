@@ -53,12 +53,12 @@ ObstacleRecorder::ObstacleRecorder() : nh_(""), nh_local_("~") {
 void ObstacleRecorder::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles) {
   if (recording_) {
     counter_++;
-    float t = (ros::Time::now() - start_mark_).toSec();
+    double t = (ros::Time::now() - start_mark_).toSec();
 
     for (auto circle : obstacles->circles) {
       file_ << counter_ << "\t"
             << t << "\t"
-            << 0 << "\t"  //circle.obstacle_id.data
+            << circle.obstacle_id << "\t"
             << (int)circle.tracked << "\t"
             << circle.center.x << "\t"
             << circle.center.y << "\t"

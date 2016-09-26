@@ -58,6 +58,9 @@ ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
 }
 
 void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles) {
+  if (obstacles->header.frame_id == "")
+    return;
+
   visualization_msgs::MarkerArray markers_array;
 
   // Create markers for all of the circular obstacles

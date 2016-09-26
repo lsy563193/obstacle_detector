@@ -38,6 +38,7 @@
 #include <list>
 #include <string>
 #include <ros/ros.h>
+
 #include "tracked_obstacle.h"
 #include "math_utilities.h"
 

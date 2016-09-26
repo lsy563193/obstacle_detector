@@ -103,7 +103,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         sum_var_r += 1.0 / tracked_obstacles_[idx].getKFr().P(0,0);
 
         c.obstacle_id += tracked_obstacles_[idx].getObstacle().obstacle_id + "-";
-        tracked_obstacles_[idx].releaseId();
+//        tracked_obstacles_[idx].releaseId();
       }
 
       c.center.x /= sum_var_x;
@@ -343,10 +343,10 @@ int main(int argc, char** argv) {
 }
 
 // Ugly initialization of static members of tracked obstacles...
-int    TrackedObstacle::s_id_size_               = 1;
+int    TrackedObstacle::s_id_size_               = 0;
 int    TrackedObstacle::p_fade_counter_size_     = 0;
 double TrackedObstacle::p_sampling_time_         = 100.0;
 double TrackedObstacle::p_process_variance_      = 0.0;
 double TrackedObstacle::p_process_rate_variance_ = 0.0;
 double TrackedObstacle::p_measurement_variance_  = 0.0;
-list<string> TrackedObstacle::s_free_ids_ = {};
+list<string> TrackedObstacle::s_id_bank_         = {};

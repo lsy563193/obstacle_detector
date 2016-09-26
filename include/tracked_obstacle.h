@@ -115,30 +115,33 @@ public:
 
   void assignId() {
     if (obstacle_.obstacle_id == "") {
-      if (s_free_ids_.size() > 0) {
-        id_list.push_back(s_free_ids_.back());
-        s_free_ids_.pop_back();
-      }
-      else
-        id_list.push_back("O" + std::to_string(s_id_size_++));
+      if (s_id_bank_.size() == 0)
+        reserveNewIdsInBank(10);
 
+      id_list.push_back(s_id_bank_.front());
+      s_id_bank_.pop_front();
       obstacle_.obstacle_id = id_list.back();
     }
     else {
       size_t pos = obstacle_.obstacle_id.find("O", 0);
       while (pos != std::string::npos) {
-//        if (find(id_list.begin(), id_list.end(), obstacle_.obstacle_id.substr(pos, 2)) == id_list.end()) {
-          id_list.push_back(obstacle_.obstacle_id.substr(pos, 2));
-          pos = obstacle_.obstacle_id.find("O", pos + 1);
-//        }
+        id_list.push_back(obstacle_.obstacle_id.substr(pos, 2));
+        pos = obstacle_.obstacle_id.find("O", pos + 1);
       }
     }
   }
 
   void releaseId() {
-    s_free_ids_.insert(s_free_ids_.end(), id_list.begin(), id_list.end());
+    s_id_bank_.insert(s_id_bank_.begin(), id_list.begin(), id_list.end());
     id_list.clear();
     obstacle_.obstacle_id = "";
+  }
+
+  static void reserveNewIdsInBank(int num) {
+    for (int i = 1; i < num + 1; ++i)
+      s_id_bank_.push_back("O" + std::to_string(i + s_id_size_));
+
+    s_id_size_ += num;
   }
 
   static void setSamplingTime(double tp) {
@@ -170,7 +173,7 @@ private:
   int fade_counter_;
 
   static int s_id_size_;  // Largest id
-  static std::list<std::string> s_free_ids_; // Available ids that were released
+  static std::list<std::string> s_id_bank_;   // Total list of IDs
 
   // Parameters
   static int p_fade_counter_size_;

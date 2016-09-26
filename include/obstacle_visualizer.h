@@ -36,8 +36,8 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <visualization_msgs/MarkerArray.h>
 #include <obstacle_detector/Obstacles.h>
+#include <visualization_msgs/MarkerArray.h>
 
 namespace obstacle_detector
 {

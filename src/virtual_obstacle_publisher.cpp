@@ -98,12 +98,16 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
   if (p_reset_)
     reset();
 
+  obstacles_.header.stamp = ros::Time::now();
+  obstacles_.header.frame_id = p_frame_id_;
+  obstacles_.circles.clear();
+
+  if (p_x_vector_.size() == 0)
+    obstacle_pub_.publish(obstacles_);
+
   if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
       p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
     return false;
-
-  obstacles_.header.frame_id = p_frame_id_;
-  obstacles_.circles.clear();
 
   for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
     CircleObstacle circle;
@@ -152,7 +156,7 @@ void VirtualObstaclePublisher::fusionExample(double t) {
     obstacles_.circles.push_back(circ1);
   }
   else  if (t > 20.0)
-    p_reset_ = true;
+    reset();
 }
 
 void VirtualObstaclePublisher::fissionExample(double t) {
@@ -187,7 +191,7 @@ void VirtualObstaclePublisher::fissionExample(double t) {
     obstacles_.circles.push_back(circ2);
   }
   else if (t > 20.0)
-    p_reset_ = true;
+    reset();
 }
 
 void VirtualObstaclePublisher::reset() {
