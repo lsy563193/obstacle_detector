@@ -1,8 +1,5 @@
 #include "../include/obstacle_tracker.h"
 
-#include <list>
-#include <string>
-
 using namespace obstacle_detector;
 using namespace arma;
 using namespace std;
@@ -10,7 +7,8 @@ using namespace std;
 ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   nh_local_.param<double>("loop_rate", p_loop_rate_, 100.0);
   nh_local_.param<double>("tracking_duration", p_tracking_duration_, 2.0);
-  nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.6);
+  nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.3);
+  nh_local_.param<double>("std_correspondence_dev", p_std_correspondence_dev_, 0.15);
   nh_local_.param<double>("process_variance", p_process_variance_, 0.001);
   nh_local_.param<double>("process_rate_variance", p_process_rate_variance_, 0.01);
   nh_local_.param<double>("measurement_variance", p_measurement_variance_, 1.0);
@@ -31,7 +29,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   while (ros::ok()) {
     ros::spinOnce();
 
-    updateObstacles();
+    updateObstacles();  // TODO: Check whether the supersampling should consist only in prediction step or also correction
     publishObstacles();
 
     rate.sleep();
@@ -39,7 +37,6 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
 }
 
 void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
-  // TODO: Reconsider the way the obstacles are merged when fused or fissured (use KF variances)
   obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
 
   int N = new_obstacles->circles.size();
@@ -201,8 +198,30 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 }
 
 double ObstacleTracker::obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle) {
-  // TODO: Add gauss elipses for penalties
-  return sqrt(pow(new_obstacle.center.x - old_obstacle.center.x, 2.0) + pow(new_obstacle.center.y - old_obstacle.center.y, 2.0) + pow(new_obstacle.radius - old_obstacle.radius, 2.0));
+  mat distribution = mat(2, 2).zeros();
+  vec relative_position = vec(2).zeros();
+
+  double cost = 0.0;
+  double penalty = 1.0;
+  double tp = 0.1;
+
+  double direction = atan2(old_obstacle.velocity.y, old_obstacle.velocity.x);
+
+  geometry_msgs::Point new_center = transformPoint(new_obstacle.center, 0.0, 0.0, -direction);
+  geometry_msgs::Point old_center = transformPoint(old_obstacle.center, 0.0, 0.0, -direction);
+
+  distribution(0, 0) = pow(p_std_correspondence_dev_, 2.0) + squaredLength(old_obstacle.velocity) * pow(tp, 2.0);
+  distribution(1, 1) = pow(p_std_correspondence_dev_, 2.0);
+
+  relative_position(0) = new_center.x - old_center.x - tp * length(old_obstacle.velocity);
+  relative_position(1) = new_center.y - old_center.y;
+
+  cost = sqrt(pow(new_obstacle.center.x - old_obstacle.center.x, 2.0) + pow(new_obstacle.center.y - old_obstacle.center.y, 2.0) + pow(new_obstacle.radius - old_obstacle.radius, 2.0));
+
+  mat a = -0.5 * trans(relative_position) * distribution * relative_position;
+  penalty = exp(a(0, 0));
+
+  return cost / penalty;
 }
 
 void ObstacleTracker::calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix) {

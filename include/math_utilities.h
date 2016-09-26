@@ -47,6 +47,22 @@ double abs(double x) { return (x < 0.0) ? -x : x; }
 double max(double x, double y) { return (x > y) ? x : y; }
 const double pi = 3.14159265;
 
+double length(const geometry_msgs::Point& point) {
+  return sqrt(point.x * point.x + point.y * point.y);
+}
+
+double squaredLength(const geometry_msgs::Point& point) {
+  return point.x * point.x + point.y * point.y;
+}
+
+double length(const geometry_msgs::Vector3& vec) {
+  return sqrt(vec.x * vec.x + vec.y * vec.y);
+}
+
+double squaredLength(const geometry_msgs::Vector3& vec) {
+  return vec.x * vec.x + vec.y * vec.y;
+}
+
 geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, double x, double y, double theta) {
   geometry_msgs::Point p;
 

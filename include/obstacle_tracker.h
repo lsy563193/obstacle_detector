@@ -35,8 +35,11 @@
 
 #pragma once
 
+#include <list>
+#include <string>
 #include <ros/ros.h>
 #include "tracked_obstacle.h"
+#include "math_utilities.h"
 
 namespace obstacle_detector
 {
@@ -71,6 +74,7 @@ private:
   double p_tracking_duration_;
   double p_loop_rate_;
   double p_min_correspondence_cost_;
+  double p_std_correspondence_dev_;
   double p_process_variance_;
   double p_process_rate_variance_;
   double p_measurement_variance_;

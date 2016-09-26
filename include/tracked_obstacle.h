@@ -35,8 +35,6 @@
 
 #pragma once
 
-#define ARMA_DONT_USE_CXX11
-
 #include <armadillo>
 #include <obstacle_detector/Obstacles.h>
 
