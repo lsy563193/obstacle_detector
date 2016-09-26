@@ -287,13 +287,6 @@ bool ObstacleDetector::compareCircles(const Circle& c1, const Circle& c2, Circle
 
   // If circles intersect and are 'small' - merge
   if (c1.radius + c2.radius >= (c2.center - c1.center).length()) {
-// TODO: Check new merging method
-//    Segment segment(c1.center, c2.center);
-//    segment.point_sets.insert(segment.point_sets.end(), c1.point_sets.begin(), c1.point_sets.end());
-//    segment.point_sets.insert(segment.point_sets.end(), c2.point_sets.begin(), c2.point_sets.end());
-//
-//    Circle circle(segment);
-
     Point center = c1.center + (c2.center - c1.center) * c1.radius / (c1.radius + c2.radius);
     double radius = (c1.center - center).length() + c1.radius;
 
