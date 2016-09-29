@@ -1,10 +1,12 @@
 <!-- Runs obstacle tracker with a virtual obstacle publisher. -->
 <launch>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 100"/>
+  
   <node pkg="obstacle_detector" type="virtual_obstacle_publisher" name="virtual_obstacle_publisher">
     <param name="active"           value="true"/>
     <param name="reset"            value="false"/>
-    <param name="fusion_example"   value="true"/>
-    <param name="fission_example"  value="false"/>
+    <param name="fusion_example"   value="false"/>
+    <param name="fission_example"  value="true"/>
     <param name="loop_rate"        value="10.0"/>
     <param name="frame_id"         value="world"/>
   </node>

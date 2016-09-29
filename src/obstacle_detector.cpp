@@ -43,6 +43,7 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
 
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
+
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
   nh_local_.param<bool>("transform_coordinates", p_transform_coordinates_, true);
