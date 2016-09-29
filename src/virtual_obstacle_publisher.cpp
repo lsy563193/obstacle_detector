@@ -38,17 +38,14 @@
 using namespace std;
 using namespace obstacle_detector;
 
-VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~") {
+VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), rate_(1.0), p_active_(false) {
   std_srvs::Empty empty;
   updateParams(empty.request, empty.response);
-
   params_srv_ = nh_local_.advertiseService("params", &VirtualObstaclePublisher::updateParams, this);
 
   ROS_INFO("Virtual Obstacle Publisher [OK]");
-  ros::Rate rate(p_loop_rate_);
   tic_ = ros::Time::now();
   t_ = 0.0;
-
   while (ros::ok()) {
     ros::spinOnce();
 
@@ -69,7 +66,7 @@ VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~") {
       obstacle_pub_.publish(obstacles_);
     }
 
-    rate.sleep();
+    rate_.sleep();
   }
 }
 
@@ -90,36 +87,41 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
 
   nh_local_.getParam("frame_id", p_frame_id_);
 
-  if (p_active_)
+  if (p_active_) {
     obstacle_pub_ = nh_.advertise<Obstacles>("obstacles", 10);
-  else
+
+    obstacles_.header.stamp = ros::Time::now();
+    obstacles_.header.frame_id = p_frame_id_;
+    obstacles_.circles.clear();
+
+    if (p_x_vector_.size() == 0)
+      obstacle_pub_.publish(obstacles_);
+
+    if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
+        p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
+      return false;
+
+    for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
+      CircleObstacle circle;
+      circle.center.x = p_x_vector_[idx];
+      circle.center.y = p_y_vector_[idx];
+      circle.radius = p_r_vector_[idx];
+
+      circle.velocity.x = p_vx_vector_[idx];
+      circle.velocity.y = p_vy_vector_[idx];
+
+      obstacles_.circles.push_back(circle);
+    }
+  }
+  else {
     obstacle_pub_.shutdown();
+    p_loop_rate_ = 5.0;
+  }
 
   if (p_reset_)
     reset();
 
-  obstacles_.header.stamp = ros::Time::now();
-  obstacles_.header.frame_id = p_frame_id_;
-  obstacles_.circles.clear();
-
-  if (p_x_vector_.size() == 0)
-    obstacle_pub_.publish(obstacles_);
-
-  if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
-      p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
-    return false;
-
-  for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
-    CircleObstacle circle;
-    circle.center.x = p_x_vector_[idx];
-    circle.center.y = p_y_vector_[idx];
-    circle.radius = p_r_vector_[idx];
-
-    circle.velocity.x = p_vx_vector_[idx];
-    circle.velocity.y = p_vy_vector_[idx];
-
-    obstacles_.circles.push_back(circle);
-  }
+  rate_ = ros::Rate(p_loop_rate_);
 
   return true;
 }

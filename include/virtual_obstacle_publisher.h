@@ -58,6 +58,8 @@ private:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
+  ros::Rate rate_;
+
   ros::Publisher obstacle_pub_;
   ros::ServiceServer params_srv_;
 
