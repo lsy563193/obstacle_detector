@@ -35,7 +35,6 @@
 
 #pragma once
 
-//#define ARMA_DONT_USE_CXX11
 #include <armadillo>
 
 class KalmanFilter
@@ -54,6 +53,7 @@ public:
     P = mat(n,n).eye();
 
     K = mat(n,m).eye();
+    I = arma::eye<mat>(n,n);
 
     u = vec(l).zeros();
     q_pred = vec(n).zeros();
@@ -61,21 +61,20 @@ public:
     y = vec(m).zeros();
   }
 
-  void updateState() {
-    using arma::mat;
-
-    // Identity matrix
-    mat I = arma::eye<mat>(n,n);
-
-    // Predict State
+  void predictState() {
     q_pred = A * q_est + B * u;
-
     P = A * P * trans(A) + Q;
+  }
 
-    // Correct state
+  void correctState() {
     K = P * trans(C) * inv(C * P * trans(C) + R);
     q_est = q_pred + K * (y - C * q_pred);
     P = (I - K * C) * P;
+  }
+
+  void updateState() {
+    predictState();
+    correctState();
   }
 
 public:
@@ -91,6 +90,9 @@ public:
 
   // Kalman gain matrix:
   arma::mat K;
+
+  // Identity matrix
+  arma::mat I;
 
   // Signals:
   arma::vec u;       // Input

@@ -38,9 +38,9 @@
 //#define ARMA_DONT_USE_CXX11
 #include <armadillo>
 
-#include "point.h"
-#include "segment.h"
-#include "circle.h"
+#include "../figures/point.h"
+#include "../figures/segment.h"
+#include "../figures/circle.h"
 
 namespace obstacle_detector
 {

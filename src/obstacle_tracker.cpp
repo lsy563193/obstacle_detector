@@ -29,7 +29,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   while (ros::ok()) {
     ros::spinOnce();
 
-    updateObstacles();  // TODO: Check whether the supersampling should consist only in prediction step or also correction
+    updateObstacles();
     publishObstacles();
 
     rate.sleep();
@@ -83,6 +83,7 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
     if (fusion_indices.size() > 1) {
       CircleObstacle c;
+
       double sum_var_x  = 0.0;
       double sum_var_y  = 0.0;
       double sum_var_vx = 0.0;
@@ -103,7 +104,6 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         sum_var_r += 1.0 / tracked_obstacles_[idx].getKFr().P(0,0);
 
         c.obstacle_id += tracked_obstacles_[idx].getObstacle().obstacle_id + "-";
-//        tracked_obstacles_[idx].releaseId();
       }
 
       c.center.x /= sum_var_x;
@@ -116,7 +116,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
 
       TrackedObstacle to(c);
       to.assignId();
-      to.updateMeasurement(new_obstacles->circles[col_min_indices[i]]);
+      to.predictState();
+      to.correctState(new_obstacles->circles[col_min_indices[i]]);
       new_tracked_obstacles.push_back(to);
 
       // Mark used old and new obstacles
@@ -151,7 +152,8 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
       for (int idx : fission_indices) {
         TrackedObstacle to = tracked_obstacles_[row_min_indices[idx]];
         to.assignId();
-        to.updateMeasurement(new_obstacles->circles[idx]);
+        to.predictState();
+        to.correctState(new_obstacles->circles[idx]);
         new_tracked_obstacles.push_back(to);
       }
 
@@ -171,12 +173,13 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
     }
     else if (find(used_old_obstacles.begin(), used_old_obstacles.end(), row_min_indices[n]) == used_old_obstacles.end()) {
       if (row_min_indices[n] >= 0 && row_min_indices[n] < T) {
-        tracked_obstacles_[row_min_indices[n]].updateMeasurement(new_obstacles->circles[n]);
+        tracked_obstacles_[row_min_indices[n]].correctState(new_obstacles->circles[n]);
       }
       else if (row_min_indices[n] >= T) {
         TrackedObstacle to(untracked_obstacles_[row_min_indices[n] - T]);
         to.assignId();
-        to.updateMeasurement(new_obstacles->circles[n]);
+        to.predictState();
+        to.correctState(new_obstacles->circles[n]);
         new_tracked_obstacles.push_back(to);
       }
 
@@ -315,7 +318,7 @@ void ObstacleTracker::calculateColMinIndices(const arma::mat& cost_matrix, std::
 void ObstacleTracker::updateObstacles() {
   for (int i = 0; i < tracked_obstacles_.size(); ++i) {
     if (!tracked_obstacles_[i].hasFaded())
-      tracked_obstacles_[i].updateTracking();
+      tracked_obstacles_[i].predictState();
     else {
       tracked_obstacles_[i].releaseId();
       tracked_obstacles_.erase(tracked_obstacles_.begin() + i--);
@@ -343,10 +346,10 @@ int main(int argc, char** argv) {
 }
 
 // Ugly initialization of static members of tracked obstacles...
-int    TrackedObstacle::s_id_size_               = 0;
-int    TrackedObstacle::p_fade_counter_size_     = 0;
-double TrackedObstacle::p_sampling_time_         = 100.0;
-double TrackedObstacle::p_process_variance_      = 0.0;
-double TrackedObstacle::p_process_rate_variance_ = 0.0;
-double TrackedObstacle::p_measurement_variance_  = 0.0;
 list<string> TrackedObstacle::s_id_bank_         = {};
+int    TrackedObstacle::s_id_size_               = 0;
+int    TrackedObstacle::s_fade_counter_size_     = 0;
+double TrackedObstacle::s_sampling_time_         = 100.0;
+double TrackedObstacle::s_process_variance_      = 0.0;
+double TrackedObstacle::s_process_rate_variance_ = 0.0;
+double TrackedObstacle::s_measurement_variance_  = 0.0;

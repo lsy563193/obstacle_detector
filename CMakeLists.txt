@@ -28,16 +28,17 @@ qt4_wrap_cpp(MOC_FILES
 include_directories(include /usr/include/OGRE ${catkin_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h include/math_utilities.h)
+add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h include/utilities/math_utilities.h)
 target_link_libraries(scans_merger ${catkin_LIBRARIES})
 add_dependencies(scans_merger ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-add_executable(obstacle_detector src/obstacle_detector.cpp include/obstacle_detector.h include/math_utilities.h
-               include/figures/point.h include/figures/segment.h include/figures/circle.h include/figures/figure_fitting.h)
+add_executable(obstacle_detector src/obstacle_detector.cpp include/obstacle_detector.h include/utilities/math_utilities.h
+               include/figures/point.h include/figures/segment.h include/figures/circle.h include/utilities/figure_fitting.h
+               include/utilities/point_set.h)
 target_link_libraries(obstacle_detector ${catkin_LIBRARIES} ${ARMADILLO_LIBRARIES})
 add_dependencies(obstacle_detector ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-add_executable(obstacle_tracker src/obstacle_tracker.cpp include/obstacle_tracker.h include/kalman.h include/tracked_obstacle.h)
+add_executable(obstacle_tracker src/obstacle_tracker.cpp include/obstacle_tracker.h include/utilities/kalman.h include/utilities/tracked_obstacle.h)
 target_link_libraries(obstacle_tracker ${catkin_LIBRARIES} ${ARMADILLO_LIBRARIES})
 add_dependencies(obstacle_tracker ${PROJECT_NAME}_gencpp)
 

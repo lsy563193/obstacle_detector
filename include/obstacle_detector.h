@@ -41,11 +41,13 @@
 #include <sensor_msgs/PointCloud.h>
 #include <obstacle_detector/Obstacles.h>
 
-#include "math_utilities.h"
 #include "figures/point.h"
 #include "figures/segment.h"
 #include "figures/circle.h"
-#include "figures/figure_fitting.h"
+
+#include "utilities/figure_fitting.h"
+#include "utilities/math_utilities.h"
+#include "utilities/point_set.h"
 
 namespace obstacle_detector
 {

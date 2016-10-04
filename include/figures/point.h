@@ -36,9 +36,7 @@
 #pragma once
 
 #include <cmath>
-#include <cassert>
 #include <iostream>
-#include <list>
 
 namespace obstacle_detector
 {
@@ -57,19 +55,8 @@ public:
   double dot(const Point& p)   const { return x * p.x + y * p.y; }
   double cross(const Point& p) const { return x * p.y - y * p.x; }
 
-  Point& normalize() {
-    double L = length();
-    if (L > 0.0)
-      x /= L, y /= L;
-    return *this;
-  }
-
-  /*
-   * Returns a vector as if it was reflected from the surface
-   * which normal vector is given by parameter. normal is assumed
-   * to be normalized.
-   */
-  Point reflected(const Point& normal) const { return *this - 2.0f * normal * (normal.dot(*this)); }
+  Point normalized() { return (length() > 0.0) ? *this / length() : *this; }
+  Point reflected(const Point& normal) const { return *this - 2.0 * normal * (normal.dot(*this)); }
   Point perpendicular() const { return Point(-y, x); }
 
   friend Point operator+ (const Point& p1, const Point& p2) { return Point(p1.x + p2.x, p1.y + p2.y); }
@@ -91,24 +78,13 @@ public:
   friend bool operator<= (const Point& p1, const Point& p2) { return (p1.lengthSquared() <= p2.lengthSquared()); }
   friend bool operator>  (const Point& p1, const Point& p2) { return (p1.lengthSquared() > p2.lengthSquared()); }
   friend bool operator>= (const Point& p1, const Point& p2) { return (p1.lengthSquared() >= p2.lengthSquared()); }
-  friend bool operator!  (const Point& v) { return (v.x == 0.0f && v.y == 0.0f); }
+  friend bool operator!  (const Point& p1) { return (p1.x == 0.0 && p1.y == 0.0); }
 
   friend std::ostream& operator<<(std::ostream& out, const Point& p)
   { out << "(" << p.x << ", " << p.y << ")"; return out; }
 
   double x;
   double y;
-};
-
-typedef std::list<Point>::iterator PointIterator;
-
-class PointSet
-{
-public:
-  PointSet() { num_points = 0; }
-
-  PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
-  int num_points;
 };
 
 } // namespace obstacle_detector

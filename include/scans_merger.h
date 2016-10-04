@@ -40,7 +40,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 
-#include "math_utilities.h"
+#include "utilities/math_utilities.h"
 
 namespace obstacle_detector
 {

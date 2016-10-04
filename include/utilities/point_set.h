@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Software License Agreement (BSD License)
  *
  * Copyright (c) 2015, Poznan University of Technology
@@ -36,49 +36,21 @@
 #pragma once
 
 #include <list>
-#include <string>
-#include <ros/ros.h>
-
-#include "utilities/tracked_obstacle.h"
-#include "utilities/math_utilities.h"
+#include "../figures/point.h"
 
 namespace obstacle_detector
 {
 
-class ObstacleTracker {
+typedef std::list<Point>::iterator PointIterator;
+
+class PointSet
+{
 public:
-  ObstacleTracker();
+  PointSet() { num_points = 0; }
 
-private:
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
-
-  double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
-  void calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
-  void calculateRowMinIndices(const arma::mat& cost_matrix, std::vector<int>& row_min_indices);
-  void calculateColMinIndices(const arma::mat& cost_matrix, std::vector<int>& col_min_indices);
-
-  void updateObstacles();
-  void publishObstacles();
-
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
-
-  ros::Subscriber obstacles_sub_;
-  ros::Publisher obstacles_pub_;
-
-  Obstacles obstacles_msg_;
-
-  std::vector<TrackedObstacle> tracked_obstacles_;
-  std::vector<CircleObstacle> untracked_obstacles_;
-
-  // Parameters
-  double p_tracking_duration_;
-  double p_loop_rate_;
-  double p_min_correspondence_cost_;
-  double p_std_correspondence_dev_;
-  double p_process_variance_;
-  double p_process_rate_variance_;
-  double p_measurement_variance_;
+  PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
+  int num_points;
 };
 
 } // namespace obstacle_detector
+
