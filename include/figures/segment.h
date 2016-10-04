@@ -46,8 +46,6 @@ class Segment
 public:
   Segment() {}
   Segment(const Point& p1, const Point& p2) {
-    assert(p1 != p2);
-
     // Swap if not counter-clockwise
     if (p1.cross(p2) > 0.0)
       first_point = p1, last_point = p2;
