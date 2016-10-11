@@ -39,7 +39,6 @@ using namespace obstacle_detector;
 using namespace std;
 
 ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
-
   nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
   nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
 

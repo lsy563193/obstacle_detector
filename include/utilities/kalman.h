@@ -35,41 +35,74 @@
 
 #pragma once
 
-#include <tf/transform_listener.h>
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Point32.h>
+#include <armadillo>
 
-namespace obstacle_detector
+class KalmanFilter
 {
+public:
+  KalmanFilter(uint dim_in, uint dim_out, uint dim_state) : l(dim_in), m(dim_out), n(dim_state) {
+    using arma::mat;
+    using arma::vec;
 
-double signum(double x) { return (x < 0.0) ? -1.0 : 1.0; }
-double abs(double x) { return (x < 0.0) ? -x : x; }
-double max(double x, double y) { return (x > y) ? x : y; }
-const double pi = 3.14159265;
+    A = mat(n,n).eye();
+    B = mat(n,l).zeros();
+    C = mat(m,n).zeros();
 
-geometry_msgs::Point transformPoint(const geometry_msgs::Point& point, double x, double y, double theta) {
-  geometry_msgs::Point p;
+    Q = mat(n,n).eye();
+    R = mat(m,m).eye();
+    P = mat(n,n).eye();
 
-  p.x = point.x * cos(theta) - point.y * sin(theta) + x;
-  p.y = point.x * sin(theta) + point.y * cos(theta) + y;
+    K = mat(n,m).eye();
+    I = arma::eye<mat>(n,n);
 
-  return p;
-}
+    u = vec(l).zeros();
+    q_pred = vec(n).zeros();
+    q_est = vec(n).zeros();
+    y = vec(m).zeros();
+  }
 
-geometry_msgs::Point32 transformPoint(const geometry_msgs::Point32& point, double x, double y, double theta) {
-  geometry_msgs::Point32 p;
+  void predictState() {
+    q_pred = A * q_est + B * u;
+    P = A * P * trans(A) + Q;
+  }
 
-  p.x = point.x * cos(theta) - point.y * sin(theta) + x;
-  p.y = point.x * sin(theta) + point.y * cos(theta) + y;
+  void correctState() {
+    K = P * trans(C) * inv(C * P * trans(C) + R);
+    q_est = q_pred + K * (y - C * q_pred);
+    P = (I - K * C) * P;
+  }
 
-  return p;
-}
+  void updateState() {
+    predictState();
+    correctState();
+  }
 
-bool checkPointInLimits(const geometry_msgs::Point32& p, double x_min, double x_max, double y_min, double y_max) {
-  if ((p.x > x_max) || (p.x < x_min) || (p.y > y_max) || (p.y < y_min))
-    return false;
-  else
-    return true;
-}
+public:
+  // System matrices:
+  arma::mat A;       // State
+  arma::mat B;       // Input
+  arma::mat C;       // Output
 
-}
+  // Covariance matrices:
+  arma::mat Q;       // Process
+  arma::mat R;       // Measurement
+  arma::mat P;       // Estimate error
+
+  // Kalman gain matrix:
+  arma::mat K;
+
+  // Identity matrix
+  arma::mat I;
+
+  // Signals:
+  arma::vec u;       // Input
+  arma::vec q_pred;  // Predicted state
+  arma::vec q_est;   // Estimated state
+  arma::vec y;       // Measurement
+
+private:
+  // Dimensions:
+  uint l;             // Input
+  uint m;             // Output
+  uint n;             // State
+};

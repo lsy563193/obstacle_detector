@@ -36,7 +36,9 @@
 #pragma once
 
 #include <vector>
+
 #include "point.h"
+#include "../utilities/point_set.h"
 
 namespace obstacle_detector
 {
@@ -44,10 +46,7 @@ namespace obstacle_detector
 class Segment
 {
 public:
-  Segment() {}
-  Segment(const Point& p1, const Point& p2) {
-    assert(p1 != p2);
-
+  Segment(const Point& p1 = Point(), const Point& p2 = Point()) {
     // Swap if not counter-clockwise
     if (p1.cross(p2) > 0.0)
       first_point = p1, last_point = p2;
@@ -64,13 +63,28 @@ public:
   }
 
   Point normal() const {
-    return (last_point - first_point).perpendicular().normalize();
+    return (last_point - first_point).perpendicular().normalized();
   }
 
   Point projection(const Point& p) const {
     Point a = last_point - first_point;
     Point b = p - first_point;
     return first_point + a.dot(b) * a / a.lengthSquared();
+  }
+
+  Point trueProjection(const Point& p) const {
+    Point a = last_point - first_point;
+    Point b = p - first_point;
+    Point c = p - last_point;
+
+    double t = a.dot(b) / a.lengthSquared();
+
+    if (t < 0.0)
+      return (first_point);
+    else if (t > 1.0)
+      return (last_point);
+    else
+      return first_point + a.dot(b) * a / a.lengthSquared();
   }
 
   double distanceTo(const Point& p) const {

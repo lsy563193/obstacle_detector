@@ -35,8 +35,13 @@
 
 #pragma once
 
+#include <list>
+#include <string>
 #include <ros/ros.h>
-#include "figures/tracked_obstacle.h"
+#include <armadillo>
+
+#include "utilities/tracked_obstacle.h"
+#include "utilities/math_utilities.h"
 
 namespace obstacle_detector
 {
@@ -49,11 +54,19 @@ private:
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
   double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
-  CircleObstacle meanCircObstacle(const CircleObstacle& c1, const CircleObstacle& c2);
-
   void calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
   void calculateRowMinIndices(const arma::mat& cost_matrix, std::vector<int>& row_min_indices);
   void calculateColMinIndices(const arma::mat& cost_matrix, std::vector<int>& col_min_indices);
+
+  bool fusionObstacleUsed(const int idx, const std::vector<int>& col_min_indices, const std::vector<int>& used_new, const std::vector<int>& used_old);
+  bool fusionObstaclesCorrespond(const int idx, const int jdx, const std::vector<int>& col_min_indices, const std::vector<int>& used_old);
+  bool fissionObstacleUsed(const int idx, const int T, const std::vector<int>& row_min_indices, const std::vector<int>& used_new, const std::vector<int>& used_old);
+  bool fissionObstaclesCorrespond(const int idx, const int jdx, const std::vector<int>& row_min_indices, const std::vector<int>& used_new);
+
+  void fuseObstacles(const std::vector<int>& fusion_indices, const std::vector<int>& col_min_indices,
+                     std::vector<TrackedObstacle>& new_tracked, const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
+  void fissureObstacle(const std::vector<int>& fission_indices, const std::vector<int>& row_min_indices,
+                       std::vector<TrackedObstacle>& new_tracked, const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
 
   void updateObstacles();
   void publishObstacles();
@@ -62,22 +75,21 @@ private:
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
-  ros::Publisher tracked_obstacles_pub_;
+  ros::Publisher obstacles_pub_;
 
-  Obstacles tracked_obstacles_msg_;
+  Obstacles obstacles_msg_;
 
   std::vector<TrackedObstacle> tracked_obstacles_;
   std::vector<CircleObstacle> untracked_obstacles_;
 
   // Parameters
-  bool p_track_labels_;
-
   double p_tracking_duration_;
   double p_loop_rate_;
   double p_min_correspondence_cost_;
+  double p_std_correspondence_dev_;
   double p_process_variance_;
   double p_process_rate_variance_;
   double p_measurement_variance_;
 };
 
-} // namespace obstacle_detector
+}

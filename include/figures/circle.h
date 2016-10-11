@@ -44,15 +44,11 @@ namespace obstacle_detector
 class Circle
 {
 public:
-  Circle() {}
-  Circle(const Point& p, const double r) : center(p), radius(r) {
-    assert(radius > 0.0);
-  }
+  Circle(const Point& p = Point(), const double r = 0.0) : center(p), radius(r) { }
 
   /*
-   * This creates a circle by taking the segment as a
-   * base of equilateral triangle. The circle is circumscribed
-   * on this triangle.
+   * Create a circle by taking the segment as a base of equilateral
+   * triangle. The circle is circumscribed on this triangle.
    */
   Circle(const Segment& s) {
     radius = 0.5773502 * s.length();  // sqrt(3)/3 * length
@@ -69,13 +65,5 @@ public:
   double radius;
   std::vector<PointSet> point_sets;
 };
-
-//Circle(const Point& p1, const Point& p2, const Point& p3) {
-//  double a = (p2 - p3).lengthSquared() * (p1 - p2).dot(p1 - p3) / (2.0 * pow((p1 - p2).cross(p2 - p3), 2.0));
-//  double b = (p1 - p3).lengthSquared() * (p2 - p1).dot(p2 - p3) / (2.0 * pow((p1 - p2).cross(p2 - p3), 2.0));
-//  double c = (p1 - p2).lengthSquared() * (p3 - p1).dot(p3 - p2) / (2.0 * pow((p1 - p2).cross(p2 - p3), 2.0));
-//  center_ = a * p1 + b * p2 + c * p3;
-//  radius_ = distanceBetween(center_, p1);
-//}
 
 } // namespace obstacle_detector

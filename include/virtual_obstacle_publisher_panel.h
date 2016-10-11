@@ -111,4 +111,4 @@ private:
   std::vector<double> p_vy_vector_;
 };
 
-} // namespace obstacle_detector
+}

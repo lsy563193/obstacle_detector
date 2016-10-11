@@ -35,54 +35,22 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <std_srvs/Empty.h>
-#include <obstacle_detector/Obstacles.h>
+#include <list>
+#include "../figures/point.h"
 
 namespace obstacle_detector
 {
 
-class VirtualObstaclePublisher
+typedef std::list<Point>::iterator PointIterator;
+
+class PointSet
 {
 public:
-  VirtualObstaclePublisher();
+  PointSet() { num_points = 0; }
 
-private:
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
-
-  void calculateObstaclesPositions(double t);
-  void fusionExample(double t);
-  void fissionExample(double t);
-  void reset();
-
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_local_;
-
-  ros::Rate rate_;
-
-  ros::Publisher obstacle_pub_;
-  ros::ServiceServer params_srv_;
-
-  obstacle_detector::Obstacles obstacles_;
-  ros::Time tic_, toc_;
-  double t_;
-
-  // Parameters
-  bool p_active_;
-  bool p_reset_;
-  bool p_fusion_example_;
-  bool p_fission_example_;
-
-  double p_loop_rate_;
-
-  std::vector<double> p_x_vector_;  // Obstacles values as parameters
-  std::vector<double> p_y_vector_;
-  std::vector<double> p_r_vector_;
-
-  std::vector<double> p_vx_vector_;
-  std::vector<double> p_vy_vector_;
-
-  std::string p_frame_id_;
+  PointIterator begin, end;    // The iterators point to the list of points existing somewhere else
+  int num_points;
 };
 
 } // namespace obstacle_detector
+

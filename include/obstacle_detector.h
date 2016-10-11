@@ -41,11 +41,13 @@
 #include <sensor_msgs/PointCloud.h>
 #include <obstacle_detector/Obstacles.h>
 
-#include "math_utilities.h"
 #include "figures/point.h"
 #include "figures/segment.h"
 #include "figures/circle.h"
-#include "figures/figure_fitting.h"
+
+#include "utilities/figure_fitting.h"
+#include "utilities/math_utilities.h"
+#include "utilities/point_set.h"
 
 namespace obstacle_detector
 {
@@ -77,33 +79,35 @@ private:
 
   ros::Subscriber scan_sub_;
   ros::Subscriber pcl_sub_;
-  ros::Publisher  obstacles_pub_;
 
-  std::string base_frame_id_;       // Name of frame from input messages
+  ros::Publisher obstacles_pub_;
+
+  std::string base_frame_id_;
   tf::TransformListener tf_listener_;
 
   std::list<Point> input_points_;
   std::list<Segment> segments_;
-  std::list<Circle>  circles_;
+  std::list<Circle> circles_;
 
   // Parameters
-  std::string p_frame_id_;        // Name of final frame for obstacles if transformed
+  int p_min_group_points_;
 
-  bool p_use_scan_;               // Use data from scans
-  bool p_use_pcl_;                // Use data from point clouds
-  bool p_use_split_and_merge_;    // If false, iterative closest point is used instead of split and merge
-  bool p_discard_converted_segments_; // Do not publish segments from which the circles were obtained
-  bool p_transform_coordinates_;     // Transform obstacle coordinates to world frame
+  bool p_use_scan_;
+  bool p_use_pcl_;
+  bool p_use_split_and_merge_;
+  bool p_discard_converted_segments_;
+  bool p_transform_coordinates_;
 
-  int    p_min_group_points_;     // Miminal number of points in a set to process it further
-  double p_distance_proportion_;  // Proportion of allowable distances to the range of a point (based on scan angle increment)
-  double p_max_group_distance_;   // Maximal allowable distance between two points in a set
+  double p_distance_proportion_;
+  double p_max_group_distance_;
 
-  double p_max_split_distance_;   // Maximal allowable distance between a point and a leading line in the splitting process
-  double p_max_merge_separation_; // Maximal allowable distance between two segments when merging
-  double p_max_merge_spread_;     // Maximal allowable spread of initial segments around merged segment
-  double p_max_circle_radius_;    // Maximal allowable radius of a detected circle
-  double p_radius_enlargement_;   // Additional boundary for the obstacle
+  double p_max_split_distance_;
+  double p_max_merge_separation_;
+  double p_max_merge_spread_;
+  double p_max_circle_radius_;
+  double p_radius_enlargement_;
+
+  std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+}
