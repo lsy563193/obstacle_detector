@@ -79,20 +79,20 @@ private:
   std::vector<geometry_msgs::Point32> points_;
 
   // Parameters
-  std::string p_frame_id_;        // TF frame id for output PCL message
+  int p_ranges_num_;
 
   bool p_publish_scan_;
   bool p_publish_pcl_;
 
-  int p_ranges_num_;                // Number of ranges per scan
+  double p_min_scanner_range_;
+  double p_max_scanner_range_;
 
-  double p_min_scanner_range_;      // Restrictions on laser scanner range
-  double p_max_scanner_range_;      // Restrictions on laser scanner range
-
-  double p_max_x_range_;            // Restrictions on points coordinates
+  double p_max_x_range_;
   double p_min_x_range_;
   double p_max_y_range_;
   double p_min_y_range_;
+
+  std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+}

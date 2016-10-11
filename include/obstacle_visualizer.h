@@ -72,4 +72,4 @@ private:
   double p_z_layer_;
 };
 
-} // namespace obstacle_detector
+}

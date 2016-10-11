@@ -62,6 +62,7 @@ private:
 
   ros::Subscriber obstacles_sub_;
   ros::Subscriber optitrack_sub_;
+
   ros::ServiceServer recording_trigger_srv_;
 
   std::ofstream file_;
@@ -70,8 +71,8 @@ private:
   ros::Time start_mark_;
   geometry_msgs::Pose2D latest_pose_;
 
-  // Parameter
+  // Parameters
   std::string p_filename_prefix_;
 };
 
-} // namespace obstacle_detector
+}
