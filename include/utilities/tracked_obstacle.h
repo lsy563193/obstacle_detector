@@ -72,6 +72,22 @@ public:
     fade_counter_ = s_fade_counter_size_;
   }
 
+  void correctState2() {
+    kf_x_.correctState();
+    kf_y_.correctState();
+    kf_r_.correctState();
+
+    obstacle_.center.x = kf_x_.q_est(0);
+    obstacle_.center.y = kf_y_.q_est(0);
+
+    obstacle_.velocity.x = kf_x_.q_est(1);
+    obstacle_.velocity.y = kf_y_.q_est(1);
+
+    obstacle_.radius = kf_r_.q_est(0);
+
+    fade_counter_ = s_fade_counter_size_;
+  }
+
   void predictState() {
     kf_x_.predictState();
     kf_y_.predictState();
@@ -98,10 +114,13 @@ public:
       obstacle_.obstacle_id = id_list.back();
     }
     else {
+      size_t prev_pos = 0;
       size_t pos = obstacle_.obstacle_id.find("O", 0);
+
       while (pos != std::string::npos) {
-        id_list.push_back(obstacle_.obstacle_id.substr(pos, 2));
         pos = obstacle_.obstacle_id.find("O", pos + 1);
+        id_list.push_back(obstacle_.obstacle_id.substr(prev_pos, pos - prev_pos - 1));
+        prev_pos = pos;
       }
     }
   }

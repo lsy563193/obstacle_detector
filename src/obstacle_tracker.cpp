@@ -168,7 +168,8 @@ double ObstacleTracker::obstacleCostFunction(const CircleObstacle& new_obstacle,
   mat a = -0.5 * trans(relative_position) * distribution * relative_position;
   penalty = exp(a(0, 0));
 
-  return cost / penalty;
+  //return cost / penalty;
+  return cost / 1.0;
 }
 
 void ObstacleTracker::calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix) {
@@ -367,8 +368,10 @@ void ObstacleTracker::fissureObstacle(const std::vector<int>& fission_indices, c
 
 void ObstacleTracker::updateObstacles() {
   for (int i = 0; i < tracked_obstacles_.size(); ++i) {
-    if (!tracked_obstacles_[i].hasFaded())
+    if (!tracked_obstacles_[i].hasFaded()) {
       tracked_obstacles_[i].predictState();
+      tracked_obstacles_[i].correctState2();
+    }
     else {
       tracked_obstacles_[i].releaseId();
       tracked_obstacles_.erase(tracked_obstacles_.begin() + i--);
