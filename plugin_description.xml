@@ -1,5 +1,5 @@
 <library path="lib/libobstacle_detector_gui">
-  <class name="Virtual Obstacle Publisher"
+  <class name="Obstacle Detector Panel"
          type="obstacle_detector::VirtualObstaclePublisherPanel"
          base_class_type="rviz::Panel">
     <description>

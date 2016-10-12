@@ -78,19 +78,22 @@
     <param name="radius_enlargement"   value="0.030"/>
   </node>
   
+  <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
+    <param name="loop_rate"               value="100.0"/>
+    <param name="tracking_duration"       value="2.0"/>
+    <param name="min_correspondence_cost" value="0.4"/>
+    <param name="std_correspondence_dev"  value="0.15"/>
+    <param name="process_variance"        value="0.01"/>  
+    <param name="process_rate_variance"   value="0.1"/>  
+    <param name="measurement_variance"    value="1.0"/>  
+  </node>
+
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="7"/>
     <param name="untracked_circles_color" value="7"/>
     <param name="segments_color"          value="6"/>
     <param name="alpha"                   value="1"/>
     <param name="z_layer"                 value="0.0"/>
-  </node>
-
-  <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
-    <param name="fade_counter_size"       value="200"/>
-    <param name="min_correspondence_cost" value="0.5"/>
-    <param name="measurement_variance"    value="1.0"/>
-    <param name="process_variance"        value="0.01"/>    
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">
