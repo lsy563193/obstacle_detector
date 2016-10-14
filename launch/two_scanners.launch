@@ -58,7 +58,7 @@
   </node>
 -->
 
-  <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.15 0 0 0 0 0 base scanner_base 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.16 0 0 0 0 0 base scanner_base 100"/>
 
   <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_front_scanner" output="screen" args="0.025 0 0 0 0 0 scanner_base front_scanner 100"/>
 

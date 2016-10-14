@@ -84,8 +84,6 @@ public:
     obstacle_.velocity.y = kf_y_.q_est(1);
 
     obstacle_.radius = kf_r_.q_est(0);
-
-    fade_counter_ = s_fade_counter_size_;
   }
 
   void predictState() {
