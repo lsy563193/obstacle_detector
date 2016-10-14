@@ -22,7 +22,7 @@ catkin_package(
 )
 
 qt4_wrap_cpp(MOC_FILES
-  include/virtual_obstacle_publisher_panel.h
+  include/obstacle_detector_panel.h
 )
 
 include_directories(include /usr/include/OGRE ${catkin_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
@@ -58,6 +58,6 @@ add_executable(virtual_obstacle_publisher src/virtual_obstacle_publisher.cpp inc
 target_link_libraries(virtual_obstacle_publisher ${catkin_LIBRARIES})
 add_dependencies(virtual_obstacle_publisher ${PROJECT_NAME}_gencpp)
 
-add_library(${PROJECT_NAME}_gui src/virtual_obstacle_publisher_panel.cpp include/virtual_obstacle_publisher_panel.h ${MOC_FILES})
+add_library(${PROJECT_NAME}_gui src/obstacle_detector_panel.cpp include/obstacle_detector_panel.h ${MOC_FILES})
 target_link_libraries(${PROJECT_NAME}_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_gui ${catkin_EXPORTED_TARGETS})

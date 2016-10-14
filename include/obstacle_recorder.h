@@ -40,7 +40,7 @@
 #include <boost/filesystem.hpp>
 
 #include <ros/ros.h>
-#include <std_srvs/Trigger.h>
+#include <std_srvs/Empty.h>
 #include <obstacle_detector/Obstacles.h>
 #include <geometry_msgs/Pose2D.h>
 
@@ -53,25 +53,26 @@ public:
   ObstacleRecorder();
 
 private:
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles);
+  void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
   void optitrackCallback(const geometry_msgs::Pose2D::ConstPtr& optitrack);
-  bool recordingTrigger(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
   ros::Subscriber optitrack_sub_;
-
-  ros::ServiceServer recording_trigger_srv_;
+  ros::ServiceServer params_srv_;
 
   std::ofstream file_;
   int counter_;
-  bool recording_;
   ros::Time start_mark_;
   geometry_msgs::Pose2D latest_pose_;
 
   // Parameters
+  bool p_active_;
+  bool p_recording_;
+
   std::string p_filename_prefix_;
 };
 

@@ -84,7 +84,7 @@ bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::R
       scan_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
       pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
 
-      ROS_INFO("Scans Merger [START]");
+      ROS_INFO("Scans Merger [ACTIVE]");
     }
     else {
       front_scan_sub_.shutdown();
@@ -92,7 +92,7 @@ bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::R
       scan_pub_.shutdown();
       pcl_pub_.shutdown();
 
-      ROS_INFO("Scans Merger [STOP]");
+      ROS_INFO("Scans Merger [OFF]");
     }
   }
 

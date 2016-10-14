@@ -53,11 +53,11 @@
 namespace obstacle_detector
 {
 
-class VirtualObstaclePublisherPanel : public rviz::Panel
+class ObstacleDetectorPanel : public rviz::Panel
 {
 Q_OBJECT
 public:
-  VirtualObstaclePublisherPanel(QWidget* parent = 0);
+  ObstacleDetectorPanel(QWidget* parent = 0);
 
   virtual void load(const rviz::Config& config);
   virtual void save(rviz::Config config) const;

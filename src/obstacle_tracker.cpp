@@ -53,14 +53,14 @@ bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empt
       obstacles_pub_ = nh_.advertise<Obstacles>("tracked_obstacles", 10);
       rate_ = ros::Rate(p_loop_rate_);
 
-      ROS_INFO("Obstacle Tracker [START]");
+      ROS_INFO("Obstacle Tracker [ACTIVE]");
     }
     else {
       obstacles_sub_.shutdown();
       obstacles_pub_.shutdown();
       rate_ = ros::Rate(5.0);
 
-      ROS_INFO("Obstacle Tracker [STOP]");
+      ROS_INFO("Obstacle Tracker [OFF]");
     }
   }
 
