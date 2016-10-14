@@ -4,7 +4,38 @@ using namespace obstacle_detector;
 using namespace arma;
 using namespace std;
 
-ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "obstacle_tracker");
+  ObstacleTracker ot;
+  return 0;
+}
+
+ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~"), rate_(5.0), p_active_(false) {
+  std_srvs::Empty empty;
+  updateParams(empty.request, empty.response);
+  params_srv_ = nh_local_.advertiseService("params", &ObstacleTracker::updateParams, this);
+
+  ROS_INFO("Obstacle Tracker [Waiting for first message]");
+  ros::topic::waitForMessage<Obstacles>("obstacles");
+
+  ROS_INFO("Obstacle Tracker [OK]");
+  while (ros::ok()) {
+    ros::spinOnce();
+
+    if (p_active_) {
+      updateObstacles();
+      publishObstacles();
+    }
+
+    rate_.sleep();
+  }
+}
+
+bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+  bool prev_active = p_active_;
+
+  nh_local_.param<bool>("active", p_active_, true);
+
   nh_local_.param<double>("loop_rate", p_loop_rate_, 100.0);
   nh_local_.param<double>("tracking_duration", p_tracking_duration_, 2.0);
   nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.3);
@@ -17,26 +48,23 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~") {
   TrackedObstacle::setCounterSize(static_cast<int>(p_loop_rate_ * p_tracking_duration_));
   TrackedObstacle::setCovariances(p_process_variance_, p_process_rate_variance_, p_measurement_variance_);
 
-  obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
-  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("tracked_obstacles", 10);
-
-  ROS_INFO("Obstacle Tracker [Waiting for first message]");
-  ros::topic::waitForMessage<obstacle_detector::Obstacles>("obstacles");
-
-  ROS_INFO("Obstacle Tracker [OK]");
-  ros::Rate rate(p_loop_rate_);
-
-  while (ros::ok()) {
-    ros::spinOnce();
-
-    updateObstacles();
-    publishObstacles();
-
-    rate.sleep();
+  if (p_active_ != prev_active) {
+    if (p_active_) {
+      obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
+      obstacles_pub_ = nh_.advertise<Obstacles>("tracked_obstacles", 10);
+      rate_ = ros::Rate(p_loop_rate_);
+    }
+    else {
+      obstacles_sub_.shutdown();
+      obstacles_pub_.shutdown();
+      rate_ = ros::Rate(5.0);
+    }
   }
+
+  return true;
 }
 
-void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
+void ObstacleTracker::obstaclesCallback(const Obstacles::ConstPtr& new_obstacles) {
   obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
 
   int N = new_obstacles->circles.size();
@@ -120,10 +148,18 @@ void ObstacleTracker::obstaclesCallback(const obstacle_detector::Obstacles::Cons
         tracked_obstacles_[row_min_indices[n]].correctState(new_obstacles->circles[n]);
       }
       else if (row_min_indices[n] >= T) {
+        // TODO: Choose how to initiate new tracked obstacle (from which sample?)
+        // Old:
         TrackedObstacle to(untracked_obstacles_[row_min_indices[n] - T]);
         to.assignId();
-        to.predictState();
         to.correctState(new_obstacles->circles[n]);
+        for (int i = 0; i < 10; ++i)
+          to.updateState();
+
+        // New:
+        //  TrackedObstacle to(new_obstacles->circles[n]);
+        //  to.assignId();
+
         new_tracked_obstacles.push_back(to);
       }
 
@@ -168,11 +204,12 @@ double ObstacleTracker::obstacleCostFunction(const CircleObstacle& new_obstacle,
   mat a = -0.5 * trans(relative_position) * distribution * relative_position;
   penalty = exp(a(0, 0));
 
-  //return cost / penalty;
+  // TODO: Check values for cost/penalty in common situations
+  // return cost / penalty;
   return cost / 1.0;
 }
 
-void ObstacleTracker::calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix) {
+void ObstacleTracker::calculateCostMatrix(const vector<CircleObstacle>& new_obstacles, mat& cost_matrix) {
   /*
    * Cost between two obstacles represents their difference.
    * The bigger the cost, the less similar they are.
@@ -194,7 +231,7 @@ void ObstacleTracker::calculateCostMatrix(const std::vector<CircleObstacle>& new
   }
 }
 
-void ObstacleTracker::calculateRowMinIndices(const arma::mat& cost_matrix, std::vector<int>& row_min_indices) {
+void ObstacleTracker::calculateRowMinIndices(const mat& cost_matrix, vector<int>& row_min_indices) {
   /*
    * Vector of row minimal indices keeps the indices of old obstacles (tracked and untracked)
    * that have the minimum cost related to each of new obstacles, i.e. row_min_indices[n]
@@ -225,7 +262,7 @@ void ObstacleTracker::calculateRowMinIndices(const arma::mat& cost_matrix, std::
   }
 }
 
-void ObstacleTracker::calculateColMinIndices(const arma::mat& cost_matrix, std::vector<int>& col_min_indices) {
+void ObstacleTracker::calculateColMinIndices(const mat& cost_matrix, vector<int>& col_min_indices) {
   /*
    * Vector of column minimal indices keeps the indices of new obstacles that has the minimum
    * cost related to each of old (tracked and untracked) obstacles, i.e. col_min_indices[i]
@@ -260,7 +297,7 @@ void ObstacleTracker::calculateColMinIndices(const arma::mat& cost_matrix, std::
   }
 }
 
-bool ObstacleTracker::fusionObstacleUsed(const int idx, const std::vector<int> &col_min_indices, const std::vector<int> &used_new, const std::vector<int> &used_old) {
+bool ObstacleTracker::fusionObstacleUsed(const int idx, const vector<int> &col_min_indices, const vector<int> &used_new, const vector<int> &used_old) {
   /*
    * This function returns true if:
    * - idx-th old obstacle was already used
@@ -273,7 +310,7 @@ bool ObstacleTracker::fusionObstacleUsed(const int idx, const std::vector<int> &
           col_min_indices[idx] < 0);
 }
 
-bool ObstacleTracker::fusionObstaclesCorrespond(const int idx, const int jdx, const std::vector<int>& col_min_indices, const std::vector<int>& used_old) {
+bool ObstacleTracker::fusionObstaclesCorrespond(const int idx, const int jdx, const vector<int>& col_min_indices, const vector<int>& used_old) {
   /*
    * This function return true if:
    * - both old obstacles correspond to the same new obstacle
@@ -284,7 +321,7 @@ bool ObstacleTracker::fusionObstaclesCorrespond(const int idx, const int jdx, co
           find(used_old.begin(), used_old.end(), jdx) == used_old.end());
 }
 
-bool ObstacleTracker::fissionObstacleUsed(const int idx, const int T, const std::vector<int>& row_min_indices, const std::vector<int>& used_new, const std::vector<int>& used_old) {
+bool ObstacleTracker::fissionObstacleUsed(const int idx, const int T, const vector<int>& row_min_indices, const vector<int>& used_new, const vector<int>& used_old) {
   /*
    * This function return true if:
    * - idx-th new obstacle was already used
@@ -299,7 +336,7 @@ bool ObstacleTracker::fissionObstacleUsed(const int idx, const int T, const std:
           row_min_indices[idx] >= T);
 }
 
-bool ObstacleTracker::fissionObstaclesCorrespond(const int idx, const int jdx, const std::vector<int>& row_min_indices, const std::vector<int>& used_new) {
+bool ObstacleTracker::fissionObstaclesCorrespond(const int idx, const int jdx, const vector<int>& row_min_indices, const vector<int>& used_new) {
   /*
    * This function return true if:
    * - both new obstacles correspond to the same old obstacle
@@ -310,8 +347,8 @@ bool ObstacleTracker::fissionObstaclesCorrespond(const int idx, const int jdx, c
           find(used_new.begin(), used_new.end(), jdx) == used_new.end());
 }
 
-void ObstacleTracker::fuseObstacles(const std::vector<int>& fusion_indices, const std::vector<int> &col_min_indices,
-                                    std::vector<TrackedObstacle>& new_tracked, const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
+void ObstacleTracker::fuseObstacles(const vector<int>& fusion_indices, const vector<int> &col_min_indices,
+                                    vector<TrackedObstacle>& new_tracked, const Obstacles::ConstPtr& new_obstacles) {
   CircleObstacle c;
 
   double sum_var_x  = 0.0;
@@ -346,32 +383,33 @@ void ObstacleTracker::fuseObstacles(const std::vector<int>& fusion_indices, cons
 
   TrackedObstacle to(c);
   to.assignId();
-  to.predictState();
   to.correctState(new_obstacles->circles[col_min_indices[fusion_indices.front()]]);
+  for (int i = 0; i < 10; ++i)
+    to.updateState();
 
   new_tracked.push_back(to);
 }
 
-void ObstacleTracker::fissureObstacle(const std::vector<int>& fission_indices, const std::vector<int>& row_min_indices,
-                                      std::vector<TrackedObstacle>& new_tracked, const obstacle_detector::Obstacles::ConstPtr& new_obstacles) {
+void ObstacleTracker::fissureObstacle(const vector<int>& fission_indices, const vector<int>& row_min_indices,
+                                      vector<TrackedObstacle>& new_tracked, const Obstacles::ConstPtr& new_obstacles) {
   tracked_obstacles_[row_min_indices[fission_indices.front()]].releaseId();
 
   // For each new obstacle taking part in fission create a tracked obstacle from the original old one and update it with the new one
   for (int idx : fission_indices) {
     TrackedObstacle to = tracked_obstacles_[row_min_indices[idx]];
     to.assignId();
-    to.predictState();
     to.correctState(new_obstacles->circles[idx]);
+    for (int i = 0; i < 10; ++i)
+      to.updateState();
+
     new_tracked.push_back(to);
   }
 }
 
 void ObstacleTracker::updateObstacles() {
   for (int i = 0; i < tracked_obstacles_.size(); ++i) {
-    if (!tracked_obstacles_[i].hasFaded()) {
-      tracked_obstacles_[i].predictState();
-      tracked_obstacles_[i].correctState2();
-    }
+    if (!tracked_obstacles_[i].hasFaded())
+      tracked_obstacles_[i].updateState();
     else {
       tracked_obstacles_[i].releaseId();
       tracked_obstacles_.erase(tracked_obstacles_.begin() + i--);
@@ -390,12 +428,6 @@ void ObstacleTracker::publishObstacles() {
     obstacles_msg_.circles.push_back(untracked_obstacle);
 
   obstacles_pub_.publish(obstacles_msg_);
-}
-
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "obstacle_tracker");
-  ObstacleTracker ot;
-  return 0;
 }
 
 // Ugly initialization of static members of tracked obstacles...

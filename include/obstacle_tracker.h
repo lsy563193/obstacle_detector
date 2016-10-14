@@ -39,6 +39,7 @@
 #include <string>
 #include <ros/ros.h>
 #include <armadillo>
+#include <std_srvs/Empty.h>
 
 #include "utilities/tracked_obstacle.h"
 #include "utilities/math_utilities.h"
@@ -52,6 +53,7 @@ public:
 
 private:
   void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
   void calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
@@ -76,6 +78,9 @@ private:
 
   ros::Subscriber obstacles_sub_;
   ros::Publisher obstacles_pub_;
+  ros::ServiceServer params_srv_;
+
+  ros::Rate rate_;
 
   Obstacles obstacles_msg_;
 
@@ -83,6 +88,8 @@ private:
   std::vector<CircleObstacle> untracked_obstacles_;
 
   // Parameters
+  bool p_active_;
+
   double p_tracking_duration_;
   double p_loop_rate_;
   double p_min_correspondence_cost_;

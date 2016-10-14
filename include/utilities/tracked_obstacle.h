@@ -36,9 +36,7 @@
 #pragma once
 
 #include <obstacle_detector/Obstacles.h>
-
 #include "kalman.h"
-#include "../figures/point.h"
 
 namespace obstacle_detector
 {
@@ -50,6 +48,22 @@ public:
     fade_counter_ = s_fade_counter_size_;
 
     initKF();
+  }
+
+  void predictState() {
+    kf_x_.predictState();
+    kf_y_.predictState();
+    kf_r_.predictState();
+
+    obstacle_.center.x = kf_x_.q_pred(0);
+    obstacle_.center.y = kf_y_.q_pred(0);
+
+    obstacle_.velocity.x = kf_x_.q_pred(1);
+    obstacle_.velocity.y = kf_y_.q_pred(1);
+
+    obstacle_.radius = kf_r_.q_pred(0);
+
+    fade_counter_--;
   }
 
   void correctState(const CircleObstacle& new_obstacle) {
@@ -72,7 +86,11 @@ public:
     fade_counter_ = s_fade_counter_size_;
   }
 
-  void correctState2() {
+  void updateState() {
+    kf_x_.predictState();
+    kf_y_.predictState();
+    kf_r_.predictState();
+
     kf_x_.correctState();
     kf_y_.correctState();
     kf_r_.correctState();
@@ -84,20 +102,6 @@ public:
     obstacle_.velocity.y = kf_y_.q_est(1);
 
     obstacle_.radius = kf_r_.q_est(0);
-  }
-
-  void predictState() {
-    kf_x_.predictState();
-    kf_y_.predictState();
-    kf_r_.predictState();
-
-    obstacle_.center.x = kf_x_.q_pred(0);
-    obstacle_.center.y = kf_y_.q_pred(0);
-
-    obstacle_.velocity.x = kf_x_.q_pred(1);
-    obstacle_.velocity.y = kf_y_.q_pred(1);
-
-    obstacle_.radius = kf_r_.q_pred(0);
 
     fade_counter_--;
   }

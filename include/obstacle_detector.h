@@ -37,6 +37,7 @@
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include <std_srvs/Empty.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 #include <obstacle_detector/Obstacles.h>
@@ -60,10 +61,12 @@ public:
 private:
   void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
   void pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl);
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   void processPoints();
-
   void groupPoints();
+  void publishObstacles();
+
   void detectSegments(const PointSet& point_set);
   void mergeSegments();
   bool compareSegments(const Segment& s1, const Segment& s2, Segment& merged_segment);
@@ -72,15 +75,13 @@ private:
   void mergeCircles();
   bool compareCircles(const Circle& c1, const Circle& c2, Circle& merged_circle);
 
-  void publishObstacles();
-
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::Subscriber scan_sub_;
   ros::Subscriber pcl_sub_;
-
   ros::Publisher obstacles_pub_;
+  ros::ServiceServer params_srv_;
 
   std::string base_frame_id_;
   tf::TransformListener tf_listener_;
@@ -92,6 +93,7 @@ private:
   // Parameters
   int p_min_group_points_;
 
+  bool p_active_;
   bool p_use_scan_;
   bool p_use_pcl_;
   bool p_use_split_and_merge_;

@@ -38,17 +38,32 @@
 using namespace std;
 using namespace obstacle_detector;
 
-ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
-  nh_local_.param<string>("frame_id", p_frame_id_, "world");
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "obstacle_detector");
+  ObstacleDetector od;
+  return 0;
+}
 
+ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~"), p_active_(false) {
+  std_srvs::Empty empty;
+  updateParams(empty.request, empty.response);
+  params_srv_ = nh_local_.advertiseService("params", &ObstacleDetector::updateParams, this);
+
+  ROS_INFO("Obstacle Detector [OK]");
+  ros::spin();
+}
+
+bool ObstacleDetector::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+  bool prev_active = p_active_;
+
+  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
+
+  nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
-
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
   nh_local_.param<bool>("transform_coordinates", p_transform_coordinates_, true);
-
-  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
   nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
   nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);
@@ -58,15 +73,29 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~") {
   nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.300);
   nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.030);
 
-  if (p_use_scan_)
-    scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
-  else if (p_use_pcl_)
-    pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
+  nh_local_.param<string>("frame_id", p_frame_id_, "world");
 
-  obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 10);
+  if (p_active_ != prev_active) {
+    if (p_active_) {
+      if (p_use_scan_)
+        scan_sub_ = nh_.subscribe("scan", 10, &ObstacleDetector::scanCallback, this);
+      else if (p_use_pcl_)
+        pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
 
-  ROS_INFO("Obstacle Detector [OK]");
-  ros::spin();
+      obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 10);
+
+      ROS_INFO("Obstacle Detector [RUNNING]");
+    }
+    else {
+      scan_sub_.shutdown();
+      pcl_sub_.shutdown();
+      obstacles_pub_.shutdown();
+
+      ROS_INFO("Obstacle Detector [STOPPED]");
+    }
+  }
+
+  return true;
 }
 
 void ObstacleDetector::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
@@ -343,6 +372,7 @@ void ObstacleDetector::publishObstacles() {
     }
     catch (tf::TransformException ex) {
       ROS_ERROR("%s",ex.what());
+      return;
     }
 
     tf::Vector3 origin = transform.getOrigin();
@@ -362,10 +392,4 @@ void ObstacleDetector::publishObstacles() {
     obstacles.header.frame_id = base_frame_id_;
 
   obstacles_pub_.publish(obstacles);
-}
-
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "obstacle_detector");
-  ObstacleDetector od;
-  return 0;
 }
