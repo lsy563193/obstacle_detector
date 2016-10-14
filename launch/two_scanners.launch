@@ -1,6 +1,7 @@
 <!-- Runs obstacle detector and tracker with two Hokuyo laser scanners.
      Uses mocap_optitrack, laser_scan_matcher or static_tf for world to base transformation. -->
 <launch>
+
   <node pkg="hokuyo_node" type="hokuyo_node" name="front_hokuyo" output="screen" respawn="true">
     <param name="port"           value="/dev/sensors/hokuyo_H1320250"/>
     <param name="frame_id"       value="front_scanner"/>
@@ -16,6 +17,7 @@
 
     <remap from="scan" to="front_scan"/>
   </node>
+
 
   <node pkg="hokuyo_node" type="hokuyo_node" name="rear_hokuyo" output="screen" respawn="true">
     <param name="port"           value="/dev/sensors/hokuyo_H0904847"/>
@@ -33,7 +35,9 @@
     <remap from="scan" to="rear_scan"/>
   </node>
 
+
   <node pkg="tf" type="static_transform_publisher" name="world_to_base" output="screen" args="0 0 0 0 0 0 world base 10"/>
+
 
 <!--
   <node pkg="mocap_optitrack" type="mocap_node" name="mocap_node" respawn="false" launch-prefix="" required="true">
@@ -58,11 +62,15 @@
   </node>
 -->
 
+
   <node pkg="tf" type="static_transform_publisher" name="base_to_scanner_base" output="screen" args="-0.16 0 0 0 0 0 base scanner_base 10"/>
+
 
   <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_front_scanner" output="screen" args="0.025 0 0 0 0 0 scanner_base front_scanner 10"/>
 
+
   <node pkg="tf" type="static_transform_publisher" name="scanner_base_to_rear_scanner" output="screen" args="-0.025 0 0 3.14159265 0 0 scanner_base rear_scanner 10"/>
+
 
   <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
 
@@ -81,6 +89,7 @@
 
     <param name="frame_id"          value="scanner_base"/>
   </node>
+
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
     <param name="frame_id"             value="world"/>
@@ -103,6 +112,7 @@
     <param name="radius_enlargement"   value="0.030"/>
   </node>
 
+
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
     <param name="active"                  value="true"/>
     <param name="loop_rate"               value="100.0"/>
@@ -114,6 +124,7 @@
     <param name="measurement_variance"    value="1.0"/>
   </node>
 
+
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="7"/>
     <param name="untracked_circles_color" value="7"/>
@@ -121,6 +132,7 @@
     <param name="alpha"                   value="1"/>
     <param name="z_layer"                 value="0.0"/>
   </node>
+
 
   <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="3"/>
@@ -133,15 +145,22 @@
     <remap from="obstacles_markers" to="tracked_obstacles_markers"/>
   </node>
 
+
   <node pkg="obstacle_detector" type="obstacle_recorder" name="raw_obstacle_recorder" output="screen">
-    <param name="filename_prefix"         value="raw_"/>
+    <param name="active"           value="true"/>
+    <param name="recording"        value="false"/>
+    <param name="filename_prefix"  value="raw_"/>
   </node>
 
+
   <node pkg="obstacle_detector" type="obstacle_recorder" name="tracked_obstacle_recorder" output="screen">
-    <param name="filename_prefix"         value="tracked_"/>
+    <param name="active"           value="true"/>
+    <param name="recording"        value="false"/>
+    <param name="filename_prefix"  value="tracked_"/>
 
     <remap from="obstacles" to="tracked_obstacles"/>
   </node>
+
 
   <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/>
 
