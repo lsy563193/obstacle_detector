@@ -37,6 +37,7 @@
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include <std_srvs/Empty.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud.h>
 
@@ -53,6 +54,7 @@ public:
 private:
   void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan);
   void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan);
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   void publishScan();
   void publishPCL();
@@ -63,9 +65,9 @@ private:
 
   ros::Subscriber front_scan_sub_;
   ros::Subscriber rear_scan_sub_;
-
   ros::Publisher scan_pub_;
   ros::Publisher pcl_pub_;
+  ros::ServiceServer params_srv_;
 
   tf::TransformListener front_tf_;
   tf::TransformListener rear_tf_;
@@ -81,12 +83,12 @@ private:
   // Parameters
   int p_ranges_num_;
 
+  bool p_active_;
   bool p_publish_scan_;
   bool p_publish_pcl_;
 
   double p_min_scanner_range_;
   double p_max_scanner_range_;
-
   double p_max_x_range_;
   double p_min_x_range_;
   double p_max_y_range_;

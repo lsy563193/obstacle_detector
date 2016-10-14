@@ -38,27 +38,16 @@
 using namespace obstacle_detector;
 using namespace std;
 
-ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
-  nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
-  nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "scans_merger");
+  ScansMerger SM;
+  return 0;
+}
 
-  nh_local_.param<std::string>("frame_id", p_frame_id_, "scanner_base");
-
-  nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
-
-  nh_local_.param<double>("min_scanner_range", p_min_scanner_range_, 0.05);
-  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 10.0);
-
-  nh_local_.param<double>("max_x_range", p_max_x_range_,  10.0);
-  nh_local_.param<double>("min_x_range", p_min_x_range_, -10.0);
-  nh_local_.param<double>("max_y_range", p_max_y_range_,  10.0);
-  nh_local_.param<double>("min_y_range", p_min_y_range_, -10.0);
-
-  front_scan_sub_ = nh_.subscribe("front_scan", 10, &ScansMerger::frontScanCallback, this);
-  rear_scan_sub_ = nh_.subscribe("rear_scan", 10, &ScansMerger::rearScanCallback, this);
-
-  scan_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
-  pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
+ScansMerger::ScansMerger() : nh_(""), nh_local_("~"), p_active_(false) {
+  std_srvs::Empty empty;
+  updateParams(empty.request, empty.response);
+  params_srv_ = nh_local_.advertiseService("params", &ScansMerger::updateParams, this);
 
   front_scan_received_ = false;
   rear_scan_received_ = false;
@@ -66,8 +55,48 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~") {
   front_scan_error_ = false;
   rear_scan_error_ = false;
 
-  ROS_INFO("Scans Merger [OK]");
   ros::spin();
+}
+
+bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+  bool prev_active = p_active_;
+
+  nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
+
+  nh_local_.param<bool>("active", p_active_, true);
+  nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
+  nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
+
+  nh_local_.param<double>("min_scanner_range", p_min_scanner_range_, 0.05);
+  nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 10.0);
+  nh_local_.param<double>("max_x_range", p_max_x_range_,  10.0);
+  nh_local_.param<double>("min_x_range", p_min_x_range_, -10.0);
+  nh_local_.param<double>("max_y_range", p_max_y_range_,  10.0);
+  nh_local_.param<double>("min_y_range", p_min_y_range_, -10.0);
+
+  nh_local_.param<std::string>("frame_id", p_frame_id_, "scanner_base");
+
+  if (p_active_ != prev_active) {
+    if (p_active_) {
+      front_scan_sub_ = nh_.subscribe("front_scan", 10, &ScansMerger::frontScanCallback, this);
+      rear_scan_sub_ = nh_.subscribe("rear_scan", 10, &ScansMerger::rearScanCallback, this);
+
+      scan_pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
+      pcl_pub_ = nh_.advertise<sensor_msgs::PointCloud>("pcl", 10);
+
+      ROS_INFO("Scans Merger [START]");
+    }
+    else {
+      front_scan_sub_.shutdown();
+      rear_scan_sub_.shutdown();
+      scan_pub_.shutdown();
+      pcl_pub_.shutdown();
+
+      ROS_INFO("Scans Merger [STOP]");
+    }
+  }
+
+  return true;
 }
 
 void ScansMerger::frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan) {
@@ -207,10 +236,4 @@ void ScansMerger::publishAll() {
   rear_scan_received_ = false;
 
   points_.clear();
-}
-
-int main(int argc, char **argv) {
-  ros::init(argc, argv, "scans_merger");
-  ScansMerger SM;
-  return 0;
 }

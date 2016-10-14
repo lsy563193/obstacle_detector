@@ -18,7 +18,6 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~"), rate_(5.0), p_acti
   ROS_INFO("Obstacle Tracker [Waiting for first message]");
   ros::topic::waitForMessage<Obstacles>("obstacles");
 
-  ROS_INFO("Obstacle Tracker [OK]");
   while (ros::ok()) {
     ros::spinOnce();
 
@@ -53,11 +52,15 @@ bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empt
       obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
       obstacles_pub_ = nh_.advertise<Obstacles>("tracked_obstacles", 10);
       rate_ = ros::Rate(p_loop_rate_);
+
+      ROS_INFO("Obstacle Tracker [START]");
     }
     else {
       obstacles_sub_.shutdown();
       obstacles_pub_.shutdown();
       rate_ = ros::Rate(5.0);
+
+      ROS_INFO("Obstacle Tracker [STOP]");
     }
   }
 
@@ -148,17 +151,11 @@ void ObstacleTracker::obstaclesCallback(const Obstacles::ConstPtr& new_obstacles
         tracked_obstacles_[row_min_indices[n]].correctState(new_obstacles->circles[n]);
       }
       else if (row_min_indices[n] >= T) {
-        // TODO: Choose how to initiate new tracked obstacle (from which sample?)
-        // Old:
         TrackedObstacle to(untracked_obstacles_[row_min_indices[n] - T]);
         to.assignId();
         to.correctState(new_obstacles->circles[n]);
         for (int i = 0; i < 10; ++i)
           to.updateState();
-
-        // New:
-        //  TrackedObstacle to(new_obstacles->circles[n]);
-        //  to.assignId();
 
         new_tracked_obstacles.push_back(to);
       }

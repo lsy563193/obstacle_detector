@@ -49,7 +49,6 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~"), p_active_(false)
   updateParams(empty.request, empty.response);
   params_srv_ = nh_local_.advertiseService("params", &ObstacleDetector::updateParams, this);
 
-  ROS_INFO("Obstacle Detector [OK]");
   ros::spin();
 }
 
@@ -84,14 +83,14 @@ bool ObstacleDetector::updateParams(std_srvs::Empty::Request &req, std_srvs::Emp
 
       obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("obstacles", 10);
 
-      ROS_INFO("Obstacle Detector [RUNNING]");
+      ROS_INFO("Obstacle Detector [START]");
     }
     else {
       scan_sub_.shutdown();
       pcl_sub_.shutdown();
       obstacles_pub_.shutdown();
 
-      ROS_INFO("Obstacle Detector [STOPPED]");
+      ROS_INFO("Obstacle Detector [STOP]");
     }
   }
 
