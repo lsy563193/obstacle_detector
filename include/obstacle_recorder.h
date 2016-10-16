@@ -42,7 +42,6 @@
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <obstacle_detector/Obstacles.h>
-#include <geometry_msgs/Pose2D.h>
 
 namespace obstacle_detector
 {
@@ -54,20 +53,19 @@ public:
 
 private:
   void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
-  void optitrackCallback(const geometry_msgs::Pose2D::ConstPtr& optitrack);
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
+  void prepareFile();
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::Subscriber obstacles_sub_;
-  ros::Subscriber optitrack_sub_;
   ros::ServiceServer params_srv_;
 
-  std::ofstream file_;
   int counter_;
+  std::ofstream file_;
   ros::Time start_mark_;
-  geometry_msgs::Pose2D latest_pose_;
 
   // Parameters
   bool p_active_;

@@ -64,42 +64,19 @@ bool ObstacleRecorder::updateParams(std_srvs::Empty::Request &req, std_srvs::Emp
   if (p_active_ != prev_active) {
     if (p_active_) {
       obstacles_sub_ = nh_.subscribe<Obstacles>("obstacles", 10, &ObstacleRecorder::obstaclesCallback, this);
-      optitrack_sub_ = nh_.subscribe<geometry_msgs::Pose2D>("youbot_pose", 10, &ObstacleRecorder::optitrackCallback, this);
-
       ROS_INFO("Obstacle Recorder [ACTIVE]");
     }
     else {
       obstacles_sub_.shutdown();
-      optitrack_sub_.shutdown();
-
       nh_local_.setParam("recording", false);
       p_recording_ = false;
-
       ROS_INFO("Obstacle Recorder [OFF]");
     }
   }
 
   if (p_recording_ != prev_recording) {
     if (p_recording_) {
-      time_t now = time(NULL);
-      char the_date[30];
-      start_mark_ = ros::Time::now();
-      counter_ = 0;
-
-      if (now != -1)
-        strftime(the_date, 30, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
-
-      std::string username = getenv("USER");
-      std::string foldername = "/home/" + username + "/obstacle_records/";
-      std::string filename = foldername + p_filename_prefix_ + "obstacles_" + std::string(the_date) + ".txt";
-
-      boost::filesystem::create_directories(foldername);
-      file_.open(filename);
-
-      // Number, time, label, tracked, x, y, r, v_x, v_y, ox, oy, oth
-      file_ << "ROS time at start: " << ros::Time::now() << "\n";
-      file_ << "idx" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\t" << "ox" << "\t" << "oy" << "\t" << "oth" << "\n";
-
+      prepareFile();
       ROS_INFO("Obstacle Recorder [RECORDING]");
     }
     else {
@@ -124,15 +101,29 @@ void ObstacleRecorder::obstaclesCallback(const obstacle_detector::Obstacles::Con
             << circle.center.x << "\t"
             << circle.center.y << "\t"
             << circle.radius << "\t"
-            << circle.velocity.x << "\t"
-            << circle.velocity.y << "\t"
-            << latest_pose_.x << "\t"
-            << latest_pose_.y << "\t"
-            << latest_pose_.theta << "\n";
+            << circle.velocity.x << "\n";
     }
   }
 }
 
-void ObstacleRecorder::optitrackCallback(const geometry_msgs::Pose2D::ConstPtr& optitrack) {
-  latest_pose_ = *optitrack;
+void ObstacleRecorder::prepareFile() {
+  time_t now = time(NULL);
+  char the_date[30];
+  start_mark_ = ros::Time::now();
+  counter_ = 0;
+
+  if (now != -1)
+    strftime(the_date, 30, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
+
+  std::string username = getenv("USER");
+  std::string foldername = "/home/" + username + "/obstacle_records/";
+  std::string filename = foldername + p_filename_prefix_ + "obstacles_" + std::string(the_date) + ".txt";
+
+  boost::filesystem::create_directories(foldername);
+  file_.open(filename);
+
+  // Number, time, label, tracked, x, y, r, v_x, v_y
+  file_ << "ROS time at start: " << ros::Time::now() << "\n";
+  file_ << "idx" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\n";
+
 }
