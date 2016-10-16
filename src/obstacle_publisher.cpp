@@ -33,21 +33,21 @@
  * Author: Mateusz Przybyla
  */
 
-#include "../include/virtual_obstacle_publisher.h"
+#include "../include/obstacle_publisher.h"
 
 using namespace std;
 using namespace obstacle_detector;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "virtual_obstacle_publisher");
-  VirtualObstaclePublisher vop;
+  ObstaclePublisher vop;
   return 0;
 }
 
-VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), rate_(5.0), p_active_(false) {
+ObstaclePublisher::ObstaclePublisher() : nh_(""), nh_local_("~"), rate_(5.0), p_active_(false) {
   std_srvs::Empty empty;
   updateParams(empty.request, empty.response);
-  params_srv_ = nh_local_.advertiseService("params", &VirtualObstaclePublisher::updateParams, this);
+  params_srv_ = nh_local_.advertiseService("params", &ObstaclePublisher::updateParams, this);
 
   tic_ = ros::Time::now();
   t_ = 0.0;
@@ -75,7 +75,7 @@ VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), 
   }
 }
 
-bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
+bool ObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
   bool prev_active = p_active_;
 
   nh_local_.param<bool>("active", p_active_, true);
@@ -132,14 +132,14 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
   return true;
 }
 
-void VirtualObstaclePublisher::calculateObstaclesPositions(double dt) {
+void ObstaclePublisher::calculateObstaclesPositions(double dt) {
   for (auto& circ : obstacles_.circles) {
     circ.center.x += circ.velocity.x * dt;
     circ.center.y += circ.velocity.y * dt;
   }
 }
 
-void VirtualObstaclePublisher::fusionExample(double t) {
+void ObstaclePublisher::fusionExample(double t) {
   CircleObstacle circ1, circ2;
 
   obstacles_.circles.clear();
@@ -167,7 +167,7 @@ void VirtualObstaclePublisher::fusionExample(double t) {
     reset();
 }
 
-void VirtualObstaclePublisher::fissionExample(double t) {
+void ObstaclePublisher::fissionExample(double t) {
   CircleObstacle circ1, circ2;
 
   obstacles_.circles.clear();
@@ -202,12 +202,12 @@ void VirtualObstaclePublisher::fissionExample(double t) {
     reset();
 }
 
-void VirtualObstaclePublisher::publishObstacles() {
+void ObstaclePublisher::publishObstacles() {
   obstacles_.header.stamp = ros::Time::now();
   obstacle_pub_.publish(obstacles_);
 }
 
-void VirtualObstaclePublisher::reset() {
+void ObstaclePublisher::reset() {
   t_ = 0.0;
   p_reset_ = false;
   nh_local_.setParam("reset", false);

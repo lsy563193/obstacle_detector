@@ -1,9 +1,27 @@
 <library path="lib/libobstacle_detector_gui">
-  <class name="Obstacle Detector Panel"
+
+  <class name="Obstacle Detector"
          type="obstacle_detector::ObstacleDetectorPanel"
          base_class_type="rviz::Panel">
     <description>
-      Panel used for activating and setting parameters of nodes from obstacle_detector package.
+      Turn on/off and change parameters of obstacle detector.
     </description>
   </class>
+
+  <class name="Scans Merger"
+         type="obstacle_detector::ScansMergerPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      Turn on/off and change parameters of scans merger.
+    </description>
+  </class>
+
+  <class name="Obstacle Publisher"
+         type="obstacle_detector::ObstaclePublisherPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      Turn on/off and change parameters of virtual obstacle publisher.
+    </description>
+  </class>
+
 </library>

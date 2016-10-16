@@ -33,12 +33,12 @@
  * Author: Mateusz Przybyla
  */
 
-#include "../include/obstacle_detector_panel.h"
+#include "../include/panels/obstacle_publisher_panel.h"
 
 using namespace obstacle_detector;
 using namespace std;
 
-ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("virtual_obstacle_publisher") {
+ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("virtual_obstacle_publisher") {
   params_cli_ = nh_local_.serviceClient<std_srvs::Empty>("params");
   getParams();
 
@@ -109,14 +109,14 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   evaluateParams();
 }
 
-void ObstacleDetectorPanel::processInputs() {
+void ObstaclePublisherPanel::processInputs() {
   verifyInputs();
   setParams();
   evaluateParams();
   notifyParamsUpdate();
 }
 
-void ObstacleDetectorPanel::addObstacle() {
+void ObstaclePublisherPanel::addObstacle() {
   verifyInputs();
 
   if (r_ > 0.0) {
@@ -133,7 +133,7 @@ void ObstacleDetectorPanel::addObstacle() {
   }
 }
 
-void ObstacleDetectorPanel::removeObstacles() {
+void ObstaclePublisherPanel::removeObstacles() {
   QModelIndexList indexes = obstacles_list_->selectionModel()->selectedIndexes();
 
   vector<int> index_list;
@@ -159,7 +159,7 @@ void ObstacleDetectorPanel::removeObstacles() {
   notifyParamsUpdate();
 }
 
-void ObstacleDetectorPanel::reset() {
+void ObstaclePublisherPanel::reset() {
   p_reset_ = true;
 
   processInputs();
@@ -167,7 +167,7 @@ void ObstacleDetectorPanel::reset() {
   p_reset_ = false;
 }
 
-void ObstacleDetectorPanel::verifyInputs() {
+void ObstaclePublisherPanel::verifyInputs() {
   p_active_ = activate_checkbox_->isChecked();
 
   try { x_ = boost::lexical_cast<double>(x_input_->text().toStdString()); }
@@ -186,7 +186,7 @@ void ObstacleDetectorPanel::verifyInputs() {
   catch(boost::bad_lexical_cast &) { vy_ = 0.0; vy_input_->setText("0.0"); }
 }
 
-void ObstacleDetectorPanel::setParams() {
+void ObstaclePublisherPanel::setParams() {
   nh_local_.setParam("active", p_active_);
   nh_local_.setParam("reset", p_reset_);
 
@@ -198,7 +198,7 @@ void ObstacleDetectorPanel::setParams() {
   nh_local_.setParam("vy_vector", p_vy_vector_);
 }
 
-void ObstacleDetectorPanel::getParams() {
+void ObstaclePublisherPanel::getParams() {
   nh_local_.param<bool>("active", p_active_, false);
   nh_local_.param<bool>("reset", p_reset_, false);
 
@@ -210,7 +210,7 @@ void ObstacleDetectorPanel::getParams() {
   nh_local_.getParam("vy_vector", p_vy_vector_);
 }
 
-void ObstacleDetectorPanel::evaluateParams() {
+void ObstaclePublisherPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
 
   add_button_->setEnabled(p_active_);
@@ -249,7 +249,7 @@ void ObstacleDetectorPanel::evaluateParams() {
   }
 }
 
-void ObstacleDetectorPanel::notifyParamsUpdate() {
+void ObstaclePublisherPanel::notifyParamsUpdate() {
   std_srvs::Empty empty;
   if (!params_cli_.call(empty)) {
     p_active_ = false;
@@ -258,13 +258,13 @@ void ObstacleDetectorPanel::notifyParamsUpdate() {
   }
 }
 
-void ObstacleDetectorPanel::save(rviz::Config config) const {
+void ObstaclePublisherPanel::save(rviz::Config config) const {
   rviz::Panel::save(config);
 }
 
-void ObstacleDetectorPanel::load(const rviz::Config& config) {
+void ObstaclePublisherPanel::load(const rviz::Config& config) {
   rviz::Panel::load(config);
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(obstacle_detector::ObstacleDetectorPanel, rviz::Panel)
+PLUGINLIB_EXPORT_CLASS(obstacle_detector::ObstaclePublisherPanel, rviz::Panel)

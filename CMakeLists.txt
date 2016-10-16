@@ -69,11 +69,13 @@ target_link_libraries(static_scan_publisher ${catkin_LIBRARIES})
 add_dependencies(static_scan_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
-add_executable(virtual_obstacle_publisher src/virtual_obstacle_publisher.cpp include/virtual_obstacle_publisher.h)
-target_link_libraries(virtual_obstacle_publisher ${catkin_LIBRARIES})
-add_dependencies(virtual_obstacle_publisher ${PROJECT_NAME}_gencpp)
+add_executable(obstacle_publisher src/obstacle_publisher.cpp include/obstacle_publisher.h)
+target_link_libraries(obstacle_publisher ${catkin_LIBRARIES})
+add_dependencies(obstacle_publisher ${PROJECT_NAME}_gencpp)
 
 
-add_library(${PROJECT_NAME}_gui src/obstacle_detector_panel.cpp include/obstacle_detector_panel.h)
+add_library(${PROJECT_NAME}_gui src/panels/scans_merger_panel.cpp include/panels/scans_merger_panel.h
+                                src/panels/obstacle_detector_panel.cpp include/panels/obstacle_detector_panel.h
+                                src/panels/obstacle_publisher_panel.cpp include/panels/obstacle_publisher_panel.h)
 target_link_libraries(${PROJECT_NAME}_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_gui ${catkin_EXPORTED_TARGETS})

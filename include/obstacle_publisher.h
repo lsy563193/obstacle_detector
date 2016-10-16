@@ -42,10 +42,10 @@
 namespace obstacle_detector
 {
 
-class VirtualObstaclePublisher
+class ObstaclePublisher
 {
 public:
-  VirtualObstaclePublisher();
+  ObstaclePublisher();
 
 private:
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
