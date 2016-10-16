@@ -38,14 +38,20 @@
 using namespace std;
 using namespace obstacle_detector;
 
-VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), rate_(1.0), p_active_(false) {
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "virtual_obstacle_publisher");
+  VirtualObstaclePublisher vop;
+  return 0;
+}
+
+VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), rate_(5.0), p_active_(false) {
   std_srvs::Empty empty;
   updateParams(empty.request, empty.response);
   params_srv_ = nh_local_.advertiseService("params", &VirtualObstaclePublisher::updateParams, this);
 
-  ROS_INFO("Virtual Obstacle Publisher [OK]");
   tic_ = ros::Time::now();
   t_ = 0.0;
+
   while (ros::ok()) {
     ros::spinOnce();
 
@@ -62,8 +68,7 @@ VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), 
       else if (p_fission_example_)
         fissionExample(t_);
 
-      obstacles_.header.stamp = ros::Time::now();
-      obstacle_pub_.publish(obstacles_);
+      publishObstacles();
     }
 
     rate_.sleep();
@@ -71,7 +76,9 @@ VirtualObstaclePublisher::VirtualObstaclePublisher() : nh_(""), nh_local_("~"), 
 }
 
 bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
-  nh_local_.param<bool>("active", p_active_, false);
+  bool prev_active = p_active_;
+
+  nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("reset", p_reset_, false);
   nh_local_.param<bool>("fusion_example", p_fusion_example_, false);
   nh_local_.param<bool>("fission_example", p_fission_example_, false);
@@ -87,41 +94,40 @@ bool VirtualObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_s
 
   nh_local_.getParam("frame_id", p_frame_id_);
 
-  if (p_active_) {
-    obstacle_pub_ = nh_.advertise<Obstacles>("obstacles", 10);
-
-    obstacles_.header.stamp = ros::Time::now();
-    obstacles_.header.frame_id = p_frame_id_;
-    obstacles_.circles.clear();
-
-    if (p_x_vector_.size() == 0)
-      obstacle_pub_.publish(obstacles_);
-
-    if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
-        p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
-      return false;
-
-    for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
-      CircleObstacle circle;
-      circle.center.x = p_x_vector_[idx];
-      circle.center.y = p_y_vector_[idx];
-      circle.radius = p_r_vector_[idx];
-
-      circle.velocity.x = p_vx_vector_[idx];
-      circle.velocity.y = p_vy_vector_[idx];
-
-      obstacles_.circles.push_back(circle);
+  if (p_active_ != prev_active) {
+    if (p_active_) {
+      obstacle_pub_ = nh_.advertise<Obstacles>("obstacles", 10);
+      rate_ = ros::Rate(p_loop_rate_);
+      ROS_INFO("Virtual Obstacle Publisher [ACTIVE]");
+    }
+    else {
+      obstacle_pub_.shutdown();
+      rate_ = ros::Rate(5.0);
+      ROS_INFO("Virtual Obstacle Publisher [OFF]");
     }
   }
-  else {
-    obstacle_pub_.shutdown();
-    p_loop_rate_ = 5.0;
+
+  obstacles_.header.frame_id = p_frame_id_;
+  obstacles_.circles.clear();
+
+  if (p_x_vector_.size() != p_y_vector_.size() || p_x_vector_.size() != p_r_vector_.size() ||
+      p_x_vector_.size() != p_vx_vector_.size() || p_x_vector_.size() != p_vy_vector_.size())
+    return false;
+
+  for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
+    CircleObstacle circle;
+    circle.center.x = p_x_vector_[idx];
+    circle.center.y = p_y_vector_[idx];
+    circle.radius = p_r_vector_[idx];
+
+    circle.velocity.x = p_vx_vector_[idx];
+    circle.velocity.y = p_vy_vector_[idx];
+
+    obstacles_.circles.push_back(circle);
   }
 
   if (p_reset_)
     reset();
-
-  rate_ = ros::Rate(p_loop_rate_);
 
   return true;
 }
@@ -196,14 +202,13 @@ void VirtualObstaclePublisher::fissionExample(double t) {
     reset();
 }
 
+void VirtualObstaclePublisher::publishObstacles() {
+  obstacles_.header.stamp = ros::Time::now();
+  obstacle_pub_.publish(obstacles_);
+}
+
 void VirtualObstaclePublisher::reset() {
   t_ = 0.0;
   p_reset_ = false;
   nh_local_.setParam("reset", false);
-}
-
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "virtual_obstacle_publisher");
-  VirtualObstaclePublisher vop;
-  return 0;
 }

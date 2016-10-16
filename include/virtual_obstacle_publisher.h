@@ -53,18 +53,18 @@ private:
   void calculateObstaclesPositions(double t);
   void fusionExample(double t);
   void fissionExample(double t);
+  void publishObstacles();
   void reset();
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
-  ros::Rate rate_;
-
   ros::Publisher obstacle_pub_;
   ros::ServiceServer params_srv_;
 
-  obstacle_detector::Obstacles obstacles_;
+  Obstacles obstacles_;
   ros::Time tic_, toc_;
+  ros::Rate rate_;
   double t_;
 
   // Parameters
@@ -85,4 +85,4 @@ private:
   std::string p_frame_id_;
 };
 
-} // namespace obstacle_detector
+}
