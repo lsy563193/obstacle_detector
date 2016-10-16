@@ -37,27 +37,57 @@
 
 using namespace obstacle_detector;
 
-ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~") {
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "obstacle_visualizer");
+  ObstacleVisualizer ov;
+  return 0;
+}
+
+ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~"), p_active_(false) {
+  std_srvs::Empty empty;
+  updateParams(empty.request, empty.response);
+  params_srv_ = nh_local_.advertiseService("params", &ObstacleVisualizer::updateParams, this);
+
+  ros::spin();
+}
+
+bool ObstacleVisualizer::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+  bool prev_active = p_active_;
+
   nh_local_.param<int>("tracked_circles_color", p_tracked_circles_color_, 3);
   nh_local_.param<int>("untracked_circles_color", p_untracked_circles_color_, 2);
   nh_local_.param<int>("segments_color", p_segments_color_, 1);
   nh_local_.param<int>("text_color", p_text_color_, 1);
+
+  nh_local_.param<bool>("active", p_active_, true);
+
   nh_local_.param<double>("alpha", p_alpha_, 1.0);
   nh_local_.param<double>("z_layer", p_z_layer_, 0.0);
-
-  obstacles_sub_ = nh_.subscribe<obstacle_detector::Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
-  markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
 
   setColor(tracked_circles_color_, p_tracked_circles_color_, p_alpha_);
   setColor(untracked_circles_color_, p_untracked_circles_color_, p_alpha_);
   setColor(segments_color_, p_segments_color_, p_alpha_);
   setColor(text_color_, p_text_color_, p_alpha_);
 
-  ROS_INFO("Obstacle Visualizer [OK]");
-  ros::spin();
+  if (p_active_ != prev_active) {
+    if (p_active_) {
+      obstacles_sub_ = nh_.subscribe<Obstacles>("obstacles", 10, &ObstacleVisualizer::obstaclesCallback, this);
+      markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacles_markers", 10);
+
+      ROS_INFO("Obstacle Visualizer [ACTIVE]");
+    }
+    else {
+      obstacles_sub_.shutdown();
+      markers_pub_.shutdown();
+
+      ROS_INFO("Obstacle Visualizer [OFF]");
+    }
+  }
+
+  return true;
 }
 
-void ObstacleVisualizer::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles) {
+void ObstacleVisualizer::obstaclesCallback(const Obstacles::ConstPtr& obstacles) {
   if (obstacles->header.frame_id == "")
     return;
 
@@ -208,10 +238,4 @@ void ObstacleVisualizer::setColor(std_msgs::ColorRGBA &color, int color_code, fl
   }
 
   color.a = alpha;
-}
-
-int main(int argc, char** argv) {
-  ros::init(argc, argv, "obstacle_visualizer");
-  ObstacleVisualizer ov;
-  return 0;
 }

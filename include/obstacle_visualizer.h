@@ -36,6 +36,7 @@
 #pragma once
 
 #include <ros/ros.h>
+#include <std_srvs/Empty.h>
 #include <obstacle_detector/Obstacles.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -48,7 +49,9 @@ public:
   ObstacleVisualizer();
 
 private:
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles);
+  void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+
   void setColor(std_msgs::ColorRGBA& color, int color_code, float alpha);
 
   ros::NodeHandle nh_;
@@ -56,6 +59,7 @@ private:
 
   ros::Subscriber obstacles_sub_;
   ros::Publisher markers_pub_;
+  ros::ServiceServer params_srv_;
 
   std_msgs::ColorRGBA tracked_circles_color_;
   std_msgs::ColorRGBA untracked_circles_color_;
@@ -67,6 +71,8 @@ private:
   int p_untracked_circles_color_;
   int p_segments_color_;
   int p_text_color_;
+
+  bool p_active_;
 
   double p_alpha_;
   double p_z_layer_;
