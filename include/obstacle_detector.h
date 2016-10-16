@@ -59,9 +59,9 @@ public:
   ObstacleDetector();
 
 private:
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
   void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
   void pclCallback(const sensor_msgs::PointCloud::ConstPtr& pcl);
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   void processPoints();
   void groupPoints();

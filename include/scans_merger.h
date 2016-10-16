@@ -52,9 +52,9 @@ public:
   ScansMerger();
 
 private:
+  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
   void frontScanCallback(const sensor_msgs::LaserScan::ConstPtr& front_scan);
   void rearScanCallback(const sensor_msgs::LaserScan::ConstPtr& rear_scan);
-  bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   void publishScan();
   void publishPCL();

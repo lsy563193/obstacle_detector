@@ -52,8 +52,8 @@ public:
   ObstacleRecorder();
 
 private:
-  void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+  void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
 
   void prepareFile();
 

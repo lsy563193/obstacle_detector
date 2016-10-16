@@ -52,8 +52,8 @@ public:
   ObstacleTracker();
 
 private:
-  void obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+  void obstaclesCallback(const Obstacles::ConstPtr& new_obstacles);
 
   double obstacleCostFunction(const CircleObstacle& new_obstacle, const CircleObstacle& old_obstacle);
   void calculateCostMatrix(const std::vector<CircleObstacle>& new_obstacles, arma::mat& cost_matrix);
@@ -66,9 +66,9 @@ private:
   bool fissionObstaclesCorrespond(const int idx, const int jdx, const std::vector<int>& row_min_indices, const std::vector<int>& used_new);
 
   void fuseObstacles(const std::vector<int>& fusion_indices, const std::vector<int>& col_min_indices,
-                     std::vector<TrackedObstacle>& new_tracked, const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
+                     std::vector<TrackedObstacle>& new_tracked, const Obstacles::ConstPtr& new_obstacles);
   void fissureObstacle(const std::vector<int>& fission_indices, const std::vector<int>& row_min_indices,
-                       std::vector<TrackedObstacle>& new_tracked, const obstacle_detector::Obstacles::ConstPtr& new_obstacles);
+                       std::vector<TrackedObstacle>& new_tracked, const Obstacles::ConstPtr& new_obstacles);
 
   void updateObstacles();
   void publishObstacles();

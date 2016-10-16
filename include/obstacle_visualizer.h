@@ -49,8 +49,8 @@ public:
   ObstacleVisualizer();
 
 private:
-  void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
   bool updateParams(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+  void obstaclesCallback(const Obstacles::ConstPtr& obstacles);
 
   void setColor(std_msgs::ColorRGBA& color, int color_code, float alpha);
 
