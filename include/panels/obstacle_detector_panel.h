@@ -35,8 +35,6 @@
 
 #pragma once
 
-#include <algorithm>
-
 #include <ros/ros.h>
 #include <rviz/panel.h>
 #include <std_srvs/Empty.h>
@@ -48,8 +46,6 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
-#include <QListWidget>
-#include <QTabWidget>
 
 namespace obstacle_detector
 {
@@ -65,9 +61,6 @@ public:
 
 private Q_SLOTS:
   void processInputs();
-  void addObstacle();
-  void removeObstacles();
-  void reset();
 
 private:
   void verifyInputs();
@@ -78,38 +71,49 @@ private:
 
 private:
   QCheckBox* activate_checkbox_;
+  QCheckBox* use_scan_checkbox_;
+  QCheckBox* use_pcl_checkbox_;
+  QCheckBox* use_split_merge_checkbox_;
+  QCheckBox* discard_segments_checkbox_;
+  QCheckBox* transform_coords_checkbox_;
 
-  QListWidget* obstacles_list_;
-  std::vector<QListWidgetItem*> obstacles_list_items_;
+  QPushButton* set_button_;
 
-  QPushButton* add_button_;
-  QPushButton* remove_button_;
-  QPushButton* reset_button_;
-
-  QLineEdit* x_input_;
-  QLineEdit* y_input_;
-  QLineEdit* r_input_;
-
-  QLineEdit* vx_input_;
-  QLineEdit* vy_input_;
+  QLineEdit* min_n_input_;
+  QLineEdit* dist_prop_input_;
+  QLineEdit* group_dist_input_;
+  QLineEdit* split_dist_input_;
+  QLineEdit* merge_sep_input_;
+  QLineEdit* merge_spread_input_;
+  QLineEdit* max_radius_input_;
+  QLineEdit* radius_enl_input_;
+  QLineEdit* frame_id_input_;
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 
   ros::ServiceClient params_cli_;
 
-  double x_, y_, r_, vx_, vy_;
-
   // Parameters
+  int p_min_group_points_;
+
   bool p_active_;
-  bool p_reset_;
+  bool p_use_scan_;
+  bool p_use_pcl_;
+  bool p_use_split_and_merge_;
+  bool p_discard_converted_segments_;
+  bool p_transform_coordinates_;
 
-  std::vector<double> p_x_vector_;  // Obstacles values as parameters
-  std::vector<double> p_y_vector_;
-  std::vector<double> p_r_vector_;
+  double p_distance_proportion_;
+  double p_max_group_distance_;
 
-  std::vector<double> p_vx_vector_;
-  std::vector<double> p_vy_vector_;
+  double p_max_split_distance_;
+  double p_max_merge_separation_;
+  double p_max_merge_spread_;
+  double p_max_circle_radius_;
+  double p_radius_enlargement_;
+
+  std::string p_frame_id_;
 };
 
 }

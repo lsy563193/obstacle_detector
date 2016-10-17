@@ -38,7 +38,7 @@
 using namespace obstacle_detector;
 using namespace std;
 
-ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("virtual_obstacle_publisher") {
+ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("obstacle_publisher") {
   params_cli_ = nh_local_.serviceClient<std_srvs::Empty>("params");
   getParams();
 

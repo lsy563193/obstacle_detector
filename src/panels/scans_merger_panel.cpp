@@ -43,19 +43,20 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   getParams();
 
   activate_checkbox_ = new QCheckBox("On/Off");
-  scan_checkbox_ = new QCheckBox("Use scan");
-  pcl_checkbox_ = new QCheckBox("Use PCL");
+  scan_checkbox_ = new QCheckBox("Publish scan");
+  pcl_checkbox_ = new QCheckBox("Publish PCL");
   set_button_ = new QPushButton("Set");
 
-  n_input_ = new QLineEdit(QString::number(p_ranges_num_));
-  r_min_input_ = new QLineEdit(QString::number(p_min_scanner_range_));
-  r_max_input_ = new QLineEdit(QString::number(p_max_scanner_range_));
-  x_min_input_ = new QLineEdit(QString::number(p_min_x_range_));
-  x_max_input_ = new QLineEdit(QString::number(p_max_x_range_));
-  y_min_input_ = new QLineEdit(QString::number(p_min_y_range_));
-  y_max_input_ = new QLineEdit(QString::number(p_max_y_range_));
+  n_input_ = new QLineEdit();
+  r_min_input_ = new QLineEdit();
+  r_max_input_ = new QLineEdit();
+  x_min_input_ = new QLineEdit();
+  x_max_input_ = new QLineEdit();
+  y_min_input_ = new QLineEdit();
+  y_max_input_ = new QLineEdit();
+  frame_id_input_ = new QLineEdit();
 
-  QFrame* lines[4];
+  QFrame* lines[5];
   for (auto& line : lines) {
     line = new QFrame();
     line->setFrameShape(QFrame::HLine);
@@ -107,6 +108,12 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   y_layout->addWidget(new QLabel("m"));
   y_layout->addItem(margin);
 
+  QHBoxLayout* frame_id_layout = new QHBoxLayout;
+  frame_id_layout->addItem(margin);
+  frame_id_layout->addWidget(new QLabel("Frame ID:"));
+  frame_id_layout->addWidget(frame_id_input_);
+  frame_id_layout->addItem(margin);
+
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
@@ -118,6 +125,8 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   layout->addLayout(x_layout);
   layout->addLayout(y_layout);
   layout->addWidget(lines[3]);
+  layout->addLayout(frame_id_layout);
+  layout->addWidget(lines[4]);
   layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
@@ -160,6 +169,8 @@ void ScansMergerPanel::verifyInputs() {
 
   try { p_max_y_range_ = boost::lexical_cast<double>(y_max_input_->text().toStdString()); }
   catch(boost::bad_lexical_cast &) { p_max_y_range_ = 0.0; y_max_input_->setText("0.0"); }
+
+  p_frame_id_ = frame_id_input_->text().toStdString();
 }
 
 void ScansMergerPanel::setParams() {
@@ -175,12 +186,14 @@ void ScansMergerPanel::setParams() {
   nh_local_.setParam("min_x_range", p_min_x_range_);
   nh_local_.setParam("max_y_range", p_max_y_range_);
   nh_local_.setParam("min_y_range", p_min_y_range_);
+
+  nh_local_.setParam("frame_id", p_frame_id_);
 }
 
 void ScansMergerPanel::getParams() {
   nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
 
-  nh_local_.param<bool>("active", p_active_, false);
+  nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
   nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
 
@@ -190,14 +203,18 @@ void ScansMergerPanel::getParams() {
   nh_local_.param<double>("min_x_range", p_min_x_range_, -10.0);
   nh_local_.param<double>("max_y_range", p_max_y_range_,  10.0);
   nh_local_.param<double>("min_y_range", p_min_y_range_, -10.0);
+
+  nh_local_.param<string>("frame_id", p_frame_id_, "scanner_base");
 }
 
 void ScansMergerPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
+
   scan_checkbox_->setEnabled(p_active_);
   pcl_checkbox_->setEnabled(p_active_);
 
-  set_button_->setEnabled(p_active_);
+  scan_checkbox_->setChecked(p_publish_scan_);
+  pcl_checkbox_->setChecked(p_publish_pcl_);
 
   n_input_->setEnabled(p_active_);
   r_min_input_->setEnabled(p_active_);
@@ -206,6 +223,18 @@ void ScansMergerPanel::evaluateParams() {
   x_max_input_->setEnabled(p_active_);
   y_min_input_->setEnabled(p_active_);
   y_max_input_->setEnabled(p_active_);
+  frame_id_input_->setEnabled(p_active_);
+
+  n_input_->setText(QString::number(p_ranges_num_));
+  r_min_input_->setText(QString::number(p_min_scanner_range_));
+  r_max_input_->setText(QString::number(p_max_scanner_range_));
+  x_min_input_->setText(QString::number(p_min_x_range_));
+  x_max_input_->setText(QString::number(p_max_x_range_));
+  y_min_input_->setText(QString::number(p_min_y_range_));
+  y_max_input_->setText(QString::number(p_max_y_range_));
+  frame_id_input_->setText(QString::fromStdString(p_frame_id_));
+
+  set_button_->setEnabled(p_active_);
 }
 
 void ScansMergerPanel::notifyParamsUpdate() {

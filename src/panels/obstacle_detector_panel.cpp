@@ -38,24 +38,30 @@
 using namespace obstacle_detector;
 using namespace std;
 
-ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("virtual_obstacle_publisher") {
+ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(parent), nh_(""), nh_local_("obstacle_detector") {
   params_cli_ = nh_local_.serviceClient<std_srvs::Empty>("params");
   getParams();
 
   activate_checkbox_ = new QCheckBox("On/Off");
-  obstacles_list_    = new QListWidget();
-  add_button_        = new QPushButton("Add obstacle");
-  remove_button_     = new QPushButton("Remove selected");
-  reset_button_      = new QPushButton("Reset time");
-  x_input_           = new QLineEdit("0.0");
-  y_input_           = new QLineEdit("0.0");
-  r_input_           = new QLineEdit("0.0");
-  vx_input_          = new QLineEdit("0.0");
-  vy_input_          = new QLineEdit("0.0");
+  use_scan_checkbox_ = new QCheckBox("Use scan");
+  use_pcl_checkbox_ = new QCheckBox("Use PCL");
+  use_split_merge_checkbox_ = new QCheckBox("Use split and merge");
+  discard_segments_checkbox_ = new QCheckBox("Discard segments");
+  transform_coords_checkbox_ = new QCheckBox("Transform coordinates");
 
-  obstacles_list_->setSelectionMode(QAbstractItemView::MultiSelection);
+  min_n_input_ = new QLineEdit();
+  dist_prop_input_ = new QLineEdit();
+  group_dist_input_ = new QLineEdit();
+  split_dist_input_ = new QLineEdit();
+  merge_sep_input_ = new QLineEdit();
+  merge_spread_input_ = new QLineEdit();
+  max_radius_input_ = new QLineEdit();
+  radius_enl_input_ = new QLineEdit();
+  frame_id_input_ = new QLineEdit();
 
-  QFrame* lines[3];
+  set_button_ = new QPushButton("Set");
+
+  QFrame* lines[5];
   for (auto& line : lines) {
     line = new QFrame();
     line->setFrameShape(QFrame::HLine);
@@ -64,47 +70,80 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
 
   QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  QHBoxLayout* xyr_layout = new QHBoxLayout;
-  xyr_layout->addItem(margin);
-  xyr_layout->addWidget(new QLabel("x:"));
-  xyr_layout->addWidget(x_input_);
-  xyr_layout->addWidget(new QLabel("m, "));
-  xyr_layout->addWidget(new QLabel("y:"));
-  xyr_layout->addWidget(y_input_);
-  xyr_layout->addWidget(new QLabel("m, "));
-  xyr_layout->addWidget(new QLabel("r:"));
-  xyr_layout->addWidget(r_input_);
-  xyr_layout->addWidget(new QLabel("m"));
-  xyr_layout->addItem(margin);
+  QHBoxLayout* scan_pcl_layout = new QHBoxLayout;
+  scan_pcl_layout->addItem(margin);
+  scan_pcl_layout->addWidget(use_scan_checkbox_);
+  scan_pcl_layout->addItem(margin);
+  scan_pcl_layout->addWidget(use_pcl_checkbox_);
+  scan_pcl_layout->addItem(margin);
 
-  QHBoxLayout* vxvy_layout = new QHBoxLayout;
-  vxvy_layout->addItem(margin);
-  vxvy_layout->addWidget(new QLabel("v<sub>x</sub>:"));
-  vxvy_layout->addWidget(vx_input_);
-  vxvy_layout->addWidget(new QLabel("m/s, "));
-  vxvy_layout->addWidget(new QLabel("v<sub>y</sub>:"));
-  vxvy_layout->addWidget(vy_input_);
-  vxvy_layout->addWidget(new QLabel("m/s"));
-  vxvy_layout->addItem(margin);
+  QHBoxLayout* n_dp_layout = new QHBoxLayout;
+  n_dp_layout->addItem(margin);
+  n_dp_layout->addWidget(new QLabel("N<sub>min</sub>:"));
+  n_dp_layout->addWidget(min_n_input_);
+  n_dp_layout->addWidget(new QLabel(", "));
+  n_dp_layout->addWidget(new QLabel("d<sub>p</sub>:"));
+  n_dp_layout->addWidget(dist_prop_input_);
+  n_dp_layout->addItem(margin);
+
+  QHBoxLayout* group_split_layout = new QHBoxLayout;
+  group_split_layout->addItem(margin);
+  group_split_layout->addWidget(new QLabel("d<sub>group</sub>:"));
+  group_split_layout->addWidget(group_dist_input_);
+  group_split_layout->addWidget(new QLabel("m, "));
+  group_split_layout->addWidget(new QLabel("d<sub>split</sub>:"));
+  group_split_layout->addWidget(split_dist_input_);
+  group_split_layout->addWidget(new QLabel("m"));
+  group_split_layout->addItem(margin);
+
+  QHBoxLayout* sep_spread_layout = new QHBoxLayout;
+  sep_spread_layout->addItem(margin);
+  sep_spread_layout->addWidget(new QLabel("d<sub>sep</sub>:"));
+  sep_spread_layout->addWidget(merge_sep_input_);
+  sep_spread_layout->addWidget(new QLabel("m, "));
+  sep_spread_layout->addWidget(new QLabel("d<sub>spread</sub>:"));
+  sep_spread_layout->addWidget(merge_spread_input_);
+  sep_spread_layout->addWidget(new QLabel("m"));
+  sep_spread_layout->addItem(margin);
+
+  QHBoxLayout* radius_layout = new QHBoxLayout;
+  radius_layout->addItem(margin);
+  radius_layout->addWidget(new QLabel("r<sub>max</sub>:"));
+  radius_layout->addWidget(max_radius_input_);
+  radius_layout->addWidget(new QLabel("m, "));
+  radius_layout->addWidget(new QLabel("r<sub>margin</sub>:"));
+  radius_layout->addWidget(radius_enl_input_);
+  radius_layout->addWidget(new QLabel("m"));
+  radius_layout->addItem(margin);
+
+  QHBoxLayout* frame_layout = new QHBoxLayout;
+  frame_layout->addItem(margin);
+  frame_layout->addWidget(new QLabel("Frame ID:"));
+  frame_layout->addWidget(frame_id_input_);
+  frame_layout->addItem(margin);
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
-  layout->addWidget(obstacles_list_);
-  layout->addWidget(remove_button_);
+  layout->addLayout(scan_pcl_layout);
   layout->addWidget(lines[1]);
-  layout->addLayout(xyr_layout);
-  layout->addLayout(vxvy_layout);
-  layout->addWidget(add_button_, Qt::AlignCenter);
+  layout->addLayout(n_dp_layout);
+  layout->addLayout(group_split_layout);
+  layout->addLayout(sep_spread_layout);
+  layout->addWidget(use_split_merge_checkbox_);
   layout->addWidget(lines[2]);
-  layout->addWidget(reset_button_, Qt::AlignCenter);
+  layout->addLayout(radius_layout);
+  layout->addWidget(discard_segments_checkbox_);
+  layout->addWidget(lines[3]);
+  layout->addWidget(transform_coords_checkbox_);
+  layout->addLayout(frame_layout);
+  layout->addWidget(lines[4]);
+  layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
-  connect(add_button_, SIGNAL(clicked()), this, SLOT(addObstacle()));
-  connect(remove_button_, SIGNAL(clicked()), this, SLOT(removeObstacles()));
-  connect(reset_button_, SIGNAL(clicked()), this, SLOT(reset()));
+  connect(set_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
 
   evaluateParams();
 }
@@ -116,137 +155,131 @@ void ObstacleDetectorPanel::processInputs() {
   notifyParamsUpdate();
 }
 
-void ObstacleDetectorPanel::addObstacle() {
-  verifyInputs();
-
-  if (r_ > 0.0) {
-    p_x_vector_.push_back(x_);
-    p_y_vector_.push_back(y_);
-    p_r_vector_.push_back(r_);
-
-    p_vx_vector_.push_back(vx_);
-    p_vy_vector_.push_back(vy_);
-
-    setParams();
-    evaluateParams();
-    notifyParamsUpdate();
-  }
-}
-
-void ObstacleDetectorPanel::removeObstacles() {
-  QModelIndexList indexes = obstacles_list_->selectionModel()->selectedIndexes();
-
-  vector<int> index_list;
-  for (QModelIndex index : indexes)
-    index_list.push_back(index.row());
-
-  sort(index_list.begin(), index_list.end(), greater<int>());
-
-  for (int idx : index_list) {
-    p_x_vector_.erase(p_x_vector_.begin() + idx);
-    p_y_vector_.erase(p_y_vector_.begin() + idx);
-    p_r_vector_.erase(p_r_vector_.begin() + idx);
-
-    p_vx_vector_.erase(p_vx_vector_.begin() + idx);
-    p_vy_vector_.erase(p_vy_vector_.begin() + idx);
-
-    delete obstacles_list_items_[idx];
-    obstacles_list_items_.erase(obstacles_list_items_.begin() + idx);
-  }
-
-  setParams();
-  evaluateParams();
-  notifyParamsUpdate();
-}
-
-void ObstacleDetectorPanel::reset() {
-  p_reset_ = true;
-
-  processInputs();
-
-  p_reset_ = false;
-}
-
 void ObstacleDetectorPanel::verifyInputs() {
   p_active_ = activate_checkbox_->isChecked();
+  p_use_scan_ = use_scan_checkbox_->isChecked();
+  p_use_pcl_ = use_pcl_checkbox_->isChecked();
 
-  try { x_ = boost::lexical_cast<double>(x_input_->text().toStdString()); }
-  catch(boost::bad_lexical_cast &) { x_ = 0.0; x_input_->setText("0.0"); }
+  p_use_split_and_merge_ = use_split_merge_checkbox_->isChecked();
+  p_discard_converted_segments_ = discard_segments_checkbox_->isChecked();
+  p_transform_coordinates_ = transform_coords_checkbox_->isChecked();
 
-  try { y_ = boost::lexical_cast<double>(y_input_->text().toStdString()); }
-  catch(boost::bad_lexical_cast &) { y_ = 0.0; y_input_->setText("0.0"); }
+  try { p_min_group_points_ = boost::lexical_cast<int>(min_n_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_min_group_points_ = 0; min_n_input_->setText("0"); }
 
-  try { r_ = boost::lexical_cast<double>(r_input_->text().toStdString()); }
-  catch(boost::bad_lexical_cast &) { r_ = 0.0; r_input_->setText("0.0"); }
+  try { p_distance_proportion_ = boost::lexical_cast<double>(dist_prop_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_distance_proportion_ = 0.0; dist_prop_input_->setText("0.0"); }
 
-  try { vx_ = boost::lexical_cast<double>(vx_input_->text().toStdString()); }
-  catch(boost::bad_lexical_cast &) { vx_ = 0.0; vx_input_->setText("0.0"); }
+  try { p_max_group_distance_ = boost::lexical_cast<double>(group_dist_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_max_group_distance_ = 0.0; group_dist_input_->setText("0.0"); }
 
-  try { vy_ = boost::lexical_cast<double>(vy_input_->text().toStdString()); }
-  catch(boost::bad_lexical_cast &) { vy_ = 0.0; vy_input_->setText("0.0"); }
+  try { p_max_split_distance_ = boost::lexical_cast<double>(split_dist_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_max_split_distance_ = 0.0; split_dist_input_->setText("0.0"); }
+
+  try { p_max_merge_separation_ = boost::lexical_cast<double>(merge_sep_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_max_merge_separation_ = 0.0; merge_sep_input_->setText("0.0"); }
+
+  try { p_max_merge_spread_ = boost::lexical_cast<double>(merge_spread_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_max_merge_spread_ = 0.0; merge_spread_input_->setText("0.0"); }
+
+  try { p_max_circle_radius_ = boost::lexical_cast<double>(max_radius_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_max_circle_radius_ = 0.0; max_radius_input_->setText("0.0"); }
+
+  try { p_radius_enlargement_ = boost::lexical_cast<double>(radius_enl_input_->text().toStdString()); }
+  catch(boost::bad_lexical_cast &) { p_radius_enlargement_ = 0.0; radius_enl_input_->setText("0.0"); }
+
+  p_frame_id_ = frame_id_input_->text().toStdString();
 }
 
 void ObstacleDetectorPanel::setParams() {
+  nh_local_.setParam("min_group_points", p_min_group_points_);
+
   nh_local_.setParam("active", p_active_);
-  nh_local_.setParam("reset", p_reset_);
+  nh_local_.setParam("use_scan", p_use_scan_);
+  nh_local_.setParam("use_pcl", p_use_pcl_);
+  nh_local_.setParam("use_split_and_merge", p_use_split_and_merge_);
+  nh_local_.setParam("discard_converted_segments", p_discard_converted_segments_);
+  nh_local_.setParam("transform_coordinates", p_transform_coordinates_);
 
-  nh_local_.setParam("x_vector", p_x_vector_);
-  nh_local_.setParam("y_vector", p_y_vector_);
-  nh_local_.setParam("r_vector", p_r_vector_);
+  nh_local_.setParam("max_group_distance", p_max_group_distance_);
+  nh_local_.setParam("distance_proportion", p_distance_proportion_);
+  nh_local_.setParam("max_split_distance", p_max_split_distance_);
 
-  nh_local_.setParam("vx_vector", p_vx_vector_);
-  nh_local_.setParam("vy_vector", p_vy_vector_);
+  nh_local_.setParam("max_merge_separation", p_max_merge_separation_);
+  nh_local_.setParam("max_merge_spread", p_max_merge_spread_);
+  nh_local_.setParam("max_circle_radius", p_max_circle_radius_);
+  nh_local_.setParam("radius_enlargement", p_radius_enlargement_);
+
+  nh_local_.setParam("frame_id", p_frame_id_);
 }
 
 void ObstacleDetectorPanel::getParams() {
-  nh_local_.param<bool>("active", p_active_, false);
-  nh_local_.param<bool>("reset", p_reset_, false);
+  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
-  nh_local_.getParam("x_vector", p_x_vector_);
-  nh_local_.getParam("y_vector", p_y_vector_);
-  nh_local_.getParam("r_vector", p_r_vector_);
+  nh_local_.param<bool>("active", p_active_, true);
+  nh_local_.param<bool>("use_scan", p_use_scan_, true);
+  nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
+  nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
+  nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
+  nh_local_.param<bool>("transform_coordinates", p_transform_coordinates_, true);
 
-  nh_local_.getParam("vx_vector", p_vx_vector_);
-  nh_local_.getParam("vy_vector", p_vy_vector_);
+  nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
+  nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);
+  nh_local_.param<double>("max_split_distance", p_max_split_distance_, 0.070);
+  nh_local_.param<double>("max_merge_separation", p_max_merge_separation_, 0.150);
+  nh_local_.param<double>("max_merge_spread", p_max_merge_spread_, 0.070);
+  nh_local_.param<double>("max_circle_radius", p_max_circle_radius_, 0.300);
+  nh_local_.param<double>("radius_enlargement", p_radius_enlargement_, 0.030);
+
+  nh_local_.param<string>("frame_id", p_frame_id_, "world");
 }
 
 void ObstacleDetectorPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
 
-  add_button_->setEnabled(p_active_);
-  remove_button_->setEnabled(p_active_);
-  reset_button_->setEnabled(p_active_);
+  use_scan_checkbox_->setEnabled(p_active_);
+  use_scan_checkbox_->setChecked(p_use_scan_);
 
-  x_input_->setEnabled(p_active_);
-  y_input_->setEnabled(p_active_);
-  r_input_->setEnabled(p_active_);
+  use_pcl_checkbox_->setEnabled(p_active_);
+  use_pcl_checkbox_->setChecked(p_use_pcl_);
 
-  vx_input_->setEnabled(p_active_);
-  vy_input_->setEnabled(p_active_);
+  use_split_merge_checkbox_->setEnabled(p_active_);
+  use_split_merge_checkbox_->setChecked(p_use_split_and_merge_);
 
-  obstacles_list_->setEnabled(p_active_);
+  discard_segments_checkbox_->setEnabled(p_active_);
+  discard_segments_checkbox_->setChecked(p_discard_converted_segments_);
 
-  if (p_x_vector_.size() < p_y_vector_.size() || p_x_vector_.size() < p_r_vector_.size() ||
-      p_x_vector_.size() < p_vx_vector_.size() || p_x_vector_.size() < p_vy_vector_.size())
-    return;
+  transform_coords_checkbox_->setEnabled(p_active_);
+  transform_coords_checkbox_->setChecked(p_transform_coordinates_);
 
-  for (QListWidgetItem* item : obstacles_list_items_)
-    delete item;
+  min_n_input_->setEnabled(p_active_);
+  min_n_input_->setText(QString::number(p_min_group_points_));
 
-  obstacles_list_items_.clear();
-  obstacles_list_->clear();
+  dist_prop_input_->setEnabled(p_active_);
+  dist_prop_input_->setText(QString::number(p_distance_proportion_));
 
-  for (int idx = 0; idx < p_x_vector_.size(); ++idx) {
-    QListWidgetItem* item = new QListWidgetItem;
-    item->setText(QString::number(idx + 1) + ". " +
-                  "[x: " + QString::number(p_x_vector_[idx]) + "m] " +
-                  "[y: " + QString::number(p_y_vector_[idx]) + "m] " +
-                  "[r: " + QString::number(p_r_vector_[idx]) + "m] " +
-                  "[vx: " + QString::number(p_vx_vector_[idx]) + "m/s] " +
-                  "[vy: " + QString::number(p_vy_vector_[idx]) + "m/s]");
-    obstacles_list_items_.push_back(item);
-    obstacles_list_->insertItem(idx, item);
-  }
+  group_dist_input_->setEnabled(p_active_);
+  group_dist_input_->setText(QString::number(p_max_group_distance_));
+
+  split_dist_input_->setEnabled(p_active_);
+  split_dist_input_->setText(QString::number(p_max_split_distance_));
+
+  merge_sep_input_->setEnabled(p_active_);
+  merge_sep_input_->setText(QString::number(p_max_merge_separation_));
+
+  merge_spread_input_->setEnabled(p_active_);
+  merge_spread_input_->setText(QString::number(p_max_merge_spread_));
+
+  max_radius_input_->setEnabled(p_active_);
+  max_radius_input_->setText(QString::number(p_max_circle_radius_));
+
+  radius_enl_input_->setEnabled(p_active_);
+  radius_enl_input_->setText(QString::number(p_radius_enlargement_));
+
+  frame_id_input_->setEnabled(p_active_);
+  frame_id_input_->setText(QString::fromStdString(p_frame_id_));
+
+  set_button_->setEnabled(p_active_);
 }
 
 void ObstacleDetectorPanel::notifyParamsUpdate() {
