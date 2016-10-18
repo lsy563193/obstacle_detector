@@ -44,6 +44,7 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -51,11 +52,11 @@
 namespace obstacle_detector
 {
 
-class ObstacleDetectorPanel : public rviz::Panel
+class ObstacleTrackerPanel : public rviz::Panel
 {
 Q_OBJECT
 public:
-  ObstacleDetectorPanel(QWidget* parent = 0);
+  ObstacleTrackerPanel(QWidget* parent = 0);
 
   virtual void load(const rviz::Config& config);
   virtual void save(rviz::Config config) const;
@@ -72,23 +73,16 @@ private:
 
 private:
   QCheckBox* activate_checkbox_;
-  QCheckBox* use_scan_checkbox_;
-  QCheckBox* use_pcl_checkbox_;
-  QCheckBox* use_split_merge_checkbox_;
-  QCheckBox* discard_segments_checkbox_;
-  QCheckBox* transform_coords_checkbox_;
+
+  QLineEdit* tracking_duration_input_;
+  QLineEdit* loop_rate_input_;
+  QLineEdit* min_corr_cost_input_;
+  QLineEdit* std_corr_dev_input_;
+  QLineEdit* process_var_input_;
+  QLineEdit* process_rate_var_input_;
+  QLineEdit* measure_var_input_;
 
   QPushButton* set_button_;
-
-  QLineEdit* min_n_input_;
-  QLineEdit* dist_prop_input_;
-  QLineEdit* group_dist_input_;
-  QLineEdit* split_dist_input_;
-  QLineEdit* merge_sep_input_;
-  QLineEdit* merge_spread_input_;
-  QLineEdit* max_radius_input_;
-  QLineEdit* radius_enl_input_;
-  QLineEdit* frame_id_input_;
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
@@ -96,25 +90,15 @@ private:
   ros::ServiceClient params_cli_;
 
   // Parameters
-  int p_min_group_points_;
-
   bool p_active_;
-  bool p_use_scan_;
-  bool p_use_pcl_;
-  bool p_use_split_and_merge_;
-  bool p_discard_converted_segments_;
-  bool p_transform_coordinates_;
 
-  double p_distance_proportion_;
-  double p_max_group_distance_;
-
-  double p_max_split_distance_;
-  double p_max_merge_separation_;
-  double p_max_merge_spread_;
-  double p_max_circle_radius_;
-  double p_radius_enlargement_;
-
-  std::string p_frame_id_;
+  double p_tracking_duration_;
+  double p_loop_rate_;
+  double p_min_correspondence_cost_;
+  double p_std_correspondence_dev_;
+  double p_process_variance_;
+  double p_process_rate_variance_;
+  double p_measurement_variance_;
 };
 
 }

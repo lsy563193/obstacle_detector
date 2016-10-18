@@ -1,5 +1,13 @@
 <library path="lib/libobstacle_detector_gui">
 
+  <class name="Scans Merger"
+         type="obstacle_detector::ScansMergerPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      Turn on/off and change parameters of scans merger.
+    </description>
+  </class>
+
   <class name="Obstacle Detector"
          type="obstacle_detector::ObstacleDetectorPanel"
          base_class_type="rviz::Panel">
@@ -8,11 +16,11 @@
     </description>
   </class>
 
-  <class name="Scans Merger"
-         type="obstacle_detector::ScansMergerPanel"
+  <class name="Obstacle Tracker"
+         type="obstacle_detector::ObstacleTrackerPanel"
          base_class_type="rviz::Panel">
     <description>
-      Turn on/off and change parameters of scans merger.
+      Turn on/off and change parameters of obstacle tracker.
     </description>
   </class>
 

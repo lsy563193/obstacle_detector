@@ -56,6 +56,15 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   y_max_input_ = new QLineEdit();
   frame_id_input_ = new QLineEdit();
 
+  n_input_->setAlignment(Qt::AlignRight);
+  r_min_input_->setAlignment(Qt::AlignRight);
+  r_max_input_->setAlignment(Qt::AlignRight);
+  x_min_input_->setAlignment(Qt::AlignRight);
+  x_max_input_->setAlignment(Qt::AlignRight);
+  y_min_input_->setAlignment(Qt::AlignRight);
+  y_max_input_->setAlignment(Qt::AlignRight);
+  frame_id_input_->setAlignment(Qt::AlignRight);
+
   QFrame* lines[5];
   for (auto& line : lines) {
     line = new QFrame();
@@ -65,67 +74,67 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
 
   QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  QHBoxLayout* checks_layout = new QHBoxLayout;
-  checks_layout->addItem(margin);
-  checks_layout->addWidget(scan_checkbox_);
-  checks_layout->addItem(margin);
-  checks_layout->addWidget(pcl_checkbox_);
-  checks_layout->addItem(margin);
+  QHBoxLayout* layout_1 = new QHBoxLayout;
+  layout_1->addItem(margin);
+  layout_1->addWidget(scan_checkbox_);
+  layout_1->addItem(margin);
+  layout_1->addWidget(pcl_checkbox_);
+  layout_1->addItem(margin);
 
-  QHBoxLayout* n_layout = new QHBoxLayout;
-  n_layout->addItem(margin);
-  n_layout->addWidget(new QLabel("Number of ranges:"));
-  n_layout->addWidget(n_input_);
-  n_layout->addItem(margin);
+  QHBoxLayout* layout_2 = new QHBoxLayout;
+  layout_2->addItem(margin);
+  layout_2->addWidget(new QLabel("Number of ranges:"));
+  layout_2->addWidget(n_input_);
+  layout_2->addItem(margin);
 
-  QHBoxLayout* r_layout = new QHBoxLayout;
-  r_layout->addItem(margin);
-  r_layout->addWidget(new QLabel("r<sub>min</sub>:"));
-  r_layout->addWidget(r_min_input_);
-  r_layout->addWidget(new QLabel("m, "));
-  r_layout->addWidget(new QLabel("r<sub>max</sub>:"));
-  r_layout->addWidget(r_max_input_);
-  r_layout->addWidget(new QLabel("m"));
-  r_layout->addItem(margin);
+  QHBoxLayout* layout_3 = new QHBoxLayout;
+  layout_3->addItem(margin);
+  layout_3->addWidget(new QLabel("r<sub>min</sub>:"), 0, Qt::AlignRight);
+  layout_3->addWidget(r_min_input_);
+  layout_3->addWidget(new QLabel("m  "), 0, Qt::AlignLeft);
+  layout_3->addWidget(new QLabel("r<sub>max</sub>:"), 0, Qt::AlignRight);
+  layout_3->addWidget(r_max_input_);
+  layout_3->addWidget(new QLabel("m"), 0, Qt::AlignLeft);
+  layout_3->addItem(margin);
 
-  QHBoxLayout* x_layout = new QHBoxLayout;
-  x_layout->addItem(margin);
-  x_layout->addWidget(new QLabel("x<sub>min</sub>:"));
-  x_layout->addWidget(x_min_input_);
-  x_layout->addWidget(new QLabel("m, "));
-  x_layout->addWidget(new QLabel("x<sub>max</sub>:"));
-  x_layout->addWidget(x_max_input_);
-  x_layout->addWidget(new QLabel("m"));
-  x_layout->addItem(margin);
+  QHBoxLayout* layout_4 = new QHBoxLayout;
+  layout_4->addItem(margin);
+  layout_4->addWidget(new QLabel("x<sub>min</sub>:"), 0, Qt::AlignRight);
+  layout_4->addWidget(x_min_input_);
+  layout_4->addWidget(new QLabel("m  "), 0, Qt::AlignLeft);
+  layout_4->addWidget(new QLabel("x<sub>max</sub>:"), 0, Qt::AlignRight);
+  layout_4->addWidget(x_max_input_);
+  layout_4->addWidget(new QLabel("m"), 0, Qt::AlignLeft);
+  layout_4->addItem(margin);
 
-  QHBoxLayout* y_layout = new QHBoxLayout;
-  y_layout->addItem(margin);
-  y_layout->addWidget(new QLabel("y<sub>min</sub>:"));
-  y_layout->addWidget(y_min_input_);
-  y_layout->addWidget(new QLabel("m, "));
-  y_layout->addWidget(new QLabel("y<sub>max</sub>:"));
-  y_layout->addWidget(y_max_input_);
-  y_layout->addWidget(new QLabel("m"));
-  y_layout->addItem(margin);
+  QHBoxLayout* layout_5 = new QHBoxLayout;
+  layout_5->addItem(margin);
+  layout_5->addWidget(new QLabel("y<sub>min</sub>:"), 0, Qt::AlignRight);
+  layout_5->addWidget(y_min_input_);
+  layout_5->addWidget(new QLabel("m  "), 0, Qt::AlignLeft);
+  layout_5->addWidget(new QLabel("y<sub>max</sub>:"), 0, Qt::AlignRight);
+  layout_5->addWidget(y_max_input_);
+  layout_5->addWidget(new QLabel("m"), 0, Qt::AlignLeft);
+  layout_5->addItem(margin);
 
-  QHBoxLayout* frame_id_layout = new QHBoxLayout;
-  frame_id_layout->addItem(margin);
-  frame_id_layout->addWidget(new QLabel("Frame ID:"));
-  frame_id_layout->addWidget(frame_id_input_);
-  frame_id_layout->addItem(margin);
+  QHBoxLayout* layout_6 = new QHBoxLayout;
+  layout_6->addItem(margin);
+  layout_6->addWidget(new QLabel("Frame ID:"));
+  layout_6->addWidget(frame_id_input_, 0, Qt::AlignLeft);
+  layout_6->addItem(margin);
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
-  layout->addLayout(checks_layout);
+  layout->addLayout(layout_1);
   layout->addWidget(lines[1]);
-  layout->addLayout(n_layout);
-  layout->addLayout(r_layout);
+  layout->addLayout(layout_2);
+  layout->addLayout(layout_3);
   layout->addWidget(lines[2]);
-  layout->addLayout(x_layout);
-  layout->addLayout(y_layout);
+  layout->addLayout(layout_4);
+  layout->addLayout(layout_5);
   layout->addWidget(lines[3]);
-  layout->addLayout(frame_id_layout);
+  layout->addLayout(layout_6);
   layout->addWidget(lines[4]);
   layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);

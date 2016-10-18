@@ -59,6 +59,16 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   radius_enl_input_ = new QLineEdit();
   frame_id_input_ = new QLineEdit();
 
+  min_n_input_->setAlignment(Qt::AlignRight);
+  dist_prop_input_->setAlignment(Qt::AlignRight);
+  group_dist_input_->setAlignment(Qt::AlignRight);
+  split_dist_input_->setAlignment(Qt::AlignRight);
+  merge_sep_input_->setAlignment(Qt::AlignRight);
+  merge_spread_input_->setAlignment(Qt::AlignRight);
+  max_radius_input_->setAlignment(Qt::AlignRight);
+  radius_enl_input_->setAlignment(Qt::AlignRight);
+  frame_id_input_->setAlignment(Qt::AlignRight);
+
   set_button_ = new QPushButton("Set");
 
   QFrame* lines[5];
@@ -70,73 +80,64 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
 
   QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  QHBoxLayout* scan_pcl_layout = new QHBoxLayout;
-  scan_pcl_layout->addItem(margin);
-  scan_pcl_layout->addWidget(use_scan_checkbox_);
-  scan_pcl_layout->addItem(margin);
-  scan_pcl_layout->addWidget(use_pcl_checkbox_);
-  scan_pcl_layout->addItem(margin);
+  QHBoxLayout* layout_1 = new QHBoxLayout;
+  layout_1->addItem(margin);
+  layout_1->addWidget(use_scan_checkbox_);
+  layout_1->addItem(margin);
+  layout_1->addWidget(use_pcl_checkbox_);
+  layout_1->addItem(margin);
 
-  QHBoxLayout* n_dp_layout = new QHBoxLayout;
-  n_dp_layout->addItem(margin);
-  n_dp_layout->addWidget(new QLabel("N<sub>min</sub>:"));
-  n_dp_layout->addWidget(min_n_input_);
-  n_dp_layout->addWidget(new QLabel(", "));
-  n_dp_layout->addWidget(new QLabel("d<sub>p</sub>:"));
-  n_dp_layout->addWidget(dist_prop_input_);
-  n_dp_layout->addItem(margin);
+  QGridLayout* layout_2 = new QGridLayout;
+  layout_2->addWidget(new QLabel("N<sub>min</sub>:"), 0, 0, Qt::AlignRight);
+  layout_2->addWidget(min_n_input_, 0, 1);
+  layout_2->addWidget(new QLabel("   "), 0, 2);
+  layout_2->addWidget(new QLabel("d<sub>p</sub>:"), 0, 3, Qt::AlignRight);
+  layout_2->addWidget(dist_prop_input_, 0, 4);
+  layout_2->addWidget(new QLabel(""), 0, 5);
 
-  QHBoxLayout* group_split_layout = new QHBoxLayout;
-  group_split_layout->addItem(margin);
-  group_split_layout->addWidget(new QLabel("d<sub>group</sub>:"));
-  group_split_layout->addWidget(group_dist_input_);
-  group_split_layout->addWidget(new QLabel("m, "));
-  group_split_layout->addWidget(new QLabel("d<sub>split</sub>:"));
-  group_split_layout->addWidget(split_dist_input_);
-  group_split_layout->addWidget(new QLabel("m"));
-  group_split_layout->addItem(margin);
+  layout_2->addWidget(new QLabel("d<sub>group</sub>:"), 1, 0, Qt::AlignRight);
+  layout_2->addWidget(group_dist_input_, 1, 1);
+  layout_2->addWidget(new QLabel("m  "), 1, 2, Qt::AlignLeft);
+  layout_2->addWidget(new QLabel("d<sub>split</sub>:"), 1, 3, Qt::AlignRight);
+  layout_2->addWidget(split_dist_input_, 1, 4);
+  layout_2->addWidget(new QLabel("m"), 1, 5, Qt::AlignLeft);
 
-  QHBoxLayout* sep_spread_layout = new QHBoxLayout;
-  sep_spread_layout->addItem(margin);
-  sep_spread_layout->addWidget(new QLabel("d<sub>sep</sub>:"));
-  sep_spread_layout->addWidget(merge_sep_input_);
-  sep_spread_layout->addWidget(new QLabel("m, "));
-  sep_spread_layout->addWidget(new QLabel("d<sub>spread</sub>:"));
-  sep_spread_layout->addWidget(merge_spread_input_);
-  sep_spread_layout->addWidget(new QLabel("m"));
-  sep_spread_layout->addItem(margin);
+  layout_2->addWidget(new QLabel("d<sub>sep</sub>:"), 2, 0, Qt::AlignRight);
+  layout_2->addWidget(merge_sep_input_, 2, 1);
+  layout_2->addWidget(new QLabel("m  "), 2, 2, Qt::AlignLeft);
+  layout_2->addWidget(new QLabel("d<sub>spread</sub>:"), 2, 3, Qt::AlignRight);
+  layout_2->addWidget(merge_spread_input_, 2, 4);
+  layout_2->addWidget(new QLabel("m"), 2, 5, Qt::AlignLeft);
 
-  QHBoxLayout* radius_layout = new QHBoxLayout;
-  radius_layout->addItem(margin);
-  radius_layout->addWidget(new QLabel("r<sub>max</sub>:"));
-  radius_layout->addWidget(max_radius_input_);
-  radius_layout->addWidget(new QLabel("m, "));
-  radius_layout->addWidget(new QLabel("r<sub>margin</sub>:"));
-  radius_layout->addWidget(radius_enl_input_);
-  radius_layout->addWidget(new QLabel("m"));
-  radius_layout->addItem(margin);
+  layout_2->addWidget(use_split_merge_checkbox_, 3, 0, 1, 6, Qt::AlignCenter);
 
-  QHBoxLayout* frame_layout = new QHBoxLayout;
-  frame_layout->addItem(margin);
-  frame_layout->addWidget(new QLabel("Frame ID:"));
-  frame_layout->addWidget(frame_id_input_);
-  frame_layout->addItem(margin);
+  QGridLayout* layout_3 = new QGridLayout;
+  layout_3->addWidget(new QLabel("r<sub>max</sub>:"), 0, 0, Qt::AlignRight);
+  layout_3->addWidget(max_radius_input_, 0, 1);
+  layout_3->addWidget(new QLabel("m "), 0, 2, Qt::AlignLeft);
+  layout_3->addWidget(new QLabel("r<sub>margin</sub>:"), 0, 3, Qt::AlignRight);
+  layout_3->addWidget(radius_enl_input_, 0, 4);
+  layout_3->addWidget(new QLabel("m"), 0, 5, Qt::AlignLeft);
+
+  layout_3->addWidget(discard_segments_checkbox_, 1, 0, 1, 6, Qt::AlignCenter);
+
+  QGridLayout* layout_4 = new QGridLayout;
+  layout_4->addItem(margin, 0, 0, 2, 1);
+  layout_4->addWidget(new QLabel("Frame ID:"), 0, 1, Qt::AlignRight);
+  layout_4->addWidget(frame_id_input_, 0, 2, Qt::AlignLeft);
+  layout_4->addWidget(transform_coords_checkbox_, 1, 1, 1, 2, Qt::AlignCenter);
+  layout_4->addItem(margin, 0, 3, 2, 1);
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
-  layout->addLayout(scan_pcl_layout);
+  layout->addLayout(layout_1);
   layout->addWidget(lines[1]);
-  layout->addLayout(n_dp_layout);
-  layout->addLayout(group_split_layout);
-  layout->addLayout(sep_spread_layout);
-  layout->addWidget(use_split_merge_checkbox_);
+  layout->addLayout(layout_2);
   layout->addWidget(lines[2]);
-  layout->addLayout(radius_layout);
-  layout->addWidget(discard_segments_checkbox_);
+  layout->addLayout(layout_3);
   layout->addWidget(lines[3]);
-  layout->addWidget(transform_coords_checkbox_);
-  layout->addLayout(frame_layout);
+  layout->addLayout(layout_4);
   layout->addWidget(lines[4]);
   layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);
