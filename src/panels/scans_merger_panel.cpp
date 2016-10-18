@@ -97,6 +97,13 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   layout_3->addWidget(new QLabel("m"), 0, Qt::AlignLeft);
   layout_3->addItem(margin);
 
+  QVBoxLayout* ranges_layout = new QVBoxLayout;
+  ranges_layout->addLayout(layout_2);
+  ranges_layout->addLayout(layout_3);
+
+  QGroupBox* scan_box = new QGroupBox("Ranges limits:");
+  scan_box->setLayout(ranges_layout);
+
   QHBoxLayout* layout_4 = new QHBoxLayout;
   layout_4->addItem(margin);
   layout_4->addWidget(new QLabel("x<sub>min</sub>:"), 0, Qt::AlignRight);
@@ -117,24 +124,32 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   layout_5->addWidget(new QLabel("m"), 0, Qt::AlignLeft);
   layout_5->addItem(margin);
 
+  QVBoxLayout* coords_layout = new QVBoxLayout;
+  coords_layout->addLayout(layout_4);
+  coords_layout->addLayout(layout_5);
+
+  QGroupBox* coords_box = new QGroupBox("Coordinates limits:");
+  coords_box->setLayout(coords_layout);
+
   QHBoxLayout* layout_6 = new QHBoxLayout;
   layout_6->addItem(margin);
   layout_6->addWidget(new QLabel("Frame ID:"));
   layout_6->addWidget(frame_id_input_, 0, Qt::AlignLeft);
   layout_6->addItem(margin);
 
+  QGroupBox* frame_box = new QGroupBox("Frames:");
+  frame_box->setLayout(layout_6);
+
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
   layout->addLayout(layout_1);
   layout->addWidget(lines[1]);
-  layout->addLayout(layout_2);
-  layout->addLayout(layout_3);
+  layout->addWidget(scan_box);
   layout->addWidget(lines[2]);
-  layout->addLayout(layout_4);
-  layout->addLayout(layout_5);
+  layout->addWidget(coords_box);
   layout->addWidget(lines[3]);
-  layout->addLayout(layout_6);
+  layout->addWidget(frame_box);
   layout->addWidget(lines[4]);
   layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);

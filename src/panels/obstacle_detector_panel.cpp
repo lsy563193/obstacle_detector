@@ -87,6 +87,7 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   layout_1->addWidget(use_pcl_checkbox_);
   layout_1->addItem(margin);
 
+  QGroupBox* segmentation_box = new QGroupBox("Segmentation:");
   QGridLayout* layout_2 = new QGridLayout;
   layout_2->addWidget(new QLabel("N<sub>min</sub>:"), 0, 0, Qt::AlignRight);
   layout_2->addWidget(min_n_input_, 0, 1);
@@ -110,7 +111,9 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   layout_2->addWidget(new QLabel("m"), 2, 5, Qt::AlignLeft);
 
   layout_2->addWidget(use_split_merge_checkbox_, 3, 0, 1, 6, Qt::AlignCenter);
+  segmentation_box->setLayout(layout_2);
 
+  QGroupBox* circle_box = new QGroupBox("Circularization:");
   QGridLayout* layout_3 = new QGridLayout;
   layout_3->addWidget(new QLabel("r<sub>max</sub>:"), 0, 0, Qt::AlignRight);
   layout_3->addWidget(max_radius_input_, 0, 1);
@@ -120,24 +123,27 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   layout_3->addWidget(new QLabel("m"), 0, 5, Qt::AlignLeft);
 
   layout_3->addWidget(discard_segments_checkbox_, 1, 0, 1, 6, Qt::AlignCenter);
+  circle_box->setLayout(layout_3);
 
+  QGroupBox* frame_box = new QGroupBox("Frames:");
   QGridLayout* layout_4 = new QGridLayout;
   layout_4->addItem(margin, 0, 0, 2, 1);
   layout_4->addWidget(new QLabel("Frame ID:"), 0, 1, Qt::AlignRight);
   layout_4->addWidget(frame_id_input_, 0, 2, Qt::AlignLeft);
   layout_4->addWidget(transform_coords_checkbox_, 1, 1, 1, 2, Qt::AlignCenter);
   layout_4->addItem(margin, 0, 3, 2, 1);
+  frame_box->setLayout(layout_4);
 
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
   layout->addLayout(layout_1);
   layout->addWidget(lines[1]);
-  layout->addLayout(layout_2);
+  layout->addWidget(segmentation_box);
   layout->addWidget(lines[2]);
-  layout->addLayout(layout_3);
+  layout->addWidget(circle_box);
   layout->addWidget(lines[3]);
-  layout->addLayout(layout_4);
+  layout->addWidget(frame_box);
   layout->addWidget(lines[4]);
   layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);

@@ -44,6 +44,7 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>

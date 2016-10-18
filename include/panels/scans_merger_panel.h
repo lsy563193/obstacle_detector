@@ -42,6 +42,7 @@
 #include <QFrame>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>

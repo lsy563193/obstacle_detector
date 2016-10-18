@@ -39,7 +39,7 @@ using namespace std;
 using namespace obstacle_detector;
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "virtual_obstacle_publisher");
+  ros::init(argc, argv, "obstacle_publisher");
   ObstaclePublisher vop;
   return 0;
 }

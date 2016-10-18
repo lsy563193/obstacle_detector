@@ -75,7 +75,7 @@ private:
 
   double p_loop_rate_;
 
-  std::vector<double> p_x_vector_;  // Obstacles values as parameters
+  std::vector<double> p_x_vector_;
   std::vector<double> p_y_vector_;
   std::vector<double> p_r_vector_;
 

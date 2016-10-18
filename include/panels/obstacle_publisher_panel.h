@@ -49,7 +49,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QListWidget>
-#include <QTabWidget>
+#include <QGroupBox>
 
 namespace obstacle_detector
 {
@@ -78,6 +78,8 @@ private:
 
 private:
   QCheckBox* activate_checkbox_;
+  QCheckBox* fusion_example_checkbox_;
+  QCheckBox* fission_example_checkbox_;
 
   QListWidget* obstacles_list_;
   std::vector<QListWidgetItem*> obstacles_list_items_;
@@ -103,13 +105,19 @@ private:
   // Parameters
   bool p_active_;
   bool p_reset_;
+  bool p_fusion_example_;
+  bool p_fission_example_;
 
-  std::vector<double> p_x_vector_;  // Obstacles values as parameters
+  double p_loop_rate_;
+
+  std::vector<double> p_x_vector_;
   std::vector<double> p_y_vector_;
   std::vector<double> p_r_vector_;
 
   std::vector<double> p_vx_vector_;
   std::vector<double> p_vy_vector_;
+
+  std::string p_frame_id_;
 };
 
 }

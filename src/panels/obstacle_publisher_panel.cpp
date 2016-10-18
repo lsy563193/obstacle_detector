@@ -43,19 +43,23 @@ ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(pa
   getParams();
 
   activate_checkbox_ = new QCheckBox("On/Off");
-  obstacles_list_    = new QListWidget();
-  add_button_        = new QPushButton("Add obstacle");
-  remove_button_     = new QPushButton("Remove selected");
-  reset_button_      = new QPushButton("Reset time");
-  x_input_           = new QLineEdit("0.0");
-  y_input_           = new QLineEdit("0.0");
-  r_input_           = new QLineEdit("0.0");
-  vx_input_          = new QLineEdit("0.0");
-  vy_input_          = new QLineEdit("0.0");
+  fusion_example_checkbox_ = new QCheckBox("Fusion example");
+  fission_example_checkbox_ = new QCheckBox("Fission example");
+
+  obstacles_list_ = new QListWidget();
+  add_button_ = new QPushButton("Add obstacle");
+  remove_button_ = new QPushButton("Remove selected");
+  reset_button_ = new QPushButton("Reset time");
+
+  x_input_ = new QLineEdit();
+  y_input_ = new QLineEdit();
+  r_input_ = new QLineEdit();
+  vx_input_ = new QLineEdit();
+  vy_input_ = new QLineEdit();
 
   obstacles_list_->setSelectionMode(QAbstractItemView::MultiSelection);
 
-  QFrame* lines[3];
+  QFrame* lines[4];
   for (auto& line : lines) {
     line = new QFrame();
     line->setFrameShape(QFrame::HLine);
@@ -63,6 +67,13 @@ ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(pa
   }
 
   QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  QVBoxLayout* demos_layout = new QVBoxLayout;
+  demos_layout->addWidget(fusion_example_checkbox_);
+  demos_layout->addWidget(fission_example_checkbox_);
+
+  QGroupBox* demos_box = new QGroupBox("Demos:");
+  demos_box->setLayout(demos_layout);
 
   QHBoxLayout* xyr_layout = new QHBoxLayout;
   xyr_layout->addItem(margin);
@@ -87,17 +98,25 @@ ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(pa
   vxvy_layout->addWidget(new QLabel("m/s"));
   vxvy_layout->addItem(margin);
 
+  QVBoxLayout* obst_params_layout = new QVBoxLayout;
+  obst_params_layout->addWidget(obstacles_list_);
+  obst_params_layout->addWidget(remove_button_);
+  obst_params_layout->addWidget(lines[2]);
+  obst_params_layout->addLayout(xyr_layout);
+  obst_params_layout->addLayout(vxvy_layout);
+  obst_params_layout->addWidget(add_button_, Qt::AlignCenter);
+  obst_params_layout->addWidget(lines[3]);
+  obst_params_layout->addWidget(reset_button_, Qt::AlignCenter);
+
+  QGroupBox* obst_box = new QGroupBox("Obstacles:");
+  obst_box->setLayout(obst_params_layout);
+
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(lines[0]);
-  layout->addWidget(obstacles_list_);
-  layout->addWidget(remove_button_);
+  layout->addWidget(demos_box);
   layout->addWidget(lines[1]);
-  layout->addLayout(xyr_layout);
-  layout->addLayout(vxvy_layout);
-  layout->addWidget(add_button_, Qt::AlignCenter);
-  layout->addWidget(lines[2]);
-  layout->addWidget(reset_button_, Qt::AlignCenter);
+  layout->addWidget(obst_box);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
 
@@ -169,6 +188,8 @@ void ObstaclePublisherPanel::reset() {
 
 void ObstaclePublisherPanel::verifyInputs() {
   p_active_ = activate_checkbox_->isChecked();
+  p_fusion_example_ = fusion_example_checkbox_->isChecked();
+  p_fission_example_ = fission_example_checkbox_->isChecked();
 
   try { x_ = boost::lexical_cast<double>(x_input_->text().toStdString()); }
   catch(boost::bad_lexical_cast &) { x_ = 0.0; x_input_->setText("0.0"); }
@@ -184,11 +205,17 @@ void ObstaclePublisherPanel::verifyInputs() {
 
   try { vy_ = boost::lexical_cast<double>(vy_input_->text().toStdString()); }
   catch(boost::bad_lexical_cast &) { vy_ = 0.0; vy_input_->setText("0.0"); }
+
+//  p_frame_id_ =
 }
 
 void ObstaclePublisherPanel::setParams() {
   nh_local_.setParam("active", p_active_);
   nh_local_.setParam("reset", p_reset_);
+  nh_local_.setParam("fusion_example", p_fusion_example_);
+  nh_local_.setParam("fission_example", p_fission_example_);
+
+  nh_local_.setParam("loop_rate", p_loop_rate_);
 
   nh_local_.setParam("x_vector", p_x_vector_);
   nh_local_.setParam("y_vector", p_y_vector_);
@@ -196,11 +223,17 @@ void ObstaclePublisherPanel::setParams() {
 
   nh_local_.setParam("vx_vector", p_vx_vector_);
   nh_local_.setParam("vy_vector", p_vy_vector_);
+
+  nh_local_.setParam("frame_id", p_frame_id_);
 }
 
 void ObstaclePublisherPanel::getParams() {
-  nh_local_.param<bool>("active", p_active_, false);
+  nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("reset", p_reset_, false);
+  nh_local_.param<bool>("fusion_example", p_fusion_example_, false);
+  nh_local_.param<bool>("fission_example", p_fission_example_, false);
+
+  nh_local_.param<double>("loop_rate", p_loop_rate_, 10.0);
 
   nh_local_.getParam("x_vector", p_x_vector_);
   nh_local_.getParam("y_vector", p_y_vector_);
@@ -208,10 +241,17 @@ void ObstaclePublisherPanel::getParams() {
 
   nh_local_.getParam("vx_vector", p_vx_vector_);
   nh_local_.getParam("vy_vector", p_vy_vector_);
+
+  nh_local_.getParam("frame_id", p_frame_id_);
 }
 
 void ObstaclePublisherPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
+  fusion_example_checkbox_->setEnabled(p_active_);
+  fission_example_checkbox_->setEnabled(p_active_);
+
+  fusion_example_checkbox_->setChecked(p_fusion_example_);
+  fission_example_checkbox_->setChecked(p_fission_example_);
 
   add_button_->setEnabled(p_active_);
   remove_button_->setEnabled(p_active_);
