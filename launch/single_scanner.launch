@@ -71,13 +71,13 @@
     <remap from="tracked_obstacles" to="obstacles"/>
   </node>
 
-  <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
+  <node pkg="obstacle_detector" type="obstacle_visualizer" name="obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="3"/>
     <param name="untracked_circles_color" value="2"/>
     <param name="segments_color"          value="7"/>
 
     <param name="active"                  value="true"/>
-    <param name="show_labels"             value="true"/>
+    <param name="show_labels"             value="false"/>
 
     <param name="alpha"                   value="1"/>
     <param name="z_layer"                 value="0.0"/>

@@ -125,5 +125,4 @@ void ObstacleRecorder::prepareFile() {
   // Number, time, tracked, x, y, r, v_x, v_y, label
   file_ << "ROS time at start: " << ros::Time::now() << "\n";
   file_ << "idx \t t \t tracked \t x \t y \t r \t x_p \t y_p \t label \n";
-
 }
