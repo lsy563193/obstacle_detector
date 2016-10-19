@@ -3,75 +3,81 @@
   <node pkg="obstacle_detector" type="static_scan_publisher" name="static_scan_publisher" output="screen">
     <remap from="scan" to="front_scan"/>
   </node>
-  
-  <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 100"/>
-  
-  <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
-    <param name="frame_id"          value="scanner"/>
 
+  <node pkg="tf" type="static_transform_publisher" name="world_to_scanner" output="screen" args="0 0 0 0 0 0 world scanner 10"/>
+
+  <node pkg="obstacle_detector" type="scans_merger" name="scans_merger" output="screen">
+    <param name="ranges_num"        value="1000"/>
+
+    <param name="active"            value="true"/>
     <param name="publish_scan"      value="true"/>
     <param name="publish_pcl"       value="false"/>
 
-    <param name="ranges_num"        value="1000"/>
-
+    <param name="min_scanner_range" value="0.05"/>
     <param name="max_scanner_range" value="10.0"/>
-    <param name="min_scanner_range" value="0.03"/>
 
-    <param name="max_x_range"       value="10.0"/>
     <param name="min_x_range"       value="-10.0"/>
-    <param name="max_y_range"       value="10.0"/>
+    <param name="max_x_range"       value="10.0"/>
     <param name="min_y_range"       value="-10.0"/>
+    <param name="max_y_range"       value="10.0"/>
+
+    <param name="frame_id"          value="scanner"/>
   </node>
 
   <node pkg="obstacle_detector" type="obstacle_detector" name="obstacle_detector" output="screen">
-    <param name="frame_id"             value="world"/>
+    <param name="min_group_points"     value="5"/>
 
+    <param name="active"               value="true"/>
     <param name="use_scan"             value="true"/>
     <param name="use_pcl"              value="false"/>
     <param name="use_split_and_merge"  value="false"/>
-    <param name="discard_converted_segments" value="false"/>
+    <param name="discard_converted_segments" value="true"/>
     <param name="transform_coordinates"      value="true"/>
 
-    <param name="min_group_points"     value="5"/>
     <param name="max_group_distance"   value="0.100"/>    
     <param name="distance_proportion"  value="0.006136"/>
     <param name="max_split_distance"   value="0.070"/>
-
     <param name="max_merge_separation" value="0.150"/>
     <param name="max_merge_spread"     value="0.070"/>
     <param name="max_circle_radius"    value="0.300"/>
     <param name="radius_enlargement"   value="0.030"/>
-  </node>
 
-  <node pkg="obstacle_detector" type="obstacle_visualizer" name="raw_obstacle_visualizer" output="screen">
-    <param name="tracked_circles_color"   value="7"/>
-    <param name="untracked_circles_color" value="7"/>
-    <param name="segments_color"          value="6"/>
-    <param name="alpha"                   value="0.7"/>
-    <param name="z_layer"                 value="0.5"/>
+    <param name="frame_id"             value="world"/>
   </node>
-
+ 
   <node pkg="obstacle_detector" type="obstacle_tracker" name="obstacle_tracker" output="screen">
-    <param name="fade_counter_size"       value="100"/>
+    <param name="active"                  value="true"/>
+
+    <param name="loop_rate"               value="100.0"/>
+    <param name="tracking_duration"       value="2.0"/>
     <param name="min_correspondence_cost" value="0.3"/>
-    <param name="pose_measure_variance"   value="1.0"/>
-    <param name="radius_measure_variance" value="1.0"/>
-    <param name="pose_process_variance"   value="0.0001"/>    
-    <param name="radius_process_variance" value="0.0001"/>
+    <param name="std_correspondence_dev"  value="0.15"/>
+    <param name="process_variance"        value="0.001"/>  
+    <param name="process_rate_variance"   value="0.01"/>  
+    <param name="measurement_variance"    value="1.0"/>  
+
+    <remap from="tracked_obstacles" to="obstacles"/>
   </node>
 
-  <node pkg="obstacle_detector" type="obstacle_visualizer" name="tracked_obstacle_visualizer" output="screen">
+  <node pkg="obstacle_detector" type="obstacle_visualizer" name="obstacle_visualizer" output="screen">
     <param name="tracked_circles_color"   value="3"/>
     <param name="untracked_circles_color" value="2"/>
-    <param name="segments_color"          value="6"/>
-    <param name="alpha"                   value="0.7"/>
-    <param name="z_layer"                 value="1.0"/>
+    <param name="segments_color"          value="7"/>
 
-    <remap from="obstacles" to="tracked_obstacles"/>
-    <remap from="obstacles_markers" to="tracked_obstacles_markers"/>
+    <param name="active"                  value="true"/>
+    <param name="show_labels"             value="true"/>
+
+    <param name="alpha"                   value="0.7"/>
+    <param name="z_layer"                 value="0.0"/>
+  </node>
+
+  <node pkg="obstacle_detector" type="obstacle_recorder" name="obstacle_recorder" output="screen">
+    <param name="active"                  value="true"/>
+    <param name="recording"               value="false"/>
+
+    <param name="filename_prefix"         value="tracked_"/>
   </node>
 
   <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find obstacle_detector)/resources/obstacle_detector.rviz"/>
-<!-- -->
 </launch>
 

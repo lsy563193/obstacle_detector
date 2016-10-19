@@ -79,7 +79,7 @@
     <param name="active"                  value="true"/>
     <param name="show_labels"             value="false"/>
 
-    <param name="alpha"                   value="1"/>
+    <param name="alpha"                   value="0.7"/>
     <param name="z_layer"                 value="0.0"/>
   </node>
 
