@@ -81,3 +81,7 @@ add_library(${PROJECT_NAME}_gui src/panels/scans_merger_panel.cpp include/panels
                                 src/panels/obstacle_publisher_panel.cpp include/panels/obstacle_publisher_panel.h)
 target_link_libraries(${PROJECT_NAME}_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_gui ${catkin_EXPORTED_TARGETS})
+
+file(MAKE_DIRECTORY /home/$ENV{USER}/ObstacleDetector/records)
+file(MAKE_DIRECTORY /home/$ENV{USER}/ObstacleDetector/resources)
+file(COPY resources/play.png resources/stop.png DESTINATION /home/$ENV{USER}/ObstacleDetector/resources)

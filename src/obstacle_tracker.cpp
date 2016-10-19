@@ -16,7 +16,7 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~"), rate_(5.0), p_acti
   params_srv_ = nh_local_.advertiseService("params", &ObstacleTracker::updateParams, this);
 
   ROS_INFO("Obstacle Tracker [Waiting for first message]");
-  ros::topic::waitForMessage<Obstacles>("obstacles");
+  ros::topic::waitForMessage<Obstacles>("raw_obstacles");
 
   while (ros::ok()) {
     ros::spinOnce();
@@ -49,7 +49,7 @@ bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empt
 
   if (p_active_ != prev_active) {
     if (p_active_) {
-      obstacles_sub_ = nh_.subscribe("obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
+      obstacles_sub_ = nh_.subscribe("raw_obstacles", 10, &ObstacleTracker::obstaclesCallback, this);
       obstacles_pub_ = nh_.advertise<Obstacles>("tracked_obstacles", 10);
       rate_ = ros::Rate(p_loop_rate_);
 

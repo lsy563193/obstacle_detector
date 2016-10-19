@@ -63,6 +63,8 @@ public:
 
 private Q_SLOTS:
   void processInputs();
+  void start();
+  void stop();
 
 private:
   void verifyInputs();

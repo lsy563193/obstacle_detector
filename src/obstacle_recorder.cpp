@@ -96,12 +96,12 @@ void ObstacleRecorder::obstaclesCallback(const Obstacles::ConstPtr& obstacles) {
     for (auto circle : obstacles->circles) {
       file_ << counter_ << "\t"
             << t << "\t"
-            << 0 << "\t" //circle.obstacle_id
             << (int)circle.tracked << "\t"
             << circle.center.x << "\t"
             << circle.center.y << "\t"
             << circle.radius << "\t"
-            << circle.velocity.x << "\n";
+            << circle.velocity.x << "\t"
+            << circle.obstacle_id << "\n";
     }
   }
 }
@@ -116,14 +116,14 @@ void ObstacleRecorder::prepareFile() {
     strftime(the_date, 30, "%Y_%m_%d_%H_%M_%S", gmtime(&now));
 
   std::string username = getenv("USER");
-  std::string foldername = "/home/" + username + "/obstacle_records/";
+  std::string foldername = "/home/" + username + "/ObstacleDetector/records/";
   std::string filename = foldername + p_filename_prefix_ + "obstacles_" + std::string(the_date) + ".txt";
 
   boost::filesystem::create_directories(foldername);
   file_.open(filename);
 
-  // Number, time, label, tracked, x, y, r, v_x, v_y
+  // Number, time, tracked, x, y, r, v_x, v_y, label
   file_ << "ROS time at start: " << ros::Time::now() << "\n";
-  file_ << "idx" << "\t" << "t" << "\t" << "label" << "\t" << "tracked" << "\t" << "x" << "\t" << "y" << "\t" << "r" << "\t" << "x_p" << "\t" << "y_p" << "\n";
+  file_ << "idx \t t \t tracked \t x \t y \t r \t x_p \t y_p \t label \n";
 
 }

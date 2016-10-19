@@ -60,6 +60,7 @@ bool ObstacleVisualizer::updateParams(std_srvs::Empty::Request &req, std_srvs::E
   nh_local_.param<int>("text_color", p_text_color_, 1);
 
   nh_local_.param<bool>("active", p_active_, true);
+  nh_local_.param<bool>("show_labels", p_show_labels_, true);
 
   nh_local_.param<double>("alpha", p_alpha_, 1.0);
   nh_local_.param<double>("z_layer", p_z_layer_, 0.0);
@@ -92,6 +93,30 @@ void ObstacleVisualizer::obstaclesCallback(const Obstacles::ConstPtr& obstacles)
     return;
 
   visualization_msgs::MarkerArray markers_array;
+
+  // Create markers for all of the segment obstacles
+  visualization_msgs::Marker segments_marker;
+
+  segments_marker.header.frame_id    = obstacles->header.frame_id;
+  segments_marker.header.stamp       = obstacles->header.stamp;
+  segments_marker.lifetime           = ros::Duration();
+  segments_marker.id                 = 0;
+  segments_marker.ns                 = "segments";
+  segments_marker.type               = visualization_msgs::Marker::LINE_LIST;
+  segments_marker.action             = visualization_msgs::Marker::ADD;
+  segments_marker.pose.position.z    = p_z_layer_ + 0.1;
+  segments_marker.pose.orientation.w = 1.0;
+  segments_marker.scale.x            = 0.04;  // Width of the segment
+  segments_marker.scale.y            = 0.0;
+  segments_marker.scale.z            = 0.0;
+  segments_marker.color              = segments_color_;
+
+  for (auto segment : obstacles->segments) {
+    segments_marker.points.push_back(segment.first_point);
+    segments_marker.points.push_back(segment.last_point);
+  }
+
+  markers_array.markers.push_back(segments_marker);
 
   // Create markers for all of the circular obstacles
   visualization_msgs::Marker circle_marker;
@@ -130,107 +155,85 @@ void ObstacleVisualizer::obstaclesCallback(const Obstacles::ConstPtr& obstacles)
     markers_array.markers.push_back(circle_marker);
   }
 
-  // Create text markers for all of the tracked obstacles
-  visualization_msgs::Marker text_marker;
+  if (p_show_labels_) {
+    // Create text markers for all of the tracked obstacles
+    visualization_msgs::Marker text_marker;
 
-  text_marker.header.frame_id    = obstacles->header.frame_id;
-  text_marker.header.stamp       = obstacles->header.stamp;
-  text_marker.lifetime           = ros::Duration();
-  text_marker.id                 = 0;
-  text_marker.ns                 = "names";
-  text_marker.type               = visualization_msgs::Marker::TEXT_VIEW_FACING;
-  text_marker.action             = visualization_msgs::Marker::ADD;
-  text_marker.pose.position.z    = p_z_layer_;
-  text_marker.scale.x            = 0.0;
-  text_marker.scale.y            = 0.0;
-  text_marker.scale.z            = 0.2; // Size of the text
+    text_marker.header.frame_id    = obstacles->header.frame_id;
+    text_marker.header.stamp       = obstacles->header.stamp;
+    text_marker.lifetime           = ros::Duration();
+    text_marker.id                 = 0;
+    text_marker.ns                 = "names";
+    text_marker.type               = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    text_marker.action             = visualization_msgs::Marker::ADD;
+    text_marker.pose.position.z    = p_z_layer_;
+    text_marker.scale.x            = 0.0;
+    text_marker.scale.y            = 0.0;
+    text_marker.scale.z            = 0.2; // Size of the text
 
-  for (auto circle : obstacles->circles) {
-    if (circle.tracked) {
-      text_marker.pose.position.x = circle.center.x;
-      text_marker.pose.position.y = circle.center.y + circle.radius + 0.1;
+    for (auto circle : obstacles->circles) {
+      if (circle.tracked) {
+        text_marker.pose.position.x = circle.center.x;
+        text_marker.pose.position.y = circle.center.y + circle.radius + 0.1;
+        text_marker.id++;
+        text_marker.color = text_color_;
+        text_marker.text = circle.obstacle_id;
+
+        markers_array.markers.push_back(text_marker);
+      }
+    }
+
+    // Add some empty markers with DELETE action to get rid of the old ones
+    text_marker.action = visualization_msgs::Marker::DELETE;
+    text_marker.color.a = 0.0;
+
+    for (int i = 0; i < 20; ++i) {
       text_marker.id++;
-      text_marker.color = text_color_;
-      text_marker.text = circle.obstacle_id;
-
       markers_array.markers.push_back(text_marker);
     }
   }
-
-  // Add some empty markers with DELETE action to get rid of the old ones
-  text_marker.action = visualization_msgs::Marker::DELETE;
-  text_marker.color.a = 0.0;
-
-  for (int i = 0; i < 20; ++i) {
-    text_marker.id++;
-    markers_array.markers.push_back(text_marker);
-  }
-
-  // Create markers for all of the segment obstacles
-  visualization_msgs::Marker segments_marker;
-
-  segments_marker.header.frame_id    = obstacles->header.frame_id;
-  segments_marker.header.stamp       = obstacles->header.stamp;
-  segments_marker.lifetime           = ros::Duration();
-  segments_marker.id                 = 0;
-  segments_marker.ns                 = "segments";
-  segments_marker.type               = visualization_msgs::Marker::LINE_LIST;
-  segments_marker.action             = visualization_msgs::Marker::ADD;
-  segments_marker.pose.position.z    = p_z_layer_ + 0.1;
-  segments_marker.pose.orientation.w = 1.0;
-  segments_marker.scale.x            = 0.04;  // Width of the segment
-  segments_marker.scale.y            = 0.0;
-  segments_marker.scale.z            = 0.0;
-  segments_marker.color              = segments_color_;
-
-  for (auto segment : obstacles->segments) {
-    segments_marker.points.push_back(segment.first_point);
-    segments_marker.points.push_back(segment.last_point);
-  }
-
-  markers_array.markers.push_back(segments_marker);
 
   markers_pub_.publish(markers_array);
 }
 
 void ObstacleVisualizer::setColor(std_msgs::ColorRGBA &color, int color_code, float alpha) {
   switch (color_code) {
-  case 0:
+  case 0: // Black
     color.r = 0.0;
     color.g = 0.0;
     color.b = 0.0;
     break;
-  case 1:
+  case 1: // White
     color.r = 1.0;
     color.g = 1.0;
     color.b = 1.0;
     break;
-  case 2:
+  case 2: // Red
     color.r = 1.0;
     color.g = 0.0;
     color.b = 0.0;
     break;
-  case 3:
+  case 3: // Green
     color.r = 0.0;
     color.g = 1.0;
     color.b = 0.0;
     break;
-  case 4:
+  case 4: // Blue
     color.r = 0.0;
     color.g = 0.0;
     color.b = 1.0;
     break;
-  case 5:
+  case 5: // Yellow
     color.r = 1.0;
     color.g = 1.0;
     color.b = 0.0;
     break;
-  case 6:
+  case 6: // Magenta
     color.r = 1.0;
     color.g = 0.0;
     color.b = 1.0;
     break;
-  case 7:
+  case 7: // Cyan
     color.r = 0.0;
     color.g = 1.0;
     color.b = 1.0;

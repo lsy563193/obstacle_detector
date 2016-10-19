@@ -43,27 +43,47 @@ ObstacleRecorderPanel::ObstacleRecorderPanel(QWidget* parent) : rviz::Panel(pare
   getParams();
 
   activate_checkbox_ = new QCheckBox("On/Off");
-  start_button_ = new QPushButton("Start");
-  stop_button_ = new QPushButton("Stop");
 
+  QString user_name = getenv("USER");
+  QString play_icon = QString("/home/") + user_name + QString("/ObstacleDetector/resources/play.png");
+  QString stop_icon = QString("/home/") + user_name + QString("/ObstacleDetector/resources/stop.png");
+
+  start_button_ = new QPushButton;
+  start_button_->setMinimumSize(50, 50);
+  start_button_->setMaximumSize(50, 50);
+  start_button_->setIcon(QIcon(play_icon));
+  start_button_->setIconSize(QSize(25, 25));
   start_button_->setCheckable(true);
-  start_button_->setCheckable(false);
+
+  stop_button_ = new QPushButton;
+  stop_button_->setMinimumSize(50, 50);
+  stop_button_->setMaximumSize(50, 50);
+  stop_button_->setIcon(QIcon(stop_icon));
+  stop_button_->setIconSize(QSize(25, 25));
+  stop_button_->setCheckable(true);
+
+  QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   QFrame* line = new QFrame();
   line->setFrameShape(QFrame::HLine);
   line->setFrameShadow(QFrame::Sunken);
 
+  QHBoxLayout* buttons_layout = new QHBoxLayout;
+  buttons_layout->addItem(margin);
+  buttons_layout->addWidget(stop_button_);
+  buttons_layout->addWidget(start_button_);
+  buttons_layout->addItem(margin);
+
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addWidget(activate_checkbox_);
   layout->addWidget(line);
-  layout->addWidget(start_button_);
-  layout->addWidget(stop_button_);
+  layout->addLayout(buttons_layout);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
-  connect(start_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
-  connect(stop_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(start_button_, SIGNAL(clicked()), this, SLOT(start()));
+  connect(stop_button_, SIGNAL(clicked()), this, SLOT(stop()));
 
   evaluateParams();
 }
@@ -75,9 +95,18 @@ void ObstacleRecorderPanel::processInputs() {
   notifyParamsUpdate();
 }
 
+void ObstacleRecorderPanel::start() {
+  p_recording_ = true;
+  processInputs();
+}
+
+void ObstacleRecorderPanel::stop() {
+  p_recording_ = false;
+  processInputs();
+}
+
 void ObstacleRecorderPanel::verifyInputs() {
   p_active_ = activate_checkbox_->isChecked();
-  p_recording_ = start_button_->isChecked();
 }
 
 void ObstacleRecorderPanel::setParams() {
@@ -92,11 +121,12 @@ void ObstacleRecorderPanel::getParams() {
 
 void ObstacleRecorderPanel::evaluateParams() {
   activate_checkbox_->setChecked(p_active_);
-  start_button_->setEnabled(p_active_ && !p_recording_);
-  stop_button_->setEnabled(p_active_ && p_recording_);
 
+  start_button_->setEnabled(p_active_ && !p_recording_);
   start_button_->setChecked(p_recording_);
-  start_button_->setChecked(!p_recording_);
+
+  stop_button_->setEnabled(p_active_ && p_recording_);
+  stop_button_->setChecked(!p_recording_);
 }
 
 void ObstacleRecorderPanel::notifyParamsUpdate() {

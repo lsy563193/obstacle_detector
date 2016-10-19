@@ -73,6 +73,7 @@ private:
   int p_text_color_;
 
   bool p_active_;
+  bool p_show_labels_;
 
   double p_alpha_;
   double p_z_layer_;
