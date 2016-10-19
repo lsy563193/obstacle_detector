@@ -12,7 +12,7 @@ generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 catkin_package(
    INCLUDE_DIRS include
-   LIBRARIES obstacle_detector
+   LIBRARIES ${PROJECT_NAME}
    CATKIN_DEPENDS roscpp rviz std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_runtime
    DEPENDS
 )
@@ -35,7 +35,6 @@ endif()
 add_definitions(-DQT_NO_KEYWORDS)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
 
 add_executable(scans_merger src/scans_merger.cpp include/scans_merger.h include/utilities/math_utilities.h)
 target_link_libraries(scans_merger ${catkin_LIBRARIES})
