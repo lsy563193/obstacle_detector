@@ -45,7 +45,6 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   activate_checkbox_ = new QCheckBox("On/Off");
   scan_checkbox_ = new QCheckBox("Publish scan");
   pcl_checkbox_ = new QCheckBox("Publish PCL");
-  set_button_ = new QPushButton("Set");
 
   n_input_ = new QLineEdit();
   r_min_input_ = new QLineEdit();
@@ -150,13 +149,21 @@ ScansMergerPanel::ScansMergerPanel(QWidget* parent) : rviz::Panel(parent), nh_("
   layout->addWidget(coords_box);
   layout->addWidget(lines[3]);
   layout->addWidget(frame_box);
-  layout->addWidget(lines[4]);
-  layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
-  connect(set_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(scan_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(pcl_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+
+  connect(n_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(r_min_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(r_max_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(x_min_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(x_max_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(y_min_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(y_max_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(frame_id_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
 
   evaluateParams();
 }
@@ -257,8 +264,6 @@ void ScansMergerPanel::evaluateParams() {
   y_min_input_->setText(QString::number(p_min_y_range_));
   y_max_input_->setText(QString::number(p_max_y_range_));
   frame_id_input_->setText(QString::fromStdString(p_frame_id_));
-
-  set_button_->setEnabled(p_active_);
 }
 
 void ScansMergerPanel::notifyParamsUpdate() {

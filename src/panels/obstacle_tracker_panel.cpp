@@ -60,8 +60,6 @@ ObstacleTrackerPanel::ObstacleTrackerPanel(QWidget* parent) : rviz::Panel(parent
   process_rate_var_input_->setAlignment(Qt::AlignRight);
   measure_var_input_->setAlignment(Qt::AlignRight);
 
-  set_button_ = new QPushButton("Set");
-
   QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   QFrame* lines[4];
@@ -112,13 +110,18 @@ ObstacleTrackerPanel::ObstacleTrackerPanel(QWidget* parent) : rviz::Panel(parent
   layout->addWidget(corr_box);
   layout->addWidget(lines[2]);
   layout->addWidget(kf_box);
-  layout->addWidget(lines[3]);
-  layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
-  connect(set_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
+
+  connect(tracking_duration_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(loop_rate_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(min_corr_cost_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(std_corr_dev_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(process_var_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(process_rate_var_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(measure_var_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
 
   evaluateParams();
 }
@@ -202,8 +205,6 @@ void ObstacleTrackerPanel::evaluateParams() {
 
   measure_var_input_->setEnabled(p_active_);
   measure_var_input_->setText(QString::number(p_measurement_variance_));
-
-  set_button_->setEnabled(p_active_);
 }
 
 void ObstacleTrackerPanel::notifyParamsUpdate() {

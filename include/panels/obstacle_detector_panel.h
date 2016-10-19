@@ -79,8 +79,6 @@ private:
   QCheckBox* discard_segments_checkbox_;
   QCheckBox* transform_coords_checkbox_;
 
-  QPushButton* set_button_;
-
   QLineEdit* min_n_input_;
   QLineEdit* dist_prop_input_;
   QLineEdit* group_dist_input_;

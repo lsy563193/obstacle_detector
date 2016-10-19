@@ -77,6 +77,7 @@ add_dependencies(obstacle_publisher ${PROJECT_NAME}_gencpp)
 add_library(${PROJECT_NAME}_gui src/panels/scans_merger_panel.cpp include/panels/scans_merger_panel.h
                                 src/panels/obstacle_detector_panel.cpp include/panels/obstacle_detector_panel.h
                                 src/panels/obstacle_tracker_panel.cpp include/panels/obstacle_tracker_panel.h
+                                src/panels/obstacle_recorder_panel.cpp include/panels/obstacle_recorder_panel.h
                                 src/panels/obstacle_publisher_panel.cpp include/panels/obstacle_publisher_panel.h)
 target_link_libraries(${PROJECT_NAME}_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_gui ${catkin_EXPORTED_TARGETS})

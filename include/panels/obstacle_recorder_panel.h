@@ -39,23 +39,24 @@
 #include <rviz/panel.h>
 #include <std_srvs/Empty.h>
 
+#include <QLabel>
 #include <QFrame>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QPushButton>
-#include <QLabel>
+#include <QGridLayout>
 
 namespace obstacle_detector
 {
 
-class ScansMergerPanel : public rviz::Panel
+class ObstacleRecorderPanel : public rviz::Panel
 {
 Q_OBJECT
 public:
-  ScansMergerPanel(QWidget* parent = 0);
+  ObstacleRecorderPanel(QWidget* parent = 0);
 
   virtual void load(const rviz::Config& config);
   virtual void save(rviz::Config config) const;
@@ -72,19 +73,9 @@ private:
 
 private:
   QCheckBox* activate_checkbox_;
-  QCheckBox* scan_checkbox_;
-  QCheckBox* pcl_checkbox_;
 
-  QLineEdit* n_input_;
-  QLineEdit* r_min_input_;
-  QLineEdit* r_max_input_;
-
-  QLineEdit* x_min_input_;
-  QLineEdit* x_max_input_;
-  QLineEdit* y_min_input_;
-  QLineEdit* y_max_input_;
-
-  QLineEdit* frame_id_input_;
+  QPushButton* start_button_;
+  QPushButton* stop_button_;
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
@@ -92,20 +83,8 @@ private:
   ros::ServiceClient params_cli_;
 
   // Parameters
-  int p_ranges_num_;
-
   bool p_active_;
-  bool p_publish_scan_;
-  bool p_publish_pcl_;
-
-  double p_min_scanner_range_;
-  double p_max_scanner_range_;
-  double p_max_x_range_;
-  double p_min_x_range_;
-  double p_max_y_range_;
-  double p_min_y_range_;
-
-  std::string p_frame_id_;
+  bool p_recording_;
 };
 
 }

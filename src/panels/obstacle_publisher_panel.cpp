@@ -43,8 +43,8 @@ ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(pa
   getParams();
 
   activate_checkbox_ = new QCheckBox("On/Off");
-  fusion_example_checkbox_ = new QCheckBox("Fusion example");
-  fission_example_checkbox_ = new QCheckBox("Fission example");
+  fusion_example_checkbox_ = new QCheckBox("Fusion");
+  fission_example_checkbox_ = new QCheckBox("Fission");
 
   obstacles_list_ = new QListWidget();
   add_button_ = new QPushButton("Add obstacle");
@@ -68,7 +68,7 @@ ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(pa
 
   QSpacerItem* margin = new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  QVBoxLayout* demos_layout = new QVBoxLayout;
+  QHBoxLayout* demos_layout = new QHBoxLayout;
   demos_layout->addWidget(fusion_example_checkbox_);
   demos_layout->addWidget(fission_example_checkbox_);
 
@@ -121,6 +121,9 @@ ObstaclePublisherPanel::ObstaclePublisherPanel(QWidget* parent) : rviz::Panel(pa
   setLayout(layout);
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(fusion_example_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(fission_example_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+
   connect(add_button_, SIGNAL(clicked()), this, SLOT(addObstacle()));
   connect(remove_button_, SIGNAL(clicked()), this, SLOT(removeObstacles()));
   connect(reset_button_, SIGNAL(clicked()), this, SLOT(reset()));

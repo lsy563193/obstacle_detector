@@ -82,8 +82,6 @@ private:
   QLineEdit* process_rate_var_input_;
   QLineEdit* measure_var_input_;
 
-  QPushButton* set_button_;
-
   ros::NodeHandle nh_;
   ros::NodeHandle nh_local_;
 

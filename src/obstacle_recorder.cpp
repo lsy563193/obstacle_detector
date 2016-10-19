@@ -88,7 +88,7 @@ bool ObstacleRecorder::updateParams(std_srvs::Empty::Request &req, std_srvs::Emp
   return true;
 }
 
-void ObstacleRecorder::obstaclesCallback(const obstacle_detector::Obstacles::ConstPtr& obstacles) {
+void ObstacleRecorder::obstaclesCallback(const Obstacles::ConstPtr& obstacles) {
   if (p_recording_) {
     counter_++;
     double t = (ros::Time::now() - start_mark_).toSec();

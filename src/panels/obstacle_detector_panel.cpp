@@ -69,8 +69,6 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   radius_enl_input_->setAlignment(Qt::AlignRight);
   frame_id_input_->setAlignment(Qt::AlignRight);
 
-  set_button_ = new QPushButton("Set");
-
   QFrame* lines[5];
   for (auto& line : lines) {
     line = new QFrame();
@@ -144,13 +142,25 @@ ObstacleDetectorPanel::ObstacleDetectorPanel(QWidget* parent) : rviz::Panel(pare
   layout->addWidget(circle_box);
   layout->addWidget(lines[3]);
   layout->addWidget(frame_box);
-  layout->addWidget(lines[4]);
-  layout->addWidget(set_button_);
   layout->setAlignment(layout, Qt::AlignCenter);
   setLayout(layout);
 
   connect(activate_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
-  connect(set_button_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(use_scan_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(use_pcl_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(use_split_merge_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(discard_segments_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+  connect(transform_coords_checkbox_, SIGNAL(clicked()), this, SLOT(processInputs()));
+
+  connect(min_n_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(dist_prop_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(group_dist_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(split_dist_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(merge_sep_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(merge_spread_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(max_radius_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(radius_enl_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
+  connect(frame_id_input_, SIGNAL(editingFinished()), this, SLOT(processInputs()));
 
   evaluateParams();
 }
@@ -285,8 +295,6 @@ void ObstacleDetectorPanel::evaluateParams() {
 
   frame_id_input_->setEnabled(p_active_);
   frame_id_input_->setText(QString::fromStdString(p_frame_id_));
-
-  set_button_->setEnabled(p_active_);
 }
 
 void ObstacleDetectorPanel::notifyParamsUpdate() {

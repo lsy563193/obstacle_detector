@@ -24,6 +24,14 @@
     </description>
   </class>
 
+  <class name="Obstacle Recorder"
+         type="obstacle_detector::ObstacleRecorderPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      Turn on/off and start or stop obstacles recording.
+    </description>
+  </class>
+
   <class name="Obstacle Publisher"
          type="obstacle_detector::ObstaclePublisherPanel"
          base_class_type="rviz::Panel">
