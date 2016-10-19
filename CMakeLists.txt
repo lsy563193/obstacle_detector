@@ -18,7 +18,7 @@ catkin_package(
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
+link_directories(${catkin_LIBRARY_DIRS} ${ARMADILLO_LIBRARY_DIRS})
 
 set(CMAKE_AUTOMOC ON)
 
