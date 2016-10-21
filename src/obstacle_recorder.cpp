@@ -101,7 +101,7 @@ void ObstacleRecorder::obstaclesCallback(const Obstacles::ConstPtr& obstacles) {
             << circle.center.y << "\t"
             << circle.radius << "\t"
             << circle.velocity.x << "\t"
-            << circle.obstacle_id << "\n";
+            << 0 << "\n"; //circle.obstacle_id << "\n";
     }
   }
 }

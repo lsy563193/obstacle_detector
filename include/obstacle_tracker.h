@@ -40,6 +40,7 @@
 #include <ros/ros.h>
 #include <armadillo>
 #include <std_srvs/Empty.h>
+#include <obstacle_detector/Obstacles.h>
 
 #include "utilities/tracked_obstacle.h"
 #include "utilities/math_utilities.h"

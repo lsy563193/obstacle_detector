@@ -70,6 +70,8 @@ private:
   void detectSegments(const PointSet& point_set);
   void mergeSegments();
   bool compareSegments(const Segment& s1, const Segment& s2, Segment& merged_segment);
+  bool checkSegmentsProximity(const Segment& s1, const Segment& s2);
+  bool checkSegmentsCollinearity(const Segment& segment, const Segment& s1, const Segment& s2);
 
   void detectCircles();
   void mergeCircles();
@@ -102,7 +104,6 @@ private:
 
   double p_distance_proportion_;
   double p_max_group_distance_;
-
   double p_max_split_distance_;
   double p_max_merge_separation_;
   double p_max_merge_spread_;

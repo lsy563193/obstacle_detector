@@ -81,7 +81,7 @@ bool ObstacleDetector::updateParams(std_srvs::Empty::Request &req, std_srvs::Emp
       else if (p_use_pcl_)
         pcl_sub_ = nh_.subscribe("pcl", 10, &ObstacleDetector::pclCallback, this);
 
-      obstacles_pub_ = nh_.advertise<obstacle_detector::Obstacles>("raw_obstacles", 10);
+      obstacles_pub_ = nh_.advertise<Obstacles>("raw_obstacles", 10);
 
       ROS_INFO("Obstacle Detector [ACTIVE]");
     }
@@ -240,30 +240,34 @@ bool ObstacleDetector::compareSegments(const Segment& s1, const Segment& s2, Seg
   if (s1.first_point.cross(s2.first_point) < 0.0)
     return compareSegments(s2, s1, merged_segment);
 
-  // 1. Check if the segments are close to each other
-  if (s1.trueDistanceTo(s2.first_point) < p_max_merge_separation_ ||
-      s1.trueDistanceTo(s2.last_point)  < p_max_merge_separation_ ||
-      s2.trueDistanceTo(s1.first_point) < p_max_merge_separation_ ||
-      s2.trueDistanceTo(s1.last_point)  < p_max_merge_separation_)
-  {
-    // 2. Check spread about line from regression of sum of points
+  if (checkSegmentsProximity(s1, s2)) {
     vector<PointSet> point_sets;
     point_sets.insert(point_sets.end(), s1.point_sets.begin(), s1.point_sets.end());
     point_sets.insert(point_sets.end(), s2.point_sets.begin(), s2.point_sets.end());
 
     Segment segment = fitSegment(point_sets);
 
-    if (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
-        segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
-        segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
-        segment.distanceTo(s2.last_point)  < p_max_merge_spread_)
-    {
+    if (checkSegmentsCollinearity(segment, s1, s2)) {
       merged_segment = segment;
       return true;
     }
   }
 
   return false;
+}
+
+bool ObstacleDetector::checkSegmentsProximity(const Segment& s1, const Segment& s2) {
+  return (s1.trueDistanceTo(s2.first_point) < p_max_merge_separation_ ||
+          s1.trueDistanceTo(s2.last_point)  < p_max_merge_separation_ ||
+          s2.trueDistanceTo(s1.first_point) < p_max_merge_separation_ ||
+          s2.trueDistanceTo(s1.last_point)  < p_max_merge_separation_);
+}
+
+bool ObstacleDetector::checkSegmentsCollinearity(const Segment& segment, const Segment& s1, const Segment& s2) {
+  return (segment.distanceTo(s1.first_point) < p_max_merge_spread_ &&
+          segment.distanceTo(s1.last_point)  < p_max_merge_spread_ &&
+          segment.distanceTo(s2.first_point) < p_max_merge_spread_ &&
+          segment.distanceTo(s2.last_point)  < p_max_merge_spread_);
 }
 
 void ObstacleDetector::detectCircles() {
@@ -338,7 +342,7 @@ void ObstacleDetector::publishObstacles() {
   obstacles.header.stamp = ros::Time::now();
 
   for (const Segment& s : segments_) {
-    obstacle_detector::SegmentObstacle segment;
+    SegmentObstacle segment;
 
     segment.first_point.x = s.first_point.x;
     segment.first_point.y = s.first_point.y;
@@ -349,7 +353,7 @@ void ObstacleDetector::publishObstacles() {
   }
 
   for (const Circle& c : circles_) {
-    obstacle_detector::CircleObstacle circle;
+    CircleObstacle circle;
 
     circle.center.x = c.center.x;
     circle.center.y = c.center.y;

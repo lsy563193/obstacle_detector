@@ -40,7 +40,7 @@ using namespace obstacle_detector;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "obstacle_publisher");
-  ObstaclePublisher vop;
+  ObstaclePublisher op;
   return 0;
 }
 
@@ -98,12 +98,12 @@ bool ObstaclePublisher::updateParams(std_srvs::Empty::Request& req, std_srvs::Em
     if (p_active_) {
       obstacle_pub_ = nh_.advertise<Obstacles>("obstacles", 10);
       rate_ = ros::Rate(p_loop_rate_);
-      ROS_INFO("Virtual Obstacle Publisher [ACTIVE]");
+      ROS_INFO("Obstacle Publisher [ACTIVE]");
     }
     else {
       obstacle_pub_.shutdown();
       rate_ = ros::Rate(5.0);
-      ROS_INFO("Virtual Obstacle Publisher [OFF]");
+      ROS_INFO("Obstacle Publisher [OFF]");
     }
   }
 
