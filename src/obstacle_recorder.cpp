@@ -94,6 +94,10 @@ void ObstacleRecorder::obstaclesCallback(const Obstacles::ConstPtr& obstacles) {
     double t = (ros::Time::now() - start_mark_).toSec();
 
     for (auto circle : obstacles->circles) {
+      if (circle.center.x > 2.0 || circle.center.x < -2.0 ||
+          circle.center.y > 1.2 || circle.center.y < -1.2)
+        continue;
+
       file_ << counter_ << "\t"
             << t << "\t"
             << (int)circle.tracked << "\t"
