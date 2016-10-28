@@ -71,6 +71,11 @@ private:
   bool p_active_;
   bool p_recording_;
 
+  double p_min_x_limit_;
+  double p_max_x_limit_;
+  double p_min_y_limit_;
+  double p_max_y_limit_;
+
   std::string p_filename_prefix_;
 };
 

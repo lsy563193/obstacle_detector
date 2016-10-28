@@ -59,6 +59,11 @@ bool ObstacleRecorder::updateParams(std_srvs::Empty::Request &req, std_srvs::Emp
   nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("recording", p_recording_, false);
 
+  nh_local_.param<double>("min_x_limit", p_min_x_limit_, -10.0);
+  nh_local_.param<double>("max_x_limit", p_max_x_limit_,  10.0);
+  nh_local_.param<double>("min_y_limit", p_min_y_limit_, -10.0);
+  nh_local_.param<double>("max_y_limit", p_max_y_limit_,  10.0);
+
   nh_local_.param<string>("filename_prefix", p_filename_prefix_, "raw_");
 
   if (p_active_ != prev_active) {
@@ -94,8 +99,8 @@ void ObstacleRecorder::obstaclesCallback(const Obstacles::ConstPtr& obstacles) {
     double t = (ros::Time::now() - start_mark_).toSec();
 
     for (auto circle : obstacles->circles) {
-      if (circle.center.x > 2.0 || circle.center.x < -2.0 ||
-          circle.center.y > 1.2 || circle.center.y < -1.2)
+      if (circle.center.x > p_max_x_limit_ || circle.center.x < p_min_x_limit_ ||
+          circle.center.y > p_max_x_limit_ || circle.center.y < p_min_y_limit_)
         continue;
 
       file_ << counter_ << "\t"
