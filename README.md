@@ -12,6 +12,8 @@ The package requires [Armadillo C++](http://arma.sourceforge.net) library for co
 </p>
 -----------------------
 
+## Table of contents
+
 1. The nodes  
   1.1. The scans_merger node  
   1.2. The obstacle_detector node  
