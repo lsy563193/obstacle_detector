@@ -12,14 +12,14 @@ The package requires [Armadillo C++](http://arma.sourceforge.net) library for co
 </p>
 -----------------------
 
-1. The nodes 
-  1.1 The scans_merger node 
-  1.2 The obstacle_detector node 
-  1.3 The obstacle_tracker node 
-  1.4 The obstacle_visualizer node 
-  1.5 The obstacle_recorder node 
-  1.6 The obstacle_publisher node 
-  1.7. The static\_scan\_publisher node 
+1. The nodes  
+  1.1. The scans_merger node  
+  1.2. The obstacle_detector node  
+  1.3. The obstacle_tracker node  
+  1.4. The obstacle_visualizer node  
+  1.5. The obstacle_recorder node  
+  1.6. The obstacle_publisher node  
+  1.7. The static\_scan\_publisher node
 2. The messages
 4. Launch files
 
