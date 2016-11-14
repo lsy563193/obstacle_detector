@@ -15,8 +15,21 @@ ObstacleTracker::ObstacleTracker() : nh_(""), nh_local_("~"), rate_(5.0), p_acti
   updateParams(empty.request, empty.response);
   params_srv_ = nh_local_.advertiseService("params", &ObstacleTracker::updateParams, this);
 
-  ROS_INFO("Obstacle Tracker [Waiting for first message]");
-  ros::topic::waitForMessage<Obstacles>("raw_obstacles");
+  {
+    ROS_INFO("Obstacle Tracker [Waiting for first message]");
+
+    boost::shared_ptr<Obstacles const> msg_ptr;
+    msg_ptr = ros::topic::waitForMessage<Obstacles>("raw_obstacles", ros::Duration(10));
+
+    if (msg_ptr == nullptr) {
+      ROS_INFO("Obstacle Tracker [ERROR: Didn't receive any message. Falling into sleep mode.]");
+      nh_local_.setParam("active", false);
+      std_srvs::Empty empty;
+      updateParams(empty.request, empty.response);
+    }
+    else
+      ROS_INFO("Obstacle Tracker [First message received]");
+  }
 
   while (ros::ok()) {
     ros::spinOnce();
