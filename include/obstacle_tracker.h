@@ -90,6 +90,7 @@ private:
 
   // Parameters
   bool p_active_;
+  bool p_copy_segments_;
 
   double p_tracking_duration_;
   double p_loop_rate_;

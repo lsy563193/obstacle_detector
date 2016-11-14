@@ -54,13 +54,13 @@ ObstacleVisualizer::ObstacleVisualizer() : nh_(""), nh_local_("~"), p_active_(fa
 bool ObstacleVisualizer::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
   bool prev_active = p_active_;
 
+  nh_local_.param<bool>("active", p_active_, true);
+  nh_local_.param<bool>("show_labels", p_show_labels_, false);
+
   nh_local_.param<int>("tracked_circles_color", p_tracked_circles_color_, 3);
   nh_local_.param<int>("untracked_circles_color", p_untracked_circles_color_, 2);
   nh_local_.param<int>("segments_color", p_segments_color_, 1);
   nh_local_.param<int>("text_color", p_text_color_, 1);
-
-  nh_local_.param<bool>("active", p_active_, true);
-  nh_local_.param<bool>("show_labels", p_show_labels_, true);
 
   nh_local_.param<double>("alpha", p_alpha_, 1.0);
   nh_local_.param<double>("z_layer", p_z_layer_, 0.0);

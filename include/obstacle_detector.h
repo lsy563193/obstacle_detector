@@ -93,14 +93,14 @@ private:
   std::list<Circle> circles_;
 
   // Parameters
-  int p_min_group_points_;
-
   bool p_active_;
   bool p_use_scan_;
   bool p_use_pcl_;
   bool p_use_split_and_merge_;
   bool p_discard_converted_segments_;
   bool p_transform_coordinates_;
+
+  int p_min_group_points_;
 
   double p_distance_proportion_;
   double p_max_group_distance_;

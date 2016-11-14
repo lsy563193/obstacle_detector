@@ -63,14 +63,14 @@ target_link_libraries(obstacle_recorder ${catkin_LIBRARIES})
 add_dependencies(obstacle_recorder ${PROJECT_NAME}_gencpp)
 
 
-add_executable(static_scan_publisher src/static_scan_publisher.cpp)
-target_link_libraries(static_scan_publisher ${catkin_LIBRARIES})
-add_dependencies(static_scan_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS})
-
-
 add_executable(obstacle_publisher src/obstacle_publisher.cpp include/obstacle_publisher.h)
 target_link_libraries(obstacle_publisher ${catkin_LIBRARIES})
 add_dependencies(obstacle_publisher ${PROJECT_NAME}_gencpp)
+
+
+add_executable(static_scan_publisher src/static_scan_publisher.cpp)
+target_link_libraries(static_scan_publisher ${catkin_LIBRARIES})
+add_dependencies(static_scan_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
 add_library(${PROJECT_NAME}_gui src/panels/scans_merger_panel.cpp include/panels/scans_merger_panel.h

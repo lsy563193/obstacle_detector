@@ -2,7 +2,7 @@
 <package format="2">
   <name>obstacle_detector</name>
   <version>1.0.0</version>
-  <description>Detecting obstacles from laser scans</description>
+  <description>Obstacle Detector Package</description>
   <maintainer email="mateusz.przybyla@doctorate.put.poznan.pl">Mateusz Przybyla</maintainer>
   <author>Mateusz Przybyla</author>
   <license>BSD</license>

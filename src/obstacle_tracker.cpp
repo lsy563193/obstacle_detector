@@ -34,13 +34,14 @@ bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empt
   bool prev_active = p_active_;
 
   nh_local_.param<bool>("active", p_active_, true);
+  nh_local_.param<bool>("copy_segments", p_copy_segments_, true);
 
   nh_local_.param<double>("loop_rate", p_loop_rate_, 100.0);
   nh_local_.param<double>("tracking_duration", p_tracking_duration_, 2.0);
   nh_local_.param<double>("min_correspondence_cost", p_min_correspondence_cost_, 0.3);
   nh_local_.param<double>("std_correspondence_dev", p_std_correspondence_dev_, 0.15);
-  nh_local_.param<double>("process_variance", p_process_variance_, 0.001);
-  nh_local_.param<double>("process_rate_variance", p_process_rate_variance_, 0.01);
+  nh_local_.param<double>("process_variance", p_process_variance_, 0.01);
+  nh_local_.param<double>("process_rate_variance", p_process_rate_variance_, 0.1);
   nh_local_.param<double>("measurement_variance", p_measurement_variance_, 1.0);
 
   TrackedObstacle::setSamplingTime(1.0 / p_loop_rate_);
@@ -69,6 +70,11 @@ bool ObstacleTracker::updateParams(std_srvs::Empty::Request &req, std_srvs::Empt
 
 void ObstacleTracker::obstaclesCallback(const Obstacles::ConstPtr& new_obstacles) {
   obstacles_msg_.header.frame_id = new_obstacles->header.frame_id;
+
+  if (p_copy_segments_) {
+    obstacles_msg_.segments.clear();
+    obstacles_msg_.segments.assign(new_obstacles->segments.begin(), new_obstacles->segments.end());
+  }
 
   int N = new_obstacles->circles.size();
   int T = tracked_obstacles_.size();

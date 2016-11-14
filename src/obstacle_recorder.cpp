@@ -59,12 +59,12 @@ bool ObstacleRecorder::updateParams(std_srvs::Empty::Request &req, std_srvs::Emp
   nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("recording", p_recording_, false);
 
-  nh_local_.param<double>("min_x_limit", p_min_x_limit_, -2.0);
-  nh_local_.param<double>("max_x_limit", p_max_x_limit_,  2.0);
-  nh_local_.param<double>("min_y_limit", p_min_y_limit_, -1.2);
-  nh_local_.param<double>("max_y_limit", p_max_y_limit_,  1.2);
+  nh_local_.param<double>("min_x_limit", p_min_x_limit_, -10.0);
+  nh_local_.param<double>("max_x_limit", p_max_x_limit_,  10.0);
+  nh_local_.param<double>("min_y_limit", p_min_y_limit_, -10.0);
+  nh_local_.param<double>("max_y_limit", p_max_y_limit_,  10.0);
 
-  nh_local_.param<string>("filename_prefix", p_filename_prefix_, "raw_");
+  nh_local_.param<string>("filename_prefix", p_filename_prefix_, "tracked_");
 
   if (p_active_ != prev_active) {
     if (p_active_) {

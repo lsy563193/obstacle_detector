@@ -81,11 +81,11 @@ private:
   std::vector<geometry_msgs::Point32> points_;
 
   // Parameters
-  int p_ranges_num_;
-
   bool p_active_;
   bool p_publish_scan_;
   bool p_publish_pcl_;
+
+  int p_ranges_num_;
 
   double p_min_scanner_range_;
   double p_max_scanner_range_;

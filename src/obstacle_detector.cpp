@@ -55,14 +55,14 @@ ObstacleDetector::ObstacleDetector() : nh_(""), nh_local_("~"), p_active_(false)
 bool ObstacleDetector::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
   bool prev_active = p_active_;
 
-  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
-
   nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("use_scan", p_use_scan_, true);
   nh_local_.param<bool>("use_pcl", p_use_pcl_, false);
   nh_local_.param<bool>("use_split_and_merge", p_use_split_and_merge_, false);
   nh_local_.param<bool>("discard_converted_segments", p_discard_converted_segments_, true);
   nh_local_.param<bool>("transform_coordinates", p_transform_coordinates_, true);
+
+  nh_local_.param<int>("min_group_points", p_min_group_points_, 5);
 
   nh_local_.param<double>("max_group_distance", p_max_group_distance_, 0.100);
   nh_local_.param<double>("distance_proportion", p_distance_proportion_, 0.006136);

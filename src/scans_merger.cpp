@@ -61,11 +61,11 @@ ScansMerger::ScansMerger() : nh_(""), nh_local_("~"), p_active_(false) {
 bool ScansMerger::updateParams(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
   bool prev_active = p_active_;
 
-  nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
-
   nh_local_.param<bool>("active", p_active_, true);
   nh_local_.param<bool>("publish_scan", p_publish_scan_, true);
   nh_local_.param<bool>("publish_pcl", p_publish_pcl_, true);
+
+  nh_local_.param<int>("ranges_num", p_ranges_num_, 1000);
 
   nh_local_.param<double>("min_scanner_range", p_min_scanner_range_, 0.05);
   nh_local_.param<double>("max_scanner_range", p_max_scanner_range_, 10.0);
