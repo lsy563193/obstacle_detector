@@ -3,7 +3,8 @@ project(obstacle_detector)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive ${CMAKE_CXX_FLAGS} -Wfatal-errors\ ")
 
-find_package(catkin REQUIRED COMPONENTS roscpp rviz std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
+#find_package(catkin REQUIRED COMPONENTS roscpp rviz std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_generation)
 find_package(Armadillo REQUIRED)
 find_package(Boost 1.54.0 REQUIRED system)
 
@@ -13,7 +14,7 @@ generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES 
-   CATKIN_DEPENDS roscpp rviz std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_runtime
+   CATKIN_DEPENDS roscpp std_msgs std_srvs geometry_msgs sensor_msgs visualization_msgs tf message_runtime
    DEPENDS
 )
 
@@ -73,13 +74,13 @@ target_link_libraries(static_scan_publisher ${catkin_LIBRARIES})
 add_dependencies(static_scan_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
-add_library(${PROJECT_NAME}_gui src/panels/scans_merger_panel.cpp include/panels/scans_merger_panel.h
-                                src/panels/obstacle_detector_panel.cpp include/panels/obstacle_detector_panel.h
-                                src/panels/obstacle_tracker_panel.cpp include/panels/obstacle_tracker_panel.h
-                                src/panels/obstacle_recorder_panel.cpp include/panels/obstacle_recorder_panel.h
-                                src/panels/obstacle_publisher_panel.cpp include/panels/obstacle_publisher_panel.h)
-target_link_libraries(${PROJECT_NAME}_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(${PROJECT_NAME}_gui ${catkin_EXPORTED_TARGETS})
+#add_library(${PROJECT_NAME}_gui src/panels/scans_merger_panel.cpp include/panels/scans_merger_panel.h
+#                                src/panels/obstacle_detector_panel.cpp include/panels/obstacle_detector_panel.h
+#                                src/panels/obstacle_tracker_panel.cpp include/panels/obstacle_tracker_panel.h
+#                                src/panels/obstacle_recorder_panel.cpp include/panels/obstacle_recorder_panel.h
+#                                src/panels/obstacle_publisher_panel.cpp include/panels/obstacle_publisher_panel.h)
+#target_link_libraries(${PROJECT_NAME}_gui ${QT_LIBRARIES} ${catkin_LIBRARIES})
+#add_dependencies(${PROJECT_NAME}_gui ${catkin_EXPORTED_TARGETS})
 
 file(MAKE_DIRECTORY /home/$ENV{USER}/ObstacleDetector/records)
 file(MAKE_DIRECTORY /home/$ENV{USER}/ObstacleDetector/resources)
